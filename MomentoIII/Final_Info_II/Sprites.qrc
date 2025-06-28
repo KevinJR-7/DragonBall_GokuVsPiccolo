@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/Goku">
+        <file>Sprites/goku/adelante.png</file>
+        <file>Sprites/goku/atras.png</file>
+        <file>Sprites/goku/quieto.png</file>
+    </qresource>
+</RCC>
