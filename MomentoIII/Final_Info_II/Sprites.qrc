@@ -2,6 +2,14 @@
     <qresource prefix="/Goku">
         <file>Sprites/goku/adelante.png</file>
         <file>Sprites/goku/atras.png</file>
-        <file>Sprites/goku/quieto.png</file>
+        <file>Sprites/goku/base1.png</file>
+        <file>Sprites/goku/base2.png</file>
+        <file>Sprites/goku/base3.png</file>
+        <file>Sprites/goku/base4.png</file>
+        <file>Sprites/goku/base5.png</file>
+        <file>Sprites/goku/base6.png</file>
+        <file>Sprites/goku/entrada1.png</file>
+        <file>Sprites/goku/entrada2.png</file>
+        <file>Sprites/goku/entrada3.png</file>
     </qresource>
 </RCC>

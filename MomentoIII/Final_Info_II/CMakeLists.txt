@@ -16,6 +16,7 @@ add_executable(Final_Info_II
   main.cpp
   game.h game.cpp
   game.ui
+  personaje.h personaje.cpp
   player.h player.cpp
   Sprites.qrc
 )
