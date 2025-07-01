@@ -17,7 +17,7 @@ add_executable(Final_Info_II
   game.h game.cpp
   game.ui
   personaje.h personaje.cpp
-  player.h player.cpp
+  goku.h goku.cpp
   Sprites.qrc
 )
 target_link_libraries(Final_Info_II
