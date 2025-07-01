@@ -133,6 +133,38 @@ void Personaje::cambiarSprite(const QString& direccion)
     }
 }
 
+void Personaje::cambiarSpriteCentrado(const QString& direccion)
+{
+    // Guardar la posición central actual
+    QPointF centroActual = pos() + QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
+    
+    QString rutaSprite = ":/Goku/Sprites/" + carpetaSprites + "/" + direccion + ".png";
+    QPixmap nuevoSprite(rutaSprite);
+    
+    if (!nuevoSprite.isNull()) {
+        // Escalar el sprite si es necesario
+        if (escalaSprite != 1.0) {
+            nuevoSprite = nuevoSprite.scaled(
+                nuevoSprite.width() * escalaSprite,
+                nuevoSprite.height() * escalaSprite,
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation
+            );
+        }
+        
+        // Cambiar el sprite
+        setPixmap(nuevoSprite);
+        
+        // Calcular nueva posición para mantener el centro
+        QPointF nuevaPos = centroActual - QPointF(nuevoSprite.width() / 2.0, nuevoSprite.height() / 2.0);
+        QGraphicsPixmapItem::setPos(nuevaPos);
+        
+        qDebug() << "Sprite centrado cambiado a:" << direccion << "- Nueva pos:" << nuevaPos;
+    } else {
+        qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
+    }
+}
+
 void Personaje::iniciarAnimacionIdle()
 {
     moviendose = false;
@@ -639,5 +671,30 @@ void Personaje::actualizarVisualizacionHitbox()
         
         // Asegurar que esté en el nivel correcto (por encima del personaje)
         hitboxVisual->setZValue(this->zValue() + 1);
+    }
+}
+
+void Personaje::cambiarSpriteConOffset(const QString& direccion, qreal offsetX, qreal offsetY)
+{
+    QString rutaSprite = ":/Goku/Sprites/" + carpetaSprites + "/" + direccion + ".png";
+    QPixmap nuevoSprite(rutaSprite);
+    
+    if (!nuevoSprite.isNull()) {
+        // Escalar el sprite si es necesario
+        if (escalaSprite != 1.0) {
+            nuevoSprite = nuevoSprite.scaled(
+                nuevoSprite.width() * escalaSprite,
+                nuevoSprite.height() * escalaSprite,
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation
+            );
+        }
+        
+        // Cambiar el sprite SIN mover la posición
+        setPixmap(nuevoSprite);
+        
+        qDebug() << "Sprite con offset cambiado a:" << direccion << "- Offset especificado:" << offsetX << "," << offsetY << "(posición sin cambiar)";
+    } else {
+        qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
     }
 }

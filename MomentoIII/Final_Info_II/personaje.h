@@ -28,6 +28,8 @@ public:
     // Métodos virtuales con implementación por defecto (pueden ser sobrescritos)
     virtual void saltar();
     virtual void cambiarSprite(const QString& direccion);
+    virtual void cambiarSpriteCentrado(const QString& direccion);
+    virtual void cambiarSpriteConOffset(const QString& direccion, qreal offsetX, qreal offsetY);
     virtual void iniciarAnimacionIdle();
     virtual void establecerEscala(qreal escala);
     virtual void morir();

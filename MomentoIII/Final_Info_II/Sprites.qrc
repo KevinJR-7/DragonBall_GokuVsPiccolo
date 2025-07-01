@@ -18,5 +18,13 @@
         <file>Sprites/goku/salto5.png</file>
         <file>Sprites/goku/salto6.png</file>
         <file>Sprites/goku/salto7.png</file>
+        <file>Sprites/goku/ki1.png</file>
+        <file>Sprites/goku/ki2.png</file>
+        <file>Sprites/goku/ki3.png</file>
+        <file>Sprites/goku/ki4.png</file>
+        <file>Sprites/goku/ki5.png</file>
+        <file>Sprites/goku/ki6.png</file>
+        <file>Sprites/goku/ki7.png</file>
+        <file>Sprites/goku/ki8.png</file>
     </qresource>
 </RCC>

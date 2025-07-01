@@ -35,6 +35,8 @@ game::game(QWidget *parent)
     // Opcional: Escalar Goku (1.5 = 150% del tamaño original)
     // p->establecerEscala(1.5);
 
+    // Agregar grilla temporal para debug de posicionamiento
+    agregarGrillaDebug();
 }
 
 game::~game()
@@ -79,8 +81,8 @@ void game::keyPressEvent(QKeyEvent *e)
         }
     }
     
-    // Salto direccional - no permitir si es invisible o durante animación de entrada
-    if(e->key() == Qt::Key_Space && !p->estaSaltando() && p->isVisible() && !p->estaEnAnimacionEntrada()){ 
+    // Salto direccional - no permitir si es invisible, durante animación de entrada o recargando ki
+    if(e->key() == Qt::Key_Space && !p->estaSaltando() && p->isVisible() && !p->estaEnAnimacionEntrada() && !p->estaRecargandoKi()){ 
         saltoDireccional();
         qDebug() << "Salto direccional iniciado";
     }
@@ -92,6 +94,18 @@ void game::keyPressEvent(QKeyEvent *e)
         } else {
             p->mostrarHitbox();
             qDebug() << "Hitbox visible";
+        }
+    }
+    if(e->key() == Qt::Key_G){ 
+        // Alternar visualización de grilla con tecla G
+        alternarGrillaDebug();
+    }
+    if(e->key() == Qt::Key_K){ 
+        // Iniciar recarga de ki al presionar K (solo si no está ya recargando)
+        if (!teclaK_presionada && !p->estaRecargandoKi()) {
+            teclaK_presionada = true;
+            p->iniciarRecargaKi();
+            qDebug() << "Recarga de ki iniciada (mantener K presionada)";
         }
     }
 }
@@ -115,6 +129,14 @@ void game::keyReleaseEvent(QKeyEvent *e)
     }
     if(e->key() == Qt::Key_S) { 
         teclaS_presionada = false;
+    }
+    if(e->key() == Qt::Key_K) { 
+        // Detener recarga de ki al soltar K
+        if (teclaK_presionada) {
+            teclaK_presionada = false;
+            p->detenerRecargaKi();
+            qDebug() << "Tecla K liberada - deteniendo recarga de ki";
+        }
     }
     
     // Si no hay teclas presionadas, detener timer e iniciar idle
@@ -197,4 +219,55 @@ void game::actualizarMovimiento()
             p->moverAbajo();
         }
     }
+}
+
+void game::agregarGrillaDebug()
+{
+    // Crear grilla de 10x10 píxeles para ayudar con el posicionamiento
+    QPen penGrilla(Qt::lightGray, 0.5, Qt::DotLine);
+    
+    // Obtener límites de la escena
+    QRectF limites = scene->sceneRect();
+    
+    // Líneas verticales cada 10 píxeles
+    for (int x = limites.left(); x <= limites.right(); x += 10) {
+        QGraphicsLineItem* linea = scene->addLine(x, limites.top(), x, limites.bottom(), penGrilla);
+        linea->setZValue(-1000); // Poner muy atrás
+        lineasGrilla.append(linea);
+    }
+    
+    // Líneas horizontales cada 10 píxeles
+    for (int y = limites.top(); y <= limites.bottom(); y += 10) {
+        QGraphicsLineItem* linea = scene->addLine(limites.left(), y, limites.right(), y, penGrilla);
+        linea->setZValue(-1000); // Poner muy atrás
+        lineasGrilla.append(linea);
+    }
+    
+    // Líneas más gruesas cada 50 píxeles para mejor referencia
+    QPen penGrillaGruesa(Qt::gray, 1.0, Qt::DotLine);
+    
+    for (int x = limites.left(); x <= limites.right(); x += 50) {
+        QGraphicsLineItem* linea = scene->addLine(x, limites.top(), x, limites.bottom(), penGrillaGruesa);
+        linea->setZValue(-999);
+        lineasGrilla.append(linea);
+    }
+    
+    for (int y = limites.top(); y <= limites.bottom(); y += 50) {
+        QGraphicsLineItem* linea = scene->addLine(limites.left(), y, limites.right(), y, penGrillaGruesa);
+        linea->setZValue(-999);
+        lineasGrilla.append(linea);
+    }
+    
+    qDebug() << "Grilla de debug agregada - líneas cada 10px (finas) y 50px (gruesas). Presiona G para alternar.";
+}
+
+void game::alternarGrillaDebug()
+{
+    grillaVisible = !grillaVisible;
+    
+    for (QGraphicsLineItem* linea : lineasGrilla) {
+        linea->setVisible(grillaVisible);
+    }
+    
+    qDebug() << "Grilla de debug" << (grillaVisible ? "mostrada" : "oculta");
 }

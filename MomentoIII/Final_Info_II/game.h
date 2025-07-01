@@ -30,6 +30,10 @@ public:
     
     // Método para verificar y aplicar movimiento continuo
     void verificarMovimientoContinuo();
+    
+    // Método para debug de posicionamiento
+    void agregarGrillaDebug();
+    void alternarGrillaDebug();
 
 private slots:
     void actualizarMovimiento();
@@ -45,6 +49,11 @@ private:
     bool teclaA_presionada = false;
     bool teclaW_presionada = false;
     bool teclaS_presionada = false;
+    bool teclaK_presionada = false; // Para recarga de ki
+    
+    // Variables para grilla de debug
+    QList<QGraphicsLineItem*> lineasGrilla;
+    bool grillaVisible = true;
 
 signals:
 
