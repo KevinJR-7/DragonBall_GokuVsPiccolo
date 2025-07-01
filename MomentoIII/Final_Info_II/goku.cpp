@@ -11,6 +11,13 @@ Goku::Goku(QObject *parent)
     // Inicializar dirección horizontal
     ultimaDireccionHorizontal = "";
     
+    // Inicializar animación de entrada
+    animacionEntradaActiva = false;
+    frameEntradaActual = 1;
+    timerEntrada = new QTimer(this);
+    timerEntrada->setInterval(180); // 180ms por frame
+    connect(timerEntrada, &QTimer::timeout, this, &Goku::actualizarAnimacionEntrada);
+    
     // Configurar propiedades específicas de Goku
     establecerNombre("Goku");
     establecerCarpetaSprites("goku");
@@ -27,20 +34,21 @@ Goku::Goku(QObject *parent)
     // Configurar hitbox de salto - menos largo, más a la izquierda y más abajo
     establecerHitboxSalto(22, 20, 9, 20); // Hitbox de salto: más ancha (22), menos largo (20), más a la izquierda (9) y más abajo (20)
     
-    // Inicializar con el primer frame de la animación idle
-    QPixmap imagen(":/Goku/Sprites/goku/base1.png");
-    if (imagen.isNull()) {
-        qDebug() << "No se pudo cargar la imagen base1.png";
-    } else {
-        setPixmap(imagen);
-    }
+    // Hacer a Goku invisible al inicio - solo aparecerá en la animación de entrada
+    setVisible(false);
+    qDebug() << "Goku inicializado como invisible - aparecerá en 2 segundos";
     
-    // Iniciar la animación idle
-    iniciarAnimacionIdle();
+    // Programar la animación de entrada para después de 2 segundos
+    QTimer::singleShot(2000, this, &Goku::iniciarAnimacionEntrada);
 }
 
 void Goku::moverDerecha()
 {
+    // No permitir movimiento si es invisible o durante la animación de entrada
+    if (!isVisible() || animacionEntradaActiva) {
+        return;
+    }
+    
     qDebug() << "moverDerecha() - estaSaltando:" << estaSaltando() << "pos actual:" << this->pos().x();
     moviendose = true;
     ultimaDireccionHorizontal = "adelante"; // Rastrear dirección horizontal
@@ -66,6 +74,11 @@ void Goku::moverDerecha()
 
 void Goku::moverIzquierda()
 {
+    // No permitir movimiento si es invisible o durante la animación de entrada
+    if (!isVisible() || animacionEntradaActiva) {
+        return;
+    }
+    
     qDebug() << "moverIzquierda() - estaSaltando:" << estaSaltando() << "pos actual:" << this->pos().x();
     moviendose = true;
     ultimaDireccionHorizontal = "atras"; // Rastrear dirección horizontal
@@ -91,6 +104,11 @@ void Goku::moverIzquierda()
 
 void Goku::moverArriba()
 {
+    // No permitir movimiento si es invisible o durante la animación de entrada
+    if (!isVisible() || animacionEntradaActiva) {
+        return;
+    }
+    
     moviendose = true;
     
     // Solo detener animación idle si no está saltando
@@ -115,6 +133,11 @@ void Goku::moverArriba()
 
 void Goku::moverAbajo()
 {
+    // No permitir movimiento si es invisible o durante la animación de entrada
+    if (!isVisible() || animacionEntradaActiva) {
+        return;
+    }
+    
     moviendose = true;
     
     // Solo detener animación idle si no está saltando
@@ -179,29 +202,46 @@ void Goku::iniciarAnimacionIdle()
     Personaje::iniciarAnimacionIdle();
 }
 
-// void Goku::saltar()
-// {
-//     posY = yIn + (-velIn * tiempo) + (0.5 * 9.8 * tiempo * tiempo);
-//     velY = -velIn + 9.8 * tiempo;
-//     setPos(this->pos().x(), posY);
-//     tiempo += 0.1;
+void Goku::iniciarAnimacionEntrada()
+{
+    qDebug() << "Iniciando animación de entrada de Goku después de 2 segundos";
+    
+    // Hacer visible a Goku al comenzar la animación de entrada
+    setVisible(true);
+    
+    // Detener la animación idle si está activa
+    if (animacionTimer && animacionTimer->isActive()) {
+        animacionTimer->stop();
+    }
+    
+    animacionEntradaActiva = true;
+    frameEntradaActual = 1;
+    
+    // Cargar el primer sprite de entrada
+    cambiarSprite("entrada1");
+    
+    // Iniciar el timer de entrada
+    timerEntrada->start();
+}
 
-//     // if (posY>viewRect.height()-30||posY<0){
-//     //     velIn = sqrt(velX * velX + velY * velY)*0.8;
-
-
-
-//     //     theta = atan2(velY,velX);
-//     //     qDebug()<<"Choque en Y"<<atan2(velY,velX)<<cos(theta);
-//     //     velIn = 0.8*velIn;
-//     //     tiempo = 0;
-//     //     if(posY<0){
-//     //         dirY = -1;}
-//     //     else{dirY = 1;}
-//     //     yIn = posY-10*dirY;
-
-//     //     xIn = posX;
-
-//     //     //if (velIn<5){timerMovPar->stop();}
-//     // }
-// }
+void Goku::actualizarAnimacionEntrada()
+{
+    if (animacionEntradaActiva) {
+        frameEntradaActual++;
+        
+        if (frameEntradaActual <= 3) {
+            // Mostrar entrada1, entrada2, entrada3
+            QString spriteEntrada = "entrada" + QString::number(frameEntradaActual);
+            cambiarSprite(spriteEntrada);
+            qDebug() << "Animación entrada - frame:" << frameEntradaActual;
+        } else {
+            // Terminó la animación de entrada
+            qDebug() << "Animación de entrada completada";
+            timerEntrada->stop();
+            animacionEntradaActiva = false;
+            
+            // Cambiar a la animación idle normal
+            iniciarAnimacionIdle();
+        }
+    }
+}

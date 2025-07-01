@@ -79,8 +79,8 @@ void game::keyPressEvent(QKeyEvent *e)
         }
     }
     
-    // Salto direccional
-    if(e->key() == Qt::Key_Space && !p->estaSaltando()){ 
+    // Salto direccional - no permitir si es invisible o durante animación de entrada
+    if(e->key() == Qt::Key_Space && !p->estaSaltando() && p->isVisible() && !p->estaEnAnimacionEntrada()){ 
         saltoDireccional();
         qDebug() << "Salto direccional iniciado";
     }

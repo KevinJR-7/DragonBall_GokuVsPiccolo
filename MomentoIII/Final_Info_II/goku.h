@@ -22,11 +22,23 @@ public:
     
     // Override para limpiar dirección horizontal en idle
     void iniciarAnimacionIdle() override;
+    
+    // Método para animación de entrada
+    void iniciarAnimacionEntrada();
+    bool estaEnAnimacionEntrada() const { return animacionEntradaActiva; }
 
 protected:
 
+private slots:
+    void actualizarAnimacionEntrada();
+
 private:
     QString ultimaDireccionHorizontal; // "adelante", "atras", o "" si no hay dirección horizontal
+    
+    // Variables para animación de entrada
+    bool animacionEntradaActiva;
+    int frameEntradaActual;
+    QTimer* timerEntrada;
 
 signals:
 };
