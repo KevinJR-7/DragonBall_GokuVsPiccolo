@@ -18,6 +18,29 @@ Goku::Goku(QObject *parent)
     timerEntrada->setInterval(180); // 180ms por frame
     connect(timerEntrada, &QTimer::timeout, this, &Goku::actualizarAnimacionEntrada);
     
+    // Inicializar animación de recarga de ki
+    animacionKiActiva = false;
+    frameKiActual = 1;
+    timerKi = new QTimer(this);
+    timerKi->setInterval(150); // 150ms por frame de ki
+    connect(timerKi, &QTimer::timeout, this, &Goku::actualizarAnimacionKi);
+    
+    // Inicializar sistema de ki
+    estadoKiActual = INICIO;
+    frameDentroEstado = 1;
+    kiActual = 0;
+    kiMaximo = 100;
+    velocidadRecargaKi = 10; // 10 puntos de ki por segundo
+    
+    // Configurar offsets para sprites de ki (ajustar según sea necesario)
+    offsetKiX = -18.0; // 10 píxeles más a la izquierda (era -8.0)
+    offsetKiY = -16.0; // 10 píxeles más arriba (era -6.0)
+    
+    // Timer para recarga real de ki (separado de la animación)
+    timerRecargaKi = new QTimer(this);
+    timerRecargaKi->setInterval(100); // 100ms = 0.1 segundos
+    connect(timerRecargaKi, &QTimer::timeout, this, &Goku::recargarKi);
+    
     // Configurar propiedades específicas de Goku
     establecerNombre("Goku");
     establecerCarpetaSprites("goku");
@@ -44,8 +67,8 @@ Goku::Goku(QObject *parent)
 
 void Goku::moverDerecha()
 {
-    // No permitir movimiento si es invisible o durante la animación de entrada
-    if (!isVisible() || animacionEntradaActiva) {
+    // No permitir movimiento si es invisible, durante animación de entrada o recargando ki
+    if (!isVisible() || animacionEntradaActiva || animacionKiActiva) {
         return;
     }
     
@@ -74,8 +97,8 @@ void Goku::moverDerecha()
 
 void Goku::moverIzquierda()
 {
-    // No permitir movimiento si es invisible o durante la animación de entrada
-    if (!isVisible() || animacionEntradaActiva) {
+    // No permitir movimiento si es invisible, durante animación de entrada o recargando ki
+    if (!isVisible() || animacionEntradaActiva || animacionKiActiva) {
         return;
     }
     
@@ -104,8 +127,8 @@ void Goku::moverIzquierda()
 
 void Goku::moverArriba()
 {
-    // No permitir movimiento si es invisible o durante la animación de entrada
-    if (!isVisible() || animacionEntradaActiva) {
+    // No permitir movimiento si es invisible, durante animación de entrada o recargando ki
+    if (!isVisible() || animacionEntradaActiva || animacionKiActiva) {
         return;
     }
     
@@ -133,8 +156,8 @@ void Goku::moverArriba()
 
 void Goku::moverAbajo()
 {
-    // No permitir movimiento si es invisible o durante la animación de entrada
-    if (!isVisible() || animacionEntradaActiva) {
+    // No permitir movimiento si es invisible, durante animación de entrada o recargando ki
+    if (!isVisible() || animacionEntradaActiva || animacionKiActiva) {
         return;
     }
     
@@ -245,3 +268,176 @@ void Goku::actualizarAnimacionEntrada()
         }
     }
 }
+
+void Goku::iniciarRecargaKi()
+{
+    // Verificar si el ki ya está completo
+    if (kiActual >= kiMaximo) {
+        qDebug() << "Ki ya está completo (" << kiActual << "/" << kiMaximo << ") - no se puede recargar más";
+        return;
+    }
+    
+    qDebug() << "Goku inicia recarga de ki - Ki actual:" << kiActual << "/" << kiMaximo;
+    
+    // Guardar la posición exacta antes de cambiar cualquier sprite
+    posicionOriginalKi = pos();
+    qDebug() << "Posición original guardada:" << posicionOriginalKi;
+    
+    // Detener otras animaciones
+    if (animacionTimer && animacionTimer->isActive()) {
+        animacionTimer->stop();
+    }
+    
+    animacionKiActiva = true;
+    
+    // Configurar estado inicial y velocidad según ki actual
+    estadoKiActual = INICIO;
+    frameDentroEstado = 1;
+    
+    // Ajustar velocidad de animación según ki actual
+    int velocidadAnimacion = 150 - (int)(obtenerPorcentajeKi() * 1.2f); // Más rápido con más ki
+    velocidadAnimacion = qMax(30, velocidadAnimacion); // Mínimo 30ms
+    timerKi->setInterval(velocidadAnimacion);
+    qDebug() << "Velocidad animación ki:" << velocidadAnimacion << "ms (ki al" << obtenerPorcentajeKi() << "%)";
+    
+    // Guardar la posición actual antes de cambiar sprites
+    posicionOriginalKi = pos();
+    qDebug() << "Guardando posición antes de ki:" << posicionOriginalKi;
+    
+    // Cargar el primer sprite de ki y centrarlo UNA SOLA VEZ
+    // Guardar el centro actual del sprite "quieto"
+    QPointF centroActual = pos() + QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
+    
+    // Cambiar al sprite ki1
+    cambiarSprite("ki1");
+    
+    // Calcular nueva posición para que ki1 tenga el mismo centro que "quieto"
+    QPointF nuevaPosicion = centroActual - QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
+    setPos(nuevaPosicion.x(), nuevaPosicion.y());
+    
+    qDebug() << "Sprite ki1 centrado en posición:" << nuevaPosicion;
+    
+    // Iniciar los timers
+    timerKi->start();
+    timerRecargaKi->start();
+}
+
+void Goku::detenerRecargaKi()
+{
+    if (animacionKiActiva) {
+        qDebug() << "Goku detiene recarga de ki - Ki final:" << kiActual << "/" << kiMaximo;
+        
+        animacionKiActiva = false;
+        timerKi->stop();
+        timerRecargaKi->stop();
+        
+        // Volver exactamente a la posición original
+        setPos(posicionOriginalKi.x(), posicionOriginalKi.y());
+        
+        // Cambiar al sprite quieto en la posición original
+        cambiarSprite("quieto");
+        qDebug() << "Vuelto a posición original exacta:" << posicionOriginalKi;
+        
+        // Configurar estado idle
+        moviendose = false;
+        frameActual = 1;
+        if (animacionTimer->isActive()) {
+            animacionTimer->stop();
+        }
+        qDebug() << "Goku volvió a idle en posición original";
+    }
+}
+
+void Goku::actualizarAnimacionKi()
+{
+    if (!animacionKiActiva) return;
+    
+    QString spriteActual;
+    
+    switch (estadoKiActual) {
+        case INICIO:
+            // Frames 1, 2 (una sola vez)
+            if (frameDentroEstado == 1) {
+                spriteActual = "ki1";
+                qDebug() << "Estado INICIO - Frame 1";
+            } else if (frameDentroEstado == 2) {
+                spriteActual = "ki2";
+                qDebug() << "Estado INICIO - Frame 2";
+            }
+            
+            frameDentroEstado++;
+            if (frameDentroEstado > 2) {
+                // Cambiar a estado BUCLE
+                qDebug() << "Cambiando de INICIO a BUCLE";
+                estadoKiActual = BUCLE;
+                frameDentroEstado = 1;
+            }
+            break;
+            
+        case BUCLE: {
+            // Frames 3, 4, 5, 6 (repetir infinitamente)
+            int frameEnBucle = ((frameDentroEstado - 1) % 4) + 3; // Ciclo: 3,4,5,6
+            spriteActual = "ki" + QString::number(frameEnBucle);
+            qDebug() << "Estado BUCLE - Frame" << frameEnBucle << "(iteración" << (frameDentroEstado-1)/4 + 1 << ")";
+            
+            frameDentroEstado++;
+            // En estado BUCLE no cambiamos de estado automáticamente
+            // El cambio se hace en recargarKi() cuando ki >= 95%
+            break;
+        }
+            
+        case FINAL:
+            // Frames 7, 8 (una sola vez y terminar)
+            if (frameDentroEstado == 1) {
+                spriteActual = "ki7";
+                qDebug() << "Estado FINAL - Frame 7";
+                frameDentroEstado++;
+            } else if (frameDentroEstado == 2) {
+                spriteActual = "ki8";
+                qDebug() << "Estado FINAL - Frame 8";
+                frameDentroEstado++;
+            } else {
+                // Después del frame 8, terminar la animación
+                qDebug() << "Animación de ki completada - terminando después del frame 8";
+                detenerRecargaKi();
+                return;
+            }
+            break;
+    }
+    
+    // Mostrar el sprite calculado sin mover posición
+    if (!spriteActual.isEmpty()) {
+        cambiarSprite(spriteActual);
+    }
+}
+
+void Goku::establecerKi(int ki, int kiMax)
+{
+    kiActual = qMax(0, qMin(ki, kiMax)); // Asegurar que esté en rango válido
+    kiMaximo = kiMax;
+    qDebug() << "Ki establecido:" << kiActual << "/" << kiMaximo << "(" << obtenerPorcentajeKi() << "%)";
+}
+
+void Goku::recargarKi()
+{
+    if (animacionKiActiva && kiActual < kiMaximo) {
+        // Incrementar ki (1 punto cada 100ms = 10 puntos por segundo)
+        kiActual++;
+        qDebug() << "Ki recargado:" << kiActual << "/" << kiMaximo << "(" << obtenerPorcentajeKi() << "%)";
+        
+        // Verificar si pasamos al estado final (95% o más)
+        if (obtenerPorcentajeKi() >= 95.0f && estadoKiActual == BUCLE) {
+            qDebug() << "Cambiando a estado FINAL - ki al 95%";
+            estadoKiActual = FINAL;
+            frameDentroEstado = 1; // Reiniciar para frames 7, 8
+        }
+        
+        // Si el ki está lleno, detener la recarga
+        if (kiActual >= kiMaximo) {
+            qDebug() << "Ki completamente lleno - deteniendo recarga";
+            detenerRecargaKi();
+        }
+    }
+}
+
+// void Goku::saltar()
