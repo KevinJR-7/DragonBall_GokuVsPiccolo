@@ -1,6 +1,6 @@
 #include "game.h"
 #include "ui_game.h"
-#include "player.h"
+#include "goku.h"
 
 game::game(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::game)
@@ -15,9 +15,18 @@ game::game(QWidget *parent)
     view->scale(2.0, 2.0);
     scene->setSceneRect(200, 200, 1000, 500);
 
-    p = new player();
+    p = new Goku();
     scene->addItem(p);
     p->setPos(300, 300);
+    
+    // Conectar señal de aterrizaje para movimiento continuo
+    connect(p, &Personaje::personajeAterrizo, this, &game::verificarMovimientoContinuo);
+    
+    // Configurar timer para movimiento continuo
+    movimientoTimer = new QTimer(this);
+    movimientoTimer->setInterval(50); // 20 FPS para movimiento suave
+    connect(movimientoTimer, &QTimer::timeout, this, &game::actualizarMovimiento);
+    // No iniciar automáticamente, solo cuando sea necesario
     
     // Configurar límites de escena para las colisiones
     QRectF limitesJuego(200, 200, 1000, 500); // Mismos límites que la escena
@@ -25,8 +34,6 @@ game::game(QWidget *parent)
     
     // Opcional: Escalar Goku (1.5 = 150% del tamaño original)
     // p->establecerEscala(1.5);
-
-    //p->moverPlayer();
 
 }
 
@@ -37,13 +44,45 @@ game::~game()
 
 void game::keyPressEvent(QKeyEvent *e)
 {
-    if(e->key() == Qt::Key_D){ p->moverDerecha(); }
-    if(e->key() == Qt::Key_A){ p->moverIzquierda(); }
-    if(e->key() == Qt::Key_W){ p->moverArriba(); }
-    if(e->key() == Qt::Key_S){ p->moverAbajo(); }
+    // Ignorar auto-repeat del teclado
+    if (e->isAutoRepeat()) {
+        return;
+    }
+    
+    // Solo rastrear teclas de dirección y activar timer si es necesario
+    if(e->key() == Qt::Key_D) { 
+        teclaD_presionada = true;
+        qDebug() << "Tecla D presionada - timer activo:" << movimientoTimer->isActive();
+        if (!movimientoTimer->isActive()) {
+            movimientoTimer->start();
+            qDebug() << "Timer iniciado para D";
+        }
+    }
+    if(e->key() == Qt::Key_A) { 
+        teclaA_presionada = true;
+        qDebug() << "Tecla A presionada - timer activo:" << movimientoTimer->isActive();
+        if (!movimientoTimer->isActive()) {
+            movimientoTimer->start();
+            qDebug() << "Timer iniciado para A";
+        }
+    }
+    if(e->key() == Qt::Key_W) { 
+        teclaW_presionada = true;
+        if (!movimientoTimer->isActive()) {
+            movimientoTimer->start();
+        }
+    }
+    if(e->key() == Qt::Key_S) { 
+        teclaS_presionada = true;
+        if (!movimientoTimer->isActive()) {
+            movimientoTimer->start();
+        }
+    }
+    
+    // Salto direccional
     if(e->key() == Qt::Key_Space && !p->estaSaltando()){ 
-        p->saltar(); 
-        qDebug() << "Tecla ESPACIO presionada - iniciando salto";
+        saltoDireccional();
+        qDebug() << "Salto direccional iniciado";
     }
     if(e->key() == Qt::Key_H){ 
         // Alternar visualización de hitbox con tecla H
@@ -59,9 +98,103 @@ void game::keyPressEvent(QKeyEvent *e)
 
 void game::keyReleaseEvent(QKeyEvent *e)
 {
-    // Cuando se suelta cualquier tecla de movimiento, iniciar animación idle
-    if(e->key() == Qt::Key_D || e->key() == Qt::Key_A || 
-       e->key() == Qt::Key_W || e->key() == Qt::Key_S) {
-        p->iniciarAnimacionIdle();
+    // Ignorar auto-repeat del teclado
+    if (e->isAutoRepeat()) {
+        return;
+    }
+    
+    // Rastrear cuando se sueltan las teclas y detener timer si es necesario
+    if(e->key() == Qt::Key_D) { 
+        teclaD_presionada = false;
+    }
+    if(e->key() == Qt::Key_A) { 
+        teclaA_presionada = false;
+    }
+    if(e->key() == Qt::Key_W) { 
+        teclaW_presionada = false;
+    }
+    if(e->key() == Qt::Key_S) { 
+        teclaS_presionada = false;
+    }
+    
+    // Si no hay teclas presionadas, detener timer e iniciar idle
+    if (!teclaD_presionada && !teclaA_presionada && !teclaW_presionada && !teclaS_presionada) {
+        qDebug() << "Deteniendo timer - no hay teclas presionadas";
+        movimientoTimer->stop();
+        if (!p->estaSaltando()) {
+            qDebug() << "Iniciando animación idle";
+            p->iniciarAnimacionIdle();
+        }
+    }
+}
+
+void game::saltoDireccional()
+{
+    // Configurar velocidad horizontal inicial del salto según las teclas presionadas
+    qreal velocidadHorizontalInicial = 0.0;
+    qreal velocidadSaltoVertical = 65.0; // Velocidad de salto normal aumentada
+    
+    if (teclaD_presionada) {
+        velocidadHorizontalInicial += 40.0; // Velocidad horizontal aumentada hacia la derecha
+        qDebug() << "Salto parabólico hacia la DERECHA";
+    }
+    
+    if (teclaA_presionada) {
+        velocidadHorizontalInicial -= 40.0; // Velocidad horizontal aumentada hacia la izquierda
+        qDebug() << "Salto parabólico hacia la IZQUIERDA";
+    }
+    
+    if (teclaW_presionada) {
+        velocidadSaltoVertical = 85.0; // Súper salto vertical aumentado
+        qDebug() << "Súper salto vertical";
+    }
+    
+    if (teclaS_presionada) {
+        velocidadSaltoVertical = 45.0; // Salto corto aumentado
+        qDebug() << "Salto corto";
+    }
+    
+    // Configurar las velocidades antes de iniciar el salto
+    p->establecerVelocidadSalto(velocidadSaltoVertical);
+    p->establecerVelocidadHorizontalSalto(velocidadHorizontalInicial);
+    
+    // Iniciar el salto con las velocidades configuradas
+    p->saltar();
+    
+    // Debug información del salto
+    if (velocidadHorizontalInicial != 0.0) {
+        qDebug() << "Salto parabólico iniciado - velV:" << velocidadSaltoVertical << "velH:" << velocidadHorizontalInicial;
+    } else {
+        qDebug() << "Salto vertical iniciado - vel:" << velocidadSaltoVertical;
+    }
+}
+
+void game::verificarMovimientoContinuo()
+{
+    // Este método ya no es necesario, el timer se encarga del movimiento continuo
+    qDebug() << "Personaje aterrizó - el timer se encargará del movimiento continuo";
+}
+
+void game::actualizarMovimiento()
+{
+    // Debug para ver si el timer está funcionando
+    qDebug() << "actualizarMovimiento() llamado - D:" << teclaD_presionada << "A:" << teclaA_presionada << "saltando:" << p->estaSaltando();
+    
+    // Solo aplicar movimiento si no está saltando
+    if (!p->estaSaltando()) {
+        if (teclaD_presionada) {
+            qDebug() << "Ejecutando moverDerecha()";
+            p->moverDerecha();
+        }
+        if (teclaA_presionada) {
+            qDebug() << "Ejecutando moverIzquierda()";
+            p->moverIzquierda();
+        }
+        if (teclaW_presionada) {
+            p->moverArriba();
+        }
+        if (teclaS_presionada) {
+            p->moverAbajo();
+        }
     }
 }

@@ -1,16 +1,16 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#ifndef GOKU_H
+#define GOKU_H
 
 #include <QObject>
 #include <QTimer>
 #include <QKeyEvent>
 #include "personaje.h"
 
-class player : public Personaje
+class Goku : public Personaje
 {
     Q_OBJECT
 public:
-    player(QObject *parent = nullptr);
+    Goku(QObject *parent = nullptr);
     
     // Implementación obligatoria de métodos virtuales puros
     void moverDerecha() override;
@@ -19,12 +19,16 @@ public:
     void moverAbajo() override;
     void atacar() override;
     void recibirDanio(int danio) override;
+    
+    // Override para limpiar dirección horizontal en idle
+    void iniciarAnimacionIdle() override;
 
 protected:
 
 private:
+    QString ultimaDireccionHorizontal; // "adelante", "atras", o "" si no hay dirección horizontal
 
 signals:
 };
 
-#endif // PLAYER_H
+#endif // GOKU_H
