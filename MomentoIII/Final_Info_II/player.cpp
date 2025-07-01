@@ -14,6 +14,13 @@ player::player(QObject *parent)
     establecerVida(150); // Goku tiene más vida
     establecerVelocidad(10); // Goku es rápido
     
+    // Configurar física del salto específica para Goku
+    establecerVelocidadSalto(40.0);      // Goku salta ÉPICAMENTE alto
+    establecerFisicaSalto(0.7, 0.03);    // Aún más ligero con menos resistencia
+    
+    // Configurar hitbox específica para Goku - más delgada y hacia la izquierda
+    establecerHitbox(30, 40, 18, 25); // Hitbox: 30x40 (más delgada) con offset 18,25 (más a la izquierda)
+    
     // Inicializar con el primer frame de la animación idle
     QPixmap imagen(":/Goku/Sprites/goku/base1.png");
     if (imagen.isNull()) {
@@ -31,6 +38,8 @@ void player::moverDerecha()
     moviendose = true;
     animacionTimer->stop(); // Detener animación idle
     this->setPos(this->pos().x() + velocidadMovimiento, this->pos().y());
+    verificarLimitesPantalla(limitesEscena); // Verificar límites después del movimiento
+    actualizarVisualizacionHitbox(); // Actualizar hitbox visual
     cambiarSprite("adelante");
 }
 
@@ -39,6 +48,8 @@ void player::moverIzquierda()
     moviendose = true;
     animacionTimer->stop(); // Detener animación idle
     this->setPos(this->pos().x() - velocidadMovimiento, this->pos().y());
+    verificarLimitesPantalla(limitesEscena); // Verificar límites después del movimiento
+    actualizarVisualizacionHitbox(); // Actualizar hitbox visual
     cambiarSprite("atras");
 }
 
@@ -47,6 +58,8 @@ void player::moverArriba()
     moviendose = true;
     animacionTimer->stop(); // Detener animación idle
     this->setPos(this->pos().x(), this->pos().y() - velocidadMovimiento);
+    verificarLimitesPantalla(limitesEscena); // Verificar límites después del movimiento
+    actualizarVisualizacionHitbox(); // Actualizar hitbox visual
     cambiarSprite("adelante");
 }
 
@@ -55,15 +68,17 @@ void player::moverAbajo()
     moviendose = true;
     animacionTimer->stop(); // Detener animación idle
     this->setPos(this->pos().x(), this->pos().y() + velocidadMovimiento);
+    verificarLimitesPantalla(limitesEscena); // Verificar límites después del movimiento
+    actualizarVisualizacionHitbox(); // Actualizar hitbox visual
     cambiarSprite("adelante");
 }
 
 void player::atacar()
 {
     if (estaVivo()) {
-        qDebug() << nombre << " está atacando con Kamehameha!";
-        // Aquí puedes agregar lógica de ataque específica de Goku
-        cambiarSprite("atacando"); // Si tienes un sprite de ataque
+        qDebug() << nombre << " está atacando con Kamehameha";
+
+        cambiarSprite("atacando"); //
         
         emit personajeAtaco(this);
         
