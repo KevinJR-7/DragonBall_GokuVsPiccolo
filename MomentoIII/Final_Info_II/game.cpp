@@ -18,6 +18,13 @@ game::game(QWidget *parent)
     p = new player();
     scene->addItem(p);
     p->setPos(300, 300);
+    
+    // Configurar límites de escena para las colisiones
+    QRectF limitesJuego(200, 200, 1000, 500); // Mismos límites que la escena
+    p->establecerLimitesEscena(limitesJuego);
+    
+    // Opcional: Escalar Goku (1.5 = 150% del tamaño original)
+    // p->establecerEscala(1.5);
 
     //p->moverPlayer();
 
@@ -32,4 +39,29 @@ void game::keyPressEvent(QKeyEvent *e)
 {
     if(e->key() == Qt::Key_D){ p->moverDerecha(); }
     if(e->key() == Qt::Key_A){ p->moverIzquierda(); }
+    if(e->key() == Qt::Key_W){ p->moverArriba(); }
+    if(e->key() == Qt::Key_S){ p->moverAbajo(); }
+    if(e->key() == Qt::Key_Space && !p->estaSaltando()){ 
+        p->saltar(); 
+        qDebug() << "Tecla ESPACIO presionada - iniciando salto";
+    }
+    if(e->key() == Qt::Key_H){ 
+        // Alternar visualización de hitbox con tecla H
+        if (p->estaHitboxVisible()) {
+            p->ocultarHitbox();
+            qDebug() << "Hitbox oculta";
+        } else {
+            p->mostrarHitbox();
+            qDebug() << "Hitbox visible";
+        }
+    }
+}
+
+void game::keyReleaseEvent(QKeyEvent *e)
+{
+    // Cuando se suelta cualquier tecla de movimiento, iniciar animación idle
+    if(e->key() == Qt::Key_D || e->key() == Qt::Key_A || 
+       e->key() == Qt::Key_W || e->key() == Qt::Key_S) {
+        p->iniciarAnimacionIdle();
+    }
 }

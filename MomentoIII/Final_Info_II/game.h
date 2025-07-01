@@ -22,6 +22,7 @@ public:
     QGraphicsView *view;
     QGraphicsScene *scene;
     void keyPressEvent(QKeyEvent *e) override;
+    void keyReleaseEvent(QKeyEvent *e) override;
 
 private:
     Ui::game *ui;
