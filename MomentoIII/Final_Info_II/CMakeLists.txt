@@ -18,6 +18,7 @@ add_executable(Final_Info_II
   game.ui
   player.h player.cpp
   Sprites.qrc
+  ground.h ground.cpp
 )
 target_link_libraries(Final_Info_II
     Qt${QT_VERSION_MAJOR}::Core

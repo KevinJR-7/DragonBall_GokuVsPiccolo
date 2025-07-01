@@ -19,6 +19,10 @@ game::game(QWidget *parent)
     scene->addItem(p);
     p->setPos(300, 300);
 
+    g = new ground();
+    scene->addItem(g);
+    g->setPos(300, 400);
+
     //p->moverPlayer();
 
 }
@@ -32,4 +36,6 @@ void game::keyPressEvent(QKeyEvent *e)
 {
     if(e->key() == Qt::Key_D){ p->moverDerecha(); }
     if(e->key() == Qt::Key_A){ p->moverIzquierda(); }
+    if(e->key() == Qt::Key_W){ p->saltar(); if(!(p->jumpTimer->isActive())){ p->jumpTimer->start(100); } }
+    if(e->key() == Qt::Key_S){ p->setPos(p->pos().x(), 300); p->fallTimer->start(100);}
 }

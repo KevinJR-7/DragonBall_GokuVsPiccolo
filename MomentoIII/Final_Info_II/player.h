@@ -6,6 +6,8 @@
 #include <QTimer>
 #include <QKeyEvent>
 
+#include "ground.h"
+
 class player : public QObject, public QGraphicsRectItem
 {
     Q_OBJECT
@@ -13,19 +15,28 @@ public:
     player(QObject *parent = nullptr);
     void moverDerecha();
     void moverIzquierda();
-    void saltar();
+    QTimer *jumpTimer;
+    QTimer *fallTimer;
+    QTimer *collisionTimer;
+    //void saltar();
 
 protected:
 
 private:
+    bool falling;
+    bool jumping;
     qreal posX,posY,velIn,theta,dirX,dirY,xIn,yIn,tiempo,velY,velX;
 
     QPixmap pixmap;
-    QTimer *jumpTimer;
     //QTimer *MoveTimer;
+
+public slots:
+    void saltar();
 
 private slots:
     //void moverPlayer();
+    void caer();
+    void detectarColisiones();
 
 signals:
 };
