@@ -28,6 +28,8 @@ public:
     // Métodos virtuales con implementación por defecto (pueden ser sobrescritos)
     virtual void saltar();
     virtual void cambiarSprite(const QString& direccion);
+    virtual void cambiarSpriteCentrado(const QString& direccion);
+    virtual void cambiarSpriteConOffset(const QString& direccion, qreal offsetX, qreal offsetY);
     virtual void iniciarAnimacionIdle();
     virtual void establecerEscala(qreal escala);
     virtual void morir();
@@ -41,9 +43,23 @@ public:
     // Métodos para configurar física del salto
     void establecerFisicaSalto(qreal masa, qreal resistencia = 0.1);
     void establecerVelocidadSalto(qreal velocidadInicial);
+    void establecerVelocidadHorizontalSalto(qreal velocidadH);
+    
+    // Métodos para movimiento horizontal durante salto
+    void aplicarMovimientoHorizontal(qreal deltaX);
+    
+    // Override setPos para debug
+    void setPos(qreal x, qreal y);
+    
+    // Método temporal para pausar/reanudar timer de salto
+    void pausarTimerSalto();
+    void reanudarTimerSalto();
     
     // Métodos para manejo de hitboxes
     void establecerHitbox(qreal ancho, qreal alto, qreal offsetX = 0, qreal offsetY = 0);
+    void establecerHitboxSalto(qreal ancho, qreal alto, qreal offsetX = 0, qreal offsetY = 0);
+    void aplicarHitboxSalto();
+    void restaurarHitboxNormal();
     QRectF obtenerHitbox() const;
     QRectF obtenerHitboxGlobal() const;
     bool colisionaCon(Personaje* otroPersonaje) const;
@@ -95,15 +111,37 @@ protected:
     // Variables para física avanzada del salto
     qreal velocidadVertical;     // dy/dt - velocidad actual
     qreal aceleracionVertical;   // d²y/dt² - aceleración actual
+    qreal velocidadHorizontalSalto; // dx/dt - velocidad horizontal durante salto
     qreal coeficienteResistencia; // Resistencia del aire
     qreal masaPersonaje;         // Masa del personaje
     qreal deltaT;                // Paso de tiempo para integración
-
+    
+    // Variables para movimiento horizontal durante el salto
+    qreal posicionXSalto;        // Posición X deseada durante el salto
+    qreal velocidadHorizontal;   // Velocidad horizontal acumulada
+    
+    // Variables para separar movimiento vertical del horizontal
+    qreal offsetYSalto;          // Offset Y desde la posición base
+    qreal posicionBaseSalto;     // Posición Y base al inicio del salto
+    
     // Variables para hitbox y colisiones
     qreal hitboxAncho;
     qreal hitboxAlto;
     qreal hitboxOffsetX;
     qreal hitboxOffsetY;
+    
+    // Variables para hitbox de salto
+    qreal hitboxSaltoAncho;
+    qreal hitboxSaltoAlto;
+    qreal hitboxSaltoOffsetX;
+    qreal hitboxSaltoOffsetY;
+    
+    // Variables para hitbox normal (respaldo)
+    qreal hitboxNormalAncho;
+    qreal hitboxNormalAlto;
+    qreal hitboxNormalOffsetX;
+    qreal hitboxNormalOffsetY;
+    
     QRectF limitesEscena;
     
     // Variables para visualización de hitbox
@@ -119,6 +157,7 @@ signals:
     void personajeMuerto(Personaje* personaje);
     void vidaCambiada(int vidaActual, int vidaMaxima);
     void personajeAtaco(Personaje* atacante);
+    void personajeAterrizo(); // Nueva señal para cuando el personaje aterriza
 };
 
 #endif // PERSONAJE_H
