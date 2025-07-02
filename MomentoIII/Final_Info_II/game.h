@@ -50,6 +50,7 @@ private:
     bool teclaW_presionada = false;
     bool teclaS_presionada = false;
     bool teclaK_presionada = false; // Para recarga de ki
+    bool teclaJ_presionada = false; // Para Kamehameha
     
     // Variables para grilla de debug
     QList<QGraphicsLineItem*> lineasGrilla;

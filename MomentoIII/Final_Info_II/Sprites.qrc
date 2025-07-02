@@ -26,5 +26,20 @@
         <file>Sprites/goku/ki6.png</file>
         <file>Sprites/goku/ki7.png</file>
         <file>Sprites/goku/ki8.png</file>
+        <file>Sprites/goku/kame1.png</file>
+        <file>Sprites/goku/kame2.png</file>
+        <file>Sprites/goku/kame3.png</file>
+        <file>Sprites/goku/kame4.png</file>
+        <file>Sprites/goku/kame5.png</file>
+        <file>Sprites/goku/kame6.png</file>
+        <file>Sprites/goku/kame7.png</file>
+        <file>Sprites/goku/kame8.png</file>
+        <file>Sprites/goku/kame9.png</file>
+        <file>Sprites/goku/kame10.png</file>
+        <file>Sprites/goku/kame11.png</file>
+        <file>Sprites/goku/kame12.png</file>
+        <file>Sprites/goku/kame13.png</file>
+        <file>Sprites/goku/kame14.png</file>
+        <file>Sprites/goku/kame15.png</file>
     </qresource>
 </RCC>

@@ -81,8 +81,8 @@ void game::keyPressEvent(QKeyEvent *e)
         }
     }
     
-    // Salto direccional - no permitir si es invisible, durante animación de entrada o recargando ki
-    if(e->key() == Qt::Key_Space && !p->estaSaltando() && p->isVisible() && !p->estaEnAnimacionEntrada() && !p->estaRecargandoKi()){ 
+    // Salto direccional - no permitir si es invisible, durante animación de entrada, recargando ki o cargando Kamehameha
+    if(e->key() == Qt::Key_Space && !p->estaSaltando() && p->isVisible() && !p->estaEnAnimacionEntrada() && !p->estaRecargandoKi() && !p->estaCargandoKamehameha()){ 
         saltoDireccional();
         qDebug() << "Salto direccional iniciado";
     }
@@ -106,6 +106,14 @@ void game::keyPressEvent(QKeyEvent *e)
             teclaK_presionada = true;
             p->iniciarRecargaKi();
             qDebug() << "Recarga de ki iniciada (mantener K presionada)";
+        }
+    }
+    if(e->key() == Qt::Key_J){ 
+        // Iniciar carga de Kamehameha al presionar J (solo si no está ya cargando)
+        if (!teclaJ_presionada && !p->estaCargandoKamehameha()) {
+            teclaJ_presionada = true;
+            p->iniciarCargaKamehameha();
+            qDebug() << "Carga de Kamehameha iniciada (mantener J presionada)";
         }
     }
 }
@@ -136,6 +144,14 @@ void game::keyReleaseEvent(QKeyEvent *e)
             teclaK_presionada = false;
             p->detenerRecargaKi();
             qDebug() << "Tecla K liberada - deteniendo recarga de ki";
+        }
+    }
+    if(e->key() == Qt::Key_J) { 
+        // Detener carga de Kamehameha al soltar J
+        if (teclaJ_presionada) {
+            teclaJ_presionada = false;
+            p->detenerCargaKamehameha();
+            qDebug() << "Tecla J liberada - deteniendo carga de Kamehameha";
         }
     }
     

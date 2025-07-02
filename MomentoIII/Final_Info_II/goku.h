@@ -32,6 +32,11 @@ public:
     void detenerRecargaKi();
     bool estaRecargandoKi() const { return animacionKiActiva; }
     
+    // Métodos para Kamehameha
+    void iniciarCargaKamehameha();
+    void detenerCargaKamehameha();
+    bool estaCargandoKamehameha() const { return animacionKamehamehaActiva; }
+    
     // Métodos para sistema de ki
     void establecerKi(int ki, int kiMax = 100);
     int obtenerKi() const { return kiActual; }
@@ -44,6 +49,7 @@ private slots:
     void actualizarAnimacionEntrada();
     void actualizarAnimacionKi();
     void recargarKi(); // Para incrementar el ki real
+    void actualizarAnimacionKamehameha(); // Para la animación de Kamehameha
 
 private:
     QString ultimaDireccionHorizontal; // "adelante", "atras", o "" si no hay dirección horizontal
@@ -59,6 +65,12 @@ private:
     QTimer* timerKi;
     QTimer* timerRecargaKi; // Timer para la recarga real de ki
     QPointF posicionOriginalKi; // Posición exacta antes de empezar ki
+    
+    // Variables para animación de Kamehameha
+    bool animacionKamehamehaActiva;
+    int frameKamehamehaActual;
+    QTimer* timerKamehameha;
+    QPointF posicionInicialQuieto; // Guardar posición del sprite quieto // Posición exacta antes de empezar Kamehameha
     
     // Estados de animación de ki
     enum EstadoKi { INICIO, BUCLE, FINAL };
