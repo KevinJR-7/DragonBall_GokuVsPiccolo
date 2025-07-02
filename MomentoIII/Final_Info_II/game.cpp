@@ -1,6 +1,7 @@
 #include "game.h"
 #include "ui_game.h"
 #include "player.h"
+#include "piccolo.h"
 
 game::game(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::game)
@@ -18,6 +19,10 @@ game::game(QWidget *parent)
     p = new player();
     scene->addItem(p);
     p->setPos(300, 300);
+
+    pic = new piccolo();
+    scene->addItem(pic);
+    pic->setPos(400, 120);
     
     // Configurar límites de escena para las colisiones
     QRectF limitesJuego(200, 200, 1000, 500); // Mismos límites que la escena
@@ -26,9 +31,9 @@ game::game(QWidget *parent)
     // Opcional: Escalar Goku (1.5 = 150% del tamaño original)
     // p->establecerEscala(1.5);
 
-    g = new ground();
-    scene->addItem(g);
-    g->setPos(300, 400);
+    // g = new ground();
+    // scene->addItem(g);
+    // g->setPos(300, 400);
 
     //p->moverPlayer();
 

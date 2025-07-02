@@ -474,3 +474,10 @@ void Personaje::actualizarVisualizacionHitbox()
         hitboxVisual->setZValue(this->zValue() + 1);
     }
 }
+
+void Personaje::moverDerecha(){}
+void Personaje::moverIzquierda(){}
+void Personaje::moverArriba(){}
+void Personaje::moverAbajo(){}
+void Personaje::atacar(){}
+void Personaje::recibirDanio(int danio){}

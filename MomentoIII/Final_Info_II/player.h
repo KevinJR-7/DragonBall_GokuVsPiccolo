@@ -6,13 +6,7 @@
 #include <QKeyEvent>
 #include "personaje.h"
 
-<<<<<<< HEAD
-#include "ground.h"
-
-class player : public QObject, public QGraphicsRectItem
-=======
 class player : public Personaje
->>>>>>> main
 {
     Q_OBJECT
 public:
@@ -29,23 +23,6 @@ public:
 protected:
 
 private:
-<<<<<<< HEAD
-    bool falling;
-    bool jumping;
-    qreal posX,posY,velIn,theta,dirX,dirY,xIn,yIn,tiempo,velY,velX;
-
-    QPixmap pixmap;
-    //QTimer *MoveTimer;
-
-public slots:
-    void saltar();
-
-private slots:
-    //void moverPlayer();
-    void caer();
-    void detectarColisiones();
-=======
->>>>>>> main
 
 signals:
 };

@@ -19,4 +19,7 @@
         <file>Sprites/goku/salto6.png</file>
         <file>Sprites/goku/salto7.png</file>
     </qresource>
+    <qresource prefix="/Piccolo">
+        <file>Sprites/piccolo/0.png</file>
+    </qresource>
 </RCC>

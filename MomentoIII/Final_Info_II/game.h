@@ -6,7 +6,7 @@
 #include <QGraphicsScene>
 
 #include "player.h"
-#include "ground.h"
+#include "piccolo.h"
 
 namespace Ui { class game; }
 
@@ -16,7 +16,7 @@ class game : public QMainWindow
 public:
 
     player* p;
-    ground* g;
+    piccolo* pic;
 
     game(QWidget *parent = nullptr);
     ~game();
