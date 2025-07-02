@@ -41,6 +41,13 @@ Goku::Goku(QObject *parent)
     timerRecargaKi->setInterval(100); // 100ms = 0.1 segundos
     connect(timerRecargaKi, &QTimer::timeout, this, &Goku::recargarKi);
     
+    // Inicializar animación de Kamehameha
+    animacionKamehamehaActiva = false;
+    frameKamehamehaActual = 1;
+    timerKamehameha = new QTimer(this);
+    timerKamehameha->setInterval(120); // 120ms por frame de Kamehameha
+    connect(timerKamehameha, &QTimer::timeout, this, &Goku::actualizarAnimacionKamehameha);
+    
     // Configurar propiedades específicas de Goku
     establecerNombre("Goku");
     establecerCarpetaSprites("goku");
@@ -240,8 +247,15 @@ void Goku::iniciarAnimacionEntrada()
     animacionEntradaActiva = true;
     frameEntradaActual = 1;
     
-    // Cargar el primer sprite de entrada
-    cambiarSprite("entrada1");
+    // Cargar el primer sprite de entrada SIN cambiar posición
+    QString rutaSprite = ":/Goku/Sprites/goku/entrada1.png";
+    QPixmap spriteEntrada(rutaSprite);
+    if (!spriteEntrada.isNull()) {
+        setPixmap(spriteEntrada);
+        qDebug() << "Sprite entrada1 cargado en posición:" << pos();
+    } else {
+        qDebug() << "Error: No se pudo cargar sprite entrada1 desde" << rutaSprite;
+    }
     
     // Iniciar el timer de entrada
     timerEntrada->start();
@@ -253,10 +267,15 @@ void Goku::actualizarAnimacionEntrada()
         frameEntradaActual++;
         
         if (frameEntradaActual <= 3) {
-            // Mostrar entrada1, entrada2, entrada3
-            QString spriteEntrada = "entrada" + QString::number(frameEntradaActual);
-            cambiarSprite(spriteEntrada);
-            qDebug() << "Animación entrada - frame:" << frameEntradaActual;
+            // Mostrar entrada1, entrada2, entrada3 SIN cambiar posición
+            QString rutaSprite = ":/Goku/Sprites/goku/entrada" + QString::number(frameEntradaActual) + ".png";
+            QPixmap spriteEntrada(rutaSprite);
+            if (!spriteEntrada.isNull()) {
+                setPixmap(spriteEntrada);
+                qDebug() << "Animación entrada - frame:" << frameEntradaActual << "posición mantenida:" << pos();
+            } else {
+                qDebug() << "Error: No se pudo cargar sprite entrada" << frameEntradaActual << "desde" << rutaSprite;
+            }
         } else {
             // Terminó la animación de entrada
             qDebug() << "Animación de entrada completada";
@@ -405,9 +424,18 @@ void Goku::actualizarAnimacionKi()
             break;
     }
     
-    // Mostrar el sprite calculado sin mover posición
+    // Mostrar el sprite calculado SIN cambiar la posición
     if (!spriteActual.isEmpty()) {
-        cambiarSprite(spriteActual);
+        QString rutaSprite = ":/Goku/Sprites/goku/" + spriteActual + ".png";
+        QPixmap spriteKi(rutaSprite);
+        
+        if (!spriteKi.isNull()) {
+            // Cambiar SOLO el pixmap, sin afectar la posición
+            setPixmap(spriteKi);
+            qDebug() << "Animación Ki - frame:" << spriteActual << "posición mantenida:" << pos();
+        } else {
+            qDebug() << "Error: No se pudo cargar sprite ki" << spriteActual << "desde" << rutaSprite;
+        }
     }
 }
 
@@ -439,5 +467,79 @@ void Goku::recargarKi()
         }
     }
 }
+
+void Goku::iniciarCargaKamehameha()
+{
+    // Verificar que no esté ya cargando Kamehameha o recargando ki
+    if (animacionKamehamehaActiva || animacionKiActiva) {
+        qDebug() << "No se puede cargar Kamehameha - ya hay otra animación activa";
+        return;
+    }
+    
+    qDebug() << "Goku inicia carga de Kamehameha";
+    
+    // Guardar la posición actual del sprite quieto
+    posicionInicialQuieto = pos();
+    qDebug() << "Posición inicial de quieto guardada:" << posicionInicialQuieto;
+    
+    // Detener otras animaciones
+    if (animacionTimer && animacionTimer->isActive()) {
+        animacionTimer->stop();
+    }
+    
+    animacionKamehamehaActiva = true;
+    frameKamehamehaActual = 1; // Volver a empezar desde kame1
+    
+    // Cargar el primer sprite de Kamehameha usando centrado automático
+    cambiarSpriteCentrado("kame1");
+    
+    // Iniciar el timer de Kamehameha
+    timerKamehameha->start();
+}
+
+void Goku::detenerCargaKamehameha()
+{
+    if (animacionKamehamehaActiva) {
+        qDebug() << "Goku detiene carga de Kamehameha";
+        
+        animacionKamehamehaActiva = false;
+        timerKamehameha->stop();
+        
+        // Cambiar al sprite quieto usando centrado automático
+        cambiarSpriteCentrado("quieto");
+        
+        // Restaurar la posición inicial exacta del sprite quieto
+        setPos(posicionInicialQuieto.x(), posicionInicialQuieto.y());
+        qDebug() << "Posición restaurada a la inicial de quieto:" << posicionInicialQuieto;
+        
+        // Configurar estado idle
+        moviendose = false;
+        frameActual = 1;
+        if (animacionTimer->isActive()) {
+            animacionTimer->stop();
+        }
+        qDebug() << "Goku volvió a idle después de Kamehameha";
+    }
+}
+
+void Goku::actualizarAnimacionKamehameha()
+{
+    if (!animacionKamehamehaActiva) return;
+    
+    frameKamehamehaActual++;
+    
+    if (frameKamehamehaActual <= 15) {
+        // Mostrar kame1, kame2, ..., kame15 usando centrado automático
+        QString spriteKamehameha = "kame" + QString::number(frameKamehamehaActual);
+        cambiarSpriteCentrado(spriteKamehameha);
+        qDebug() << "Animación Kamehameha - frame:" << frameKamehamehaActual;
+    } else {
+        // Al llegar al frame 15, mantener la animación (no terminar automáticamente)
+        // El usuario puede seguir manteniendo la tecla para mantener la carga
+        frameKamehamehaActual = 15; // Mantener en el último frame
+        qDebug() << "Kamehameha completamente cargado - manteniendo en frame 15";
+    }
+}
+
 
 // void Goku::saltar()
