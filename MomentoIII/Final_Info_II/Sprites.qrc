@@ -41,5 +41,11 @@
         <file>Sprites/goku/kame13.png</file>
         <file>Sprites/goku/kame14.png</file>
         <file>Sprites/goku/kame15.png</file>
+        <file>Sprites/goku/hame1.png</file>
+        <file>Sprites/goku/hame2.png</file>
+        <file>Sprites/goku/hame3.png</file>
+        <file>Sprites/goku/hameha1.png</file>
+        <file>Sprites/goku/hameha2.png</file>
+        <file>Sprites/goku/hameha3.png</file>
     </qresource>
 </RCC>

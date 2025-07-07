@@ -1,6 +1,7 @@
 #include "game.h"
 #include "ui_game.h"
 #include "goku.h"
+#include "kamehameha.h"
 
 game::game(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::game)
@@ -115,6 +116,10 @@ void game::keyPressEvent(QKeyEvent *e)
             p->iniciarCargaKamehameha();
             qDebug() << "Carga de Kamehameha iniciada (mantener J presionada)";
         }
+    }
+    if(e->key() == Qt::Key_H) {
+        // Alternar visualización del hitbox del Kamehameha
+        Kamehameha::alternarVisualizacionHitbox();
     }
 }
 

@@ -500,7 +500,10 @@ void Goku::iniciarCargaKamehameha()
 void Goku::detenerCargaKamehameha()
 {
     if (animacionKamehamehaActiva) {
-        qDebug() << "Goku detiene carga de Kamehameha";
+        qDebug() << "Goku detiene carga de Kamehameha prematuramente - frame actual:" << frameKamehamehaActual;
+        
+        // Solo detener la carga sin lanzar el proyectil
+        // El proyectil se lanza automáticamente al completar la animación
         
         animacionKamehamehaActiva = false;
         timerKamehameha->stop();
@@ -518,7 +521,7 @@ void Goku::detenerCargaKamehameha()
         if (animacionTimer->isActive()) {
             animacionTimer->stop();
         }
-        qDebug() << "Goku volvió a idle después de Kamehameha";
+        qDebug() << "Carga de Kamehameha cancelada - volvió a idle";
     }
 }
 
@@ -534,10 +537,59 @@ void Goku::actualizarAnimacionKamehameha()
         cambiarSpriteCentrado(spriteKamehameha);
         qDebug() << "Animación Kamehameha - frame:" << frameKamehamehaActual;
     } else {
-        // Al llegar al frame 15, mantener la animación (no terminar automáticamente)
-        // El usuario puede seguir manteniendo la tecla para mantener la carga
-        frameKamehamehaActual = 15; // Mantener en el último frame
-        qDebug() << "Kamehameha completamente cargado - manteniendo en frame 15";
+        // Al llegar al frame 15, lanzar el Kamehameha automáticamente
+        qDebug() << "Kamehameha completamente cargado - lanzando automáticamente";
+        lanzarKamehameha();
+        
+        // Terminar la animación
+        animacionKamehamehaActiva = false;
+        timerKamehameha->stop();
+        
+        // Volver al sprite quieto
+        cambiarSpriteCentrado("quieto");
+        setPos(posicionInicialQuieto.x(), posicionInicialQuieto.y());
+        
+        // Configurar estado idle
+        moviendose = false;
+        frameActual = 1;
+        if (animacionTimer->isActive()) {
+            animacionTimer->stop();
+        }
+        qDebug() << "Animación Kamehameha terminada automáticamente";
+    }
+}
+
+void Goku::lanzarKamehameha()
+{
+    qDebug() << "¡Lanzando Kamehameha!";
+    
+    // Crear el proyectil Kamehameha
+    Kamehameha* kamehameha = new Kamehameha(this);
+    
+    // Obtener la posición actual de Goku
+    QPointF posicionGoku = pos();
+    
+    // Calcular la posición de lanzamiento (un poco adelante de Goku)
+    float posX = posicionGoku.x() + 60; // Más a la derecha (era 50)
+    float posY = posicionGoku.y() + 35; // Más abajo (era 20)
+    
+    // Determinar dirección (hacia la derecha por defecto)
+    float direccionX = 1.0f; // Hacia la derecha
+    float direccionY = 0.0f; // Horizontal
+    
+    // Configurar el proyectil
+    float velocidad = 8.0f; // Velocidad del proyectil (más rápida)
+    float alcance = 600.0f;  // Alcance del proyectil
+    
+    // Crear el proyectil
+    kamehameha->crear(posX, posY, direccionX, direccionY, velocidad, alcance);
+    
+    // Agregar el proyectil a la escena
+    if (scene()) {
+        scene()->addItem(kamehameha);
+        qDebug() << "Kamehameha agregado a la escena en posición:" << posX << "," << posY;
+    } else {
+        qDebug() << "Error: No se pudo agregar Kamehameha a la escena (scene es null)";
     }
 }
 

@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QKeyEvent>
 #include "personaje.h"
+#include "kamehameha.h"
 
 class Goku : public Personaje
 {
@@ -35,6 +36,7 @@ public:
     // Métodos para Kamehameha
     void iniciarCargaKamehameha();
     void detenerCargaKamehameha();
+    void lanzarKamehameha(); // Nuevo método para lanzar el proyectil
     bool estaCargandoKamehameha() const { return animacionKamehamehaActiva; }
     
     // Métodos para sistema de ki

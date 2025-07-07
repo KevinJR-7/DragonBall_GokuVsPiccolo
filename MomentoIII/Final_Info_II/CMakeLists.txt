@@ -18,6 +18,8 @@ add_executable(Final_Info_II
   game.ui
   personaje.h personaje.cpp
   goku.h goku.cpp
+  habilidad.h habilidad.cpp
+  kamehameha.h kamehameha.cpp
   Sprites.qrc
 )
 target_link_libraries(Final_Info_II
