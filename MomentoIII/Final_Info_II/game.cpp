@@ -2,23 +2,65 @@
 #include "ui_game.h"
 #include "goku.h"
 #include "kamehameha.h"
+#include "blastb.h"
+#include <QResizeEvent>
+#include <QGuiApplication>
+#include <QScreen>
+#include <QTimer>
+#include <QApplication>
 
 game::game(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::game)
+    : QMainWindow(parent), ui(new Ui::game), fondoItem(nullptr), fondoActual(0)
 {
     ui->setupUi(this);
 
+    // Inicializar lista de fondos disponibles
+    fondosDisponibles << ":/Fondos/Sprites/gui_scenes/torneo.png"
+                      << "degradado"; // Opción especial para fondo degradado
+    
     view = new QGraphicsView(this);
     scene = new QGraphicsScene(this);
 
     view->setScene(scene);
-    view->resize(1000, 500);
-    view->scale(2.0, 2.0);
-    scene->setSceneRect(200, 200, 1000, 500);
+    
+    // Configurar la vista normalmente
+    view->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    view->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    view->setDragMode(QGraphicsView::NoDrag);
+    
+    // Hacer que la vista ocupe toda la ventana principal
+    setCentralWidget(view);
+    
+    // Eliminar barra de estado y menú
+    statusBar()->setVisible(false);
+    menuBar()->setVisible(false);
+    
+    // Ocultar todos los bordes y decoraciones de la ventana
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    setAttribute(Qt::WA_TranslucentBackground, false);
+    setWindowState(Qt::WindowNoState);
+    
+    // Eliminar todos los márgenes y bordes de la vista
+    view->setContentsMargins(0, 0, 0, 0);
+    view->setFrameStyle(QFrame::NoFrame);
+    view->setStyleSheet("QGraphicsView { border: none; margin: 0px; padding: 0px; }");
+    
+    // Eliminar barras de scroll para que no aparezcan
+    view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    
+    // Eliminar márgenes de la ventana principal también
+    setContentsMargins(0, 0, 0, 0);
+    
+    // Configurar el fondo primero para obtener las dimensiones
+    configurarFondo();
 
     p = new Goku();
     scene->addItem(p);
-    p->setPos(300, 300);
+    p->setPos(50, 250); // Mucho más a la izquierda (150→50) y mismo nivel arriba
+    
+    // Hacer Goku más grande (3.5x el tamaño original - 350%)
+    p->setScale(3.5);
     
     // Conectar señal de aterrizaje para movimiento continuo
     connect(p, &Personaje::personajeAterrizo, this, &game::verificarMovimientoContinuo);
@@ -30,7 +72,7 @@ game::game(QWidget *parent)
     // No iniciar automáticamente, solo cuando sea necesario
     
     // Configurar límites de escena para las colisiones
-    QRectF limitesJuego(200, 200, 1000, 500); // Mismos límites que la escena
+    QRectF limitesJuego = scene->sceneRect(); // Usar exactamente los límites de la escena
     p->establecerLimitesEscena(limitesJuego);
     
     // Opcional: Escalar Goku (1.5 = 150% del tamaño original)
@@ -38,10 +80,20 @@ game::game(QWidget *parent)
 
     // Agregar grilla temporal para debug de posicionamiento
     agregarGrillaDebug();
+    
+    // Opcional: Iniciar maximizado
+    // showMaximized();
 }
 
 game::~game()
 {
+    // Limpiar fondo
+    if (fondoItem) {
+        scene->removeItem(fondoItem);
+        delete fondoItem;
+        fondoItem = nullptr;
+    }
+    
     delete ui;
 }
 
@@ -88,18 +140,38 @@ void game::keyPressEvent(QKeyEvent *e)
         qDebug() << "Salto direccional iniciado";
     }
     if(e->key() == Qt::Key_H){ 
-        // Alternar visualización de hitbox con tecla H
+        // Alternar visualización de todos los hitboxes con tecla H
         if (p->estaHitboxVisible()) {
             p->ocultarHitbox();
-            qDebug() << "Hitbox oculta";
+            // También ocultar hitboxes de Kamehameha y BlastB
+            Kamehameha::alternarVisualizacionHitbox();
+            BlastB::alternarVisualizacionHitbox();
+            qDebug() << "Todos los hitboxes ocultos";
         } else {
             p->mostrarHitbox();
-            qDebug() << "Hitbox visible";
+            // También mostrar hitboxes de Kamehameha y BlastB
+            Kamehameha::alternarVisualizacionHitbox();
+            BlastB::alternarVisualizacionHitbox();
+            qDebug() << "Todos los hitboxes visibles";
         }
     }
     if(e->key() == Qt::Key_G){ 
         // Alternar visualización de grilla con tecla G
         alternarGrillaDebug();
+    }
+    if(e->key() == Qt::Key_B){ 
+        // Cambiar al siguiente fondo con tecla B
+        cambiarFondo();
+    }
+    if(e->key() == Qt::Key_F11){ 
+        // Alternar pantalla completa con F11
+        if (isFullScreen()) {
+            showNormal();
+            qDebug() << "Saliendo de pantalla completa";
+        } else {
+            showFullScreen();
+            qDebug() << "Entrando en pantalla completa";
+        }
     }
     if(e->key() == Qt::Key_K){ 
         // Iniciar recarga de ki al presionar K (solo si no está ya recargando)
@@ -117,9 +189,13 @@ void game::keyPressEvent(QKeyEvent *e)
             qDebug() << "Carga de Kamehameha iniciada (mantener J presionada)";
         }
     }
-    if(e->key() == Qt::Key_H) {
-        // Alternar visualización del hitbox del Kamehameha
-        Kamehameha::alternarVisualizacionHitbox();
+    if(e->key() == Qt::Key_L){ 
+        // Iniciar animación de ráfaga al presionar L (solo si no está ya en ráfaga)
+        if (!teclaL_presionada && !p->estaEnAnimacionRafaga()) {
+            teclaL_presionada = true;
+            p->iniciarAnimacionRafaga();
+            qDebug() << "Animación de ráfaga iniciada (mantener L presionada)";
+        }
     }
 }
 
@@ -157,6 +233,14 @@ void game::keyReleaseEvent(QKeyEvent *e)
             teclaJ_presionada = false;
             p->detenerCargaKamehameha();
             qDebug() << "Tecla J liberada - deteniendo carga de Kamehameha";
+        }
+    }
+    if(e->key() == Qt::Key_L) { 
+        // Detener animación de ráfaga al soltar L
+        if (teclaL_presionada) {
+            teclaL_presionada = false;
+            p->detenerAnimacionRafaga();
+            qDebug() << "Tecla L liberada - deteniendo animación de ráfaga";
         }
     }
     
@@ -220,17 +304,19 @@ void game::verificarMovimientoContinuo()
 
 void game::actualizarMovimiento()
 {
-    // Debug para ver si el timer está funcionando
-    qDebug() << "actualizarMovimiento() llamado - D:" << teclaD_presionada << "A:" << teclaA_presionada << "saltando:" << p->estaSaltando();
+    // Debug para ver si el timer está funcionando (reducido)
+    static int debugCounter = 0;
+    if (debugCounter % 60 == 0) { // Debug cada 60 frames (1 segundo aprox)
+        qDebug() << "actualizarMovimiento() - D:" << teclaD_presionada << "A:" << teclaA_presionada << "saltando:" << p->estaSaltando();
+    }
+    debugCounter++;
     
     // Solo aplicar movimiento si no está saltando
     if (!p->estaSaltando()) {
         if (teclaD_presionada) {
-            qDebug() << "Ejecutando moverDerecha()";
             p->moverDerecha();
         }
         if (teclaA_presionada) {
-            qDebug() << "Ejecutando moverIzquierda()";
             p->moverIzquierda();
         }
         if (teclaW_presionada) {
@@ -291,4 +377,185 @@ void game::alternarGrillaDebug()
     }
     
     qDebug() << "Grilla de debug" << (grillaVisible ? "mostrada" : "oculta");
+}
+
+void game::alternarHitboxKamehameha()
+{
+    // Alternar hitbox del personaje
+    if (p->estaHitboxVisible()) {
+        p->ocultarHitbox();
+        qDebug() << "Hitbox del personaje oculto";
+    } else {
+        p->mostrarHitbox();
+        qDebug() << "Hitbox del personaje visible";
+    }
+    
+    // Alternar hitbox de Kamehameha
+    Kamehameha::alternarVisualizacionHitbox();
+    
+    // Alternar hitbox de BlastB
+    BlastB::alternarVisualizacionHitbox();
+    
+    qDebug() << "Todos los hitboxes alternados";
+}
+
+void game::configurarFondo()
+{
+    // Limpiar fondo anterior si existe
+    if (fondoItem) {
+        scene->removeItem(fondoItem);
+        delete fondoItem;
+        fondoItem = nullptr;
+    }
+    
+    QPixmap fondoPixmap;
+    QString fondoActualPath = fondosDisponibles[fondoActual];
+    
+    if (fondoActualPath == "degradado") {
+        // Crear fondo degradado
+        qDebug() << "Creando fondo degradado";
+        
+        // Crear un pixmap del tamaño de la escena
+        QRectF escenaRect = scene->sceneRect();
+        fondoPixmap = QPixmap(escenaRect.width(), escenaRect.height());
+        
+        // Crear degradado
+        QPainter painter(&fondoPixmap);
+        QLinearGradient gradient(0, 0, 0, escenaRect.height());
+        gradient.setColorAt(0, QColor(135, 206, 235)); // Azul cielo
+        gradient.setColorAt(0.7, QColor(255, 255, 255)); // Blanco
+        gradient.setColorAt(1, QColor(34, 139, 34)); // Verde hierba
+        
+        painter.fillRect(fondoPixmap.rect(), gradient);
+        
+        // Agregar algunas nubes simples
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(QColor(255, 255, 255, 180)); // Blanco semi-transparente
+        
+        // Nube 1
+        painter.drawEllipse(100, 50, 80, 40);
+        painter.drawEllipse(140, 40, 60, 30);
+        painter.drawEllipse(120, 60, 50, 25);
+        
+        // Nube 2
+        painter.drawEllipse(300, 80, 100, 50);
+        painter.drawEllipse(350, 70, 70, 35);
+        painter.drawEllipse(330, 90, 60, 30);
+        
+        painter.end();
+        
+        qDebug() << "Fondo degradado creado con dimensiones:" << fondoPixmap.size();
+    } else {
+        // Intentar cargar imagen de fondo desde recursos
+        fondoPixmap = QPixmap(fondoActualPath);
+        
+        if (fondoPixmap.isNull()) {
+            qDebug() << "No se pudo cargar el fondo:" << fondoActualPath << "- usando degradado";
+            // Crear fondo degradado como respaldo
+            QRectF escenaRect = scene->sceneRect();
+            fondoPixmap = QPixmap(escenaRect.width(), escenaRect.height());
+            
+            QPainter painter(&fondoPixmap);
+            QLinearGradient gradient(0, 0, 0, escenaRect.height());
+            gradient.setColorAt(0, QColor(135, 206, 235)); // Azul cielo
+            gradient.setColorAt(0.7, QColor(255, 255, 255)); // Blanco
+            gradient.setColorAt(1, QColor(34, 139, 34)); // Verde hierba
+            painter.fillRect(fondoPixmap.rect(), gradient);
+            painter.end();
+        } else {
+            qDebug() << "Fondo cargado exitosamente:" << fondoActualPath << "- dimensiones:" << fondoPixmap.size();
+        }
+    }
+    
+    // Obtener el tamaño exacto de la imagen
+    QSize tamañoImagen = fondoPixmap.size();
+    
+    // Reducir la imagen a la mitad
+    QSize tamañoReducido = QSize(tamañoImagen.width() / 2, tamañoImagen.height() / 2);
+    fondoPixmap = fondoPixmap.scaled(tamañoReducido, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    
+    // Hacer la escena exactamente del tamaño de la imagen reducida
+    scene->setSceneRect(0, 0, tamañoReducido.width(), tamañoReducido.height());
+    
+    // Colocar la imagen reducida directamente en la escena
+    fondoItem = new QGraphicsPixmapItem(fondoPixmap);
+    fondoItem->setPos(0, 0);
+    fondoItem->setZValue(-1000);
+    scene->addItem(fondoItem);
+    
+    // Hacer la ventana exactamente del tamaño de la imagen reducida
+    // Sin bordes, no necesitamos píxeles extra
+    resize(tamañoReducido);
+    
+    // Centrar la ventana en la pantalla
+    QScreen *screen = QGuiApplication::primaryScreen();
+    QRect screenGeometry = screen->geometry();
+    int x = (screenGeometry.width() - tamañoReducido.width()) / 2;
+    int y = (screenGeometry.height() - tamañoReducido.height()) / 2;
+    move(x, y);
+    
+    // Configurar la vista correctamente desde el inicio
+    view->setSceneRect(scene->sceneRect());
+    view->resetTransform();
+    view->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+    
+    // Forzar un refresh completo de la ventana
+    QApplication::processEvents();
+    update();
+    view->update();
+    
+    // Forzar reposicionamiento para que se acomode correctamente
+    QTimer::singleShot(100, this, [this, tamañoReducido]() {
+        resize(tamañoReducido);
+        view->resetTransform();
+        view->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+        update();
+        view->update();
+    });
+    
+    qDebug() << "Ventana y imagen del mismo tamaño - Original:" << tamañoImagen << "- Reducido:" << tamañoReducido;
+    
+    qDebug() << "Fondo configurado y agregado a la escena";
+}
+
+void game::cambiarFondo()
+{
+    // Cambiar al siguiente fondo
+    fondoActual = (fondoActual + 1) % fondosDisponibles.size();
+    
+    qDebug() << "Cambiando al fondo" << (fondoActual + 1) << "de" << fondosDisponibles.size() << ":" << fondosDisponibles[fondoActual];
+    
+    // Configurar el nuevo fondo
+    configurarFondo();
+}
+
+void game::resizeEvent(QResizeEvent *event)
+{
+    // Llamar al método padre primero
+    QMainWindow::resizeEvent(event);
+    
+    // Manejar el redimensionamiento (incluyendo maximizar)
+    if (view && scene && fondoItem) {
+        // Resetear cualquier transformación previa
+        view->resetTransform();
+        
+        // Ajustar la vista según el estado de la ventana
+        if (isFullScreen()) {
+            // En pantalla completa, ignorar aspect ratio para llenar toda la pantalla
+            view->setSceneRect(scene->sceneRect());
+            view->fitInView(scene->sceneRect(), Qt::IgnoreAspectRatio);
+        } else {
+            // En ventana normal, mantener aspect ratio
+            view->setSceneRect(scene->sceneRect());
+            view->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+        }
+        
+        // Actualizar los límites del personaje
+        if (p) {
+            QRectF limitesJuego = scene->sceneRect();
+            p->establecerLimitesEscena(limitesJuego);
+        }
+        
+        qDebug() << "Ventana redimensionada - Tamaño:" << size() << "- FullScreen:" << isFullScreen();
+    }
 }
