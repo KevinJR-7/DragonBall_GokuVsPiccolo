@@ -6,6 +6,7 @@
 #include <QKeyEvent>
 #include "personaje.h"
 #include "kamehameha.h"
+#include "blastb.h"
 
 class Goku : public Personaje
 {
@@ -39,6 +40,18 @@ public:
     void lanzarKamehameha(); // Nuevo método para lanzar el proyectil
     bool estaCargandoKamehameha() const { return animacionKamehamehaActiva; }
     
+public:
+    // Método para cambiar sprite de Kamehameha manteniendo posición fija
+    void cambiarSpriteKamehamehaFijo(const QString& direccion);
+
+    // Métodos para ráfaga
+    void iniciarAnimacionRafaga();
+    void detenerAnimacionRafaga();
+    bool estaEnAnimacionRafaga() const { return animacionRafagaActiva; }
+
+    // Método para lanzar BlastB
+    void lanzarBlastB();
+    
     // Métodos para sistema de ki
     void establecerKi(int ki, int kiMax = 100);
     int obtenerKi() const { return kiActual; }
@@ -52,6 +65,7 @@ private slots:
     void actualizarAnimacionKi();
     void recargarKi(); // Para incrementar el ki real
     void actualizarAnimacionKamehameha(); // Para la animación de Kamehameha
+    void actualizarAnimacionRafaga(); // Para la animación de ráfaga
 
 private:
     QString ultimaDireccionHorizontal; // "adelante", "atras", o "" si no hay dirección horizontal
@@ -73,6 +87,12 @@ private:
     int frameKamehamehaActual;
     QTimer* timerKamehameha;
     QPointF posicionInicialQuieto; // Guardar posición del sprite quieto // Posición exacta antes de empezar Kamehameha
+    QPointF posicionFijaKamehameha; // Posición fija para mantener durante la animación
+    
+    // Variables para animación de ráfaga
+    bool animacionRafagaActiva;
+    int frameRafagaActual;
+    QTimer* timerRafaga;
     
     // Estados de animación de ki
     enum EstadoKi { INICIO, BUCLE, FINAL };

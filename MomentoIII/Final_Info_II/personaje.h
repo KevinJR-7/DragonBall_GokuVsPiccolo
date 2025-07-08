@@ -33,6 +33,9 @@ public:
     virtual void iniciarAnimacionIdle();
     virtual void establecerEscala(qreal escala);
     virtual void morir();
+    
+    // Método para personalizar el dibujo (visualización de trayectorias)
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
     // Métodos no virtuales (comunes para todos los personajes)
     void establecerVida(int vidaMaxima);
@@ -147,6 +150,10 @@ protected:
     // Variables para visualización de hitbox
     bool hitboxVisible;
     QGraphicsRectItem* hitboxVisual;
+    
+    // Variables para trazado de trayectoria de salto
+    QList<QPointF> trayectoriaSalto; // Lista de puntos de la trayectoria del salto
+    int maxPuntosTrayectoriaSalto; // Máximo número de puntos a guardar
     
 protected slots:
     virtual void actualizarSalto();
