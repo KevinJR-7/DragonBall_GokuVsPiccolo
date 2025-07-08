@@ -77,9 +77,9 @@ game::game(QWidget *parent)
     // No iniciar automáticamente, solo cuando sea necesario
 
     // Configurar timer para movimiento Piccolo
-    piccoloMovTimer = new QTimer(this);
-    piccoloMovTimer->setInterval(50); // 20 FPS para movimiento suave
-    connect(piccoloMovTimer, &QTimer::timeout, this, &game::piccoloActualizarMovimiento);
+    // piccoloMovTimer = new QTimer(this);
+    // piccoloMovTimer->setInterval(50); // 20 FPS para movimiento suave
+    // connect(piccoloMovTimer, &QTimer::timeout, this, &game::piccoloActualizarMovimiento);
     //piccoloMovTimer->start();
 
     piccoloIATimer = new QTimer(this);
@@ -213,6 +213,12 @@ void game::keyPressEvent(QKeyEvent *e)
             qDebug() << "Animación de ráfaga iniciada (mantener L presionada)";
         }
     }
+    // tecla para pruebitas
+    if(e->key() == Qt::Key_Z){
+        if (!piccoloJ_presionada && !p->estaCargandoKamehameha()){
+            piccoloJ_presionada = true;
+        }
+    }
 }
 
 void game::keyReleaseEvent(QKeyEvent *e)
@@ -258,6 +264,12 @@ void game::keyReleaseEvent(QKeyEvent *e)
             p->detenerAnimacionRafaga();
             qDebug() << "Tecla L liberada - deteniendo animación de ráfaga";
         }
+    // tecla para pruebitas
+    if(e->key() == Qt::Key_Z)
+    {
+        piccoloJ_presionada = false;
+        pic->detenerCargaRayo();
+        pic->iniciarAnimacionIdle();
     }
     
     // Si no hay teclas presionadas, detener timer e iniciar idle
@@ -351,27 +363,30 @@ void game::piccoloActualizarMovimiento()
     qDebug() << "piccoloActualizarMovimiento() llamado - D:" << teclaD_presionada << "A:" << teclaA_presionada << "saltando:" << p->estaSaltando();
 
     // Codigo para hacer los cambios de movimeinto de piccolo
+    //piccoloJ_presionada = true;
 
     // Movimeintos Piccolo
-    if (!pic->estaSaltando()) {
-        if (piccoloD_presionada) {
-            qDebug() << "Piccolo moverDerecha()";
-            pic->moverDerecha();
-            // if (!piccoloMovTimer->isActive()) {
-            //     piccoloMovTimer->start();
-            //     qDebug() << "Timer iniciado para D (pic)";
-            // }
-        }
-        if (piccoloA_presionada) {
-            qDebug() << "Piccolo moverIzquierda()";
-            pic->moverIzquierda();
-        }
-        if (piccoloW_presionada) {
-            pic->moverArriba();
-        }
-        if (piccoloS_presionada) {
-            pic->moverAbajo();
-        }
+    if (piccoloD_presionada) {
+        qDebug() << "Piccolo moverDerecha()";
+        pic->moverDerecha();
+        piccoloD_presionada = false;
+    }
+    if (piccoloA_presionada) {
+        qDebug() << "Piccolo moverIzquierda()";
+        pic->moverIzquierda();
+        piccoloA_presionada = false;
+    }
+    if (piccoloW_presionada) {
+        pic->moverArriba();
+        piccoloW_presionada = false;
+    }
+    if (piccoloS_presionada) {
+        pic->moverAbajo();
+        piccoloS_presionada = false;
+    }
+    if (piccoloJ_presionada) {
+        pic->iniciarCargaRayo();
+        piccoloJ_presionada = false;
     }
 }
 
