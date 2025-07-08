@@ -20,9 +20,9 @@ game::game(QWidget *parent)
     scene->addItem(p);
     p->setPos(300, 300);
 
-    pic = new piccolo();
+    pic = new Piccolo();
     scene->addItem(pic);
-    pic->setPos(400, 120);
+    pic->setPos(400, 300);
     
     // Conectar señal de aterrizaje para movimiento continuo
     connect(p, &Personaje::personajeAterrizo, this, &game::verificarMovimientoContinuo);
@@ -32,7 +32,18 @@ game::game(QWidget *parent)
     movimientoTimer->setInterval(50); // 20 FPS para movimiento suave
     connect(movimientoTimer, &QTimer::timeout, this, &game::actualizarMovimiento);
     // No iniciar automáticamente, solo cuando sea necesario
-    
+
+    // Configurar timer para movimiento Piccolo
+    piccoloMovTimer = new QTimer(this);
+    piccoloMovTimer->setInterval(50); // 20 FPS para movimiento suave
+    connect(piccoloMovTimer, &QTimer::timeout, this, &game::piccoloActualizarMovimiento);
+    //piccoloMovTimer->start();
+
+    piccoloIATimer = new QTimer(this);
+    piccoloIATimer->setInterval(50);
+    connect(piccoloIATimer, &QTimer::timeout, this, &game::piccoloActualizarMovimiento);
+    piccoloIATimer->start();
+
     // Configurar límites de escena para las colisiones
     QRectF limitesJuego(200, 200, 1000, 500); // Mismos límites que la escena
     p->establecerLimitesEscena(limitesJuego);
@@ -238,6 +249,37 @@ void game::actualizarMovimiento()
         }
         if (teclaS_presionada) {
             p->moverAbajo();
+        }
+    }
+
+}
+
+void game::piccoloActualizarMovimiento()
+{
+    // Debug para ver si el timer está funcionando
+    qDebug() << "piccoloActualizarMovimiento() llamado - D:" << teclaD_presionada << "A:" << teclaA_presionada << "saltando:" << p->estaSaltando();
+
+    // Codigo para hacer los cambios de movimeinto de piccolo
+
+    // Movimeintos Piccolo
+    if (!pic->estaSaltando()) {
+        if (piccoloD_presionada) {
+            qDebug() << "Piccolo moverDerecha()";
+            pic->moverDerecha();
+            // if (!piccoloMovTimer->isActive()) {
+            //     piccoloMovTimer->start();
+            //     qDebug() << "Timer iniciado para D (pic)";
+            // }
+        }
+        if (piccoloA_presionada) {
+            qDebug() << "Piccolo moverIzquierda()";
+            pic->moverIzquierda();
+        }
+        if (piccoloW_presionada) {
+            pic->moverArriba();
+        }
+        if (piccoloS_presionada) {
+            pic->moverAbajo();
         }
     }
 }

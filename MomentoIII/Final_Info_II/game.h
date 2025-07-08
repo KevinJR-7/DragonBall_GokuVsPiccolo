@@ -16,7 +16,7 @@ class game : public QMainWindow
 
 public:
 
-    piccolo* pic;
+    Piccolo* pic;
     Goku* p;
 
     game(QWidget *parent = nullptr);
@@ -39,12 +39,15 @@ public:
 
 private slots:
     void actualizarMovimiento();
+    void piccoloActualizarMovimiento();
 
 private:
     Ui::game *ui;
     
     // Timer para movimiento continuo
     QTimer* movimientoTimer;
+    QTimer* piccoloMovTimer;
+    QTimer* piccoloIATimer;
     
     // Variables para rastrear teclas presionadas
     bool teclaD_presionada = false;
@@ -53,6 +56,13 @@ private:
     bool teclaS_presionada = false;
     bool teclaK_presionada = false; // Para recarga de ki
     bool teclaJ_presionada = false; // Para Kamehameha
+
+    bool piccoloD_presionada = false;
+    bool piccoloA_presionada = false;
+    bool piccoloW_presionada = false;
+    bool piccoloS_presionada = false;
+    bool piccoloK_presionada = false; // Para recarga de ki
+    bool piccoloJ_presionada = false; // Para Kamehameha
     
     // Variables para grilla de debug
     QList<QGraphicsLineItem*> lineasGrilla;
