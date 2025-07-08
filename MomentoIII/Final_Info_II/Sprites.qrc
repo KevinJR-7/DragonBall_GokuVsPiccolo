@@ -54,10 +54,9 @@
         <file>Sprites/goku/hameha2.png</file>
         <file>Sprites/goku/hameha3.png</file>
     </qresource>
-<<<<<<< HEAD
     <qresource prefix="/Fondos">
         <file>Sprites/gui_scenes/torneo.png</file>
-=======
+    </qresource>
     <qresource prefix="/Piccolo">
         <file>Sprites/piccolo/0.png</file>
         <file>Sprites/piccolo/adelante.png</file>
@@ -76,6 +75,5 @@
         <file>Sprites/piccolo/salto4.png</file>
         <file>Sprites/piccolo/salto5.png</file>
         <file>Sprites/piccolo/salto6.png</file>
->>>>>>> 8452abc3670219a93dcd4466d3c018a592ec334b
     </qresource>
 </RCC>
