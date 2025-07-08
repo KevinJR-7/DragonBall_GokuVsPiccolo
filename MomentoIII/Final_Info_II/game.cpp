@@ -264,6 +264,7 @@ void game::keyReleaseEvent(QKeyEvent *e)
             p->detenerAnimacionRafaga();
             qDebug() << "Tecla L liberada - deteniendo animación de ráfaga";
         }
+    }
     // tecla para pruebitas
     if(e->key() == Qt::Key_Z)
     {
