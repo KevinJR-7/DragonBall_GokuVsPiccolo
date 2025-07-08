@@ -169,7 +169,7 @@ void Personaje::iniciarAnimacionIdle()
 {
     moviendose = false;
     frameActual = 1; // Reiniciar desde el primer frame
-    if (!saltando && estaVivo()) { // Solo iniciar si no está saltando y está vivo
+    if (estaVivo()) { // Solo iniciar si no está saltando y está vivo
         animacionTimer->start();
     }
 }

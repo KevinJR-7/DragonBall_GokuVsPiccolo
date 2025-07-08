@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QKeyEvent>
 #include "personaje.h"
+#include "rayo.h"
 
 class Piccolo : public Personaje
 {
@@ -26,12 +27,21 @@ public:
 
     // Override para funciones de sprites
     void cambiarSprite(const QString& direccion) override;
+    void cambiarSpriteCentrado(const QString& direccion) override;
 
     // Método para animación de entrada
     void iniciarAnimacionEntrada();
+    bool estaEnAnimacionEntrada() const { return animacionEntradaActiva; }
+
+    // Métodos para Rayo
+    void iniciarCargaRayo();
+    void detenerCargaRayo();
+    void lanzarRayo(); // Nuevo método para lanzar el proyectil
+    bool estaCargandoRayo() const { return animacionRayoActiva; }
 
 private slots:
     void actualizarAnimacionEntrada();
+    void actualizarAnimacionRayo(); // Para la animación de Rayo
 
 private:
     QString ultimaDireccionHorizontal; // "adelante", "atras", o "" si no hay dirección horizontal
@@ -44,6 +54,11 @@ private:
     int frameEntradaActual;
     QTimer* timerEntrada;
 
+    // Variables para animación de Rayo
+    bool animacionRayoActiva;
+    int frameRayoActual;
+    QTimer* timerRayo;
+    QPointF posicionInicialQuieto; // Guardar posición del sprite quieto // Posición exacta antes de empezar Rayo
 
 signals:
 };
