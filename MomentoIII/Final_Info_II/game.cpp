@@ -58,18 +58,14 @@ game::game(QWidget *parent)
 
     p = new Goku();
     scene->addItem(p);
-<<<<<<< HEAD
     p->setPos(50, 250); // Mucho más a la izquierda (150→50) y mismo nivel arriba
     
     // Hacer Goku más grande (3.5x el tamaño original - 350%)
     p->setScale(3.5);
-=======
-    p->setPos(300, 300);
-
+    
     pic = new Piccolo();
     scene->addItem(pic);
     pic->setPos(400, 300);
->>>>>>> 8452abc3670219a93dcd4466d3c018a592ec334b
     
     // Conectar señal de aterrizaje para movimiento continuo
     connect(p, &Personaje::personajeAterrizo, this, &game::verificarMovimientoContinuo);
