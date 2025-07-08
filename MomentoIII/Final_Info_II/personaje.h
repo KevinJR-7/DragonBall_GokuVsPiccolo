@@ -18,12 +18,12 @@ public:
     virtual ~Personaje();
 
     // Métodos virtuales puros (deben ser implementados por las clases hijas)
-    virtual void moverDerecha() = 0;
-    virtual void moverIzquierda() = 0;
-    virtual void moverArriba() = 0;
-    virtual void moverAbajo() = 0;
-    virtual void atacar() = 0;
-    virtual void recibirDanio(int danio) = 0;
+    virtual void moverDerecha();
+    virtual void moverIzquierda();
+    virtual void moverArriba();
+    virtual void moverAbajo();
+    virtual void atacar();
+    virtual void recibirDanio(int danio);
 
     // Métodos virtuales con implementación por defecto (pueden ser sobrescritos)
     virtual void saltar();

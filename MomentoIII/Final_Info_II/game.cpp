@@ -1,5 +1,6 @@
 #include "game.h"
 #include "ui_game.h"
+#include "piccolo.h"
 #include "goku.h"
 #include "kamehameha.h"
 #include "blastb.h"
@@ -57,10 +58,18 @@ game::game(QWidget *parent)
 
     p = new Goku();
     scene->addItem(p);
+<<<<<<< HEAD
     p->setPos(50, 250); // Mucho más a la izquierda (150→50) y mismo nivel arriba
     
     // Hacer Goku más grande (3.5x el tamaño original - 350%)
     p->setScale(3.5);
+=======
+    p->setPos(300, 300);
+
+    pic = new Piccolo();
+    scene->addItem(pic);
+    pic->setPos(400, 300);
+>>>>>>> 8452abc3670219a93dcd4466d3c018a592ec334b
     
     // Conectar señal de aterrizaje para movimiento continuo
     connect(p, &Personaje::personajeAterrizo, this, &game::verificarMovimientoContinuo);
@@ -70,7 +79,18 @@ game::game(QWidget *parent)
     movimientoTimer->setInterval(50); // 20 FPS para movimiento suave
     connect(movimientoTimer, &QTimer::timeout, this, &game::actualizarMovimiento);
     // No iniciar automáticamente, solo cuando sea necesario
-    
+
+    // Configurar timer para movimiento Piccolo
+    piccoloMovTimer = new QTimer(this);
+    piccoloMovTimer->setInterval(50); // 20 FPS para movimiento suave
+    connect(piccoloMovTimer, &QTimer::timeout, this, &game::piccoloActualizarMovimiento);
+    //piccoloMovTimer->start();
+
+    piccoloIATimer = new QTimer(this);
+    piccoloIATimer->setInterval(50);
+    connect(piccoloIATimer, &QTimer::timeout, this, &game::piccoloActualizarMovimiento);
+    piccoloIATimer->start();
+
     // Configurar límites de escena para las colisiones
     QRectF limitesJuego = scene->sceneRect(); // Usar exactamente los límites de la escena
     p->establecerLimitesEscena(limitesJuego);
@@ -324,6 +344,37 @@ void game::actualizarMovimiento()
         }
         if (teclaS_presionada) {
             p->moverAbajo();
+        }
+    }
+
+}
+
+void game::piccoloActualizarMovimiento()
+{
+    // Debug para ver si el timer está funcionando
+    qDebug() << "piccoloActualizarMovimiento() llamado - D:" << teclaD_presionada << "A:" << teclaA_presionada << "saltando:" << p->estaSaltando();
+
+    // Codigo para hacer los cambios de movimeinto de piccolo
+
+    // Movimeintos Piccolo
+    if (!pic->estaSaltando()) {
+        if (piccoloD_presionada) {
+            qDebug() << "Piccolo moverDerecha()";
+            pic->moverDerecha();
+            // if (!piccoloMovTimer->isActive()) {
+            //     piccoloMovTimer->start();
+            //     qDebug() << "Timer iniciado para D (pic)";
+            // }
+        }
+        if (piccoloA_presionada) {
+            qDebug() << "Piccolo moverIzquierda()";
+            pic->moverIzquierda();
+        }
+        if (piccoloW_presionada) {
+            pic->moverArriba();
+        }
+        if (piccoloS_presionada) {
+            pic->moverAbajo();
         }
     }
 }

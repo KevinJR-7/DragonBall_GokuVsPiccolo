@@ -14,7 +14,7 @@ class Goku : public Personaje
 public:
     Goku(QObject *parent = nullptr);
     
-    // Implementación obligatoria de métodos virtuales puros
+    // Override para funciones de movimiento
     void moverDerecha() override;
     void moverIzquierda() override;
     void moverArriba() override;
