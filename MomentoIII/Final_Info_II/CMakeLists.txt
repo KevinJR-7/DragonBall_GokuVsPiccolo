@@ -21,6 +21,8 @@ add_executable(Final_Info_II
   habilidad.h habilidad.cpp
   kamehameha.h kamehameha.cpp
   Sprites.qrc
+  ground.h ground.cpp
+  piccolo.h piccolo.cpp
 )
 target_link_libraries(Final_Info_II
     Qt${QT_VERSION_MAJOR}::Core

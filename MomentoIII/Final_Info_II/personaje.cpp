@@ -698,3 +698,10 @@ void Personaje::cambiarSpriteConOffset(const QString& direccion, qreal offsetX, 
         qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
     }
 }
+
+void Personaje::moverDerecha(){}
+void Personaje::moverIzquierda(){}
+void Personaje::moverArriba(){}
+void Personaje::moverAbajo(){}
+void Personaje::atacar(){}
+void Personaje::recibirDanio(int danio){}

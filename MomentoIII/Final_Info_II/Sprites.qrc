@@ -48,4 +48,23 @@
         <file>Sprites/goku/hameha2.png</file>
         <file>Sprites/goku/hameha3.png</file>
     </qresource>
+    <qresource prefix="/Piccolo">
+        <file>Sprites/piccolo/0.png</file>
+        <file>Sprites/piccolo/adelante.png</file>
+        <file>Sprites/piccolo/atras.png</file>
+        <file>Sprites/piccolo/base1.png</file>
+        <file>Sprites/piccolo/base2.png</file>
+        <file>Sprites/piccolo/base3.png</file>
+        <file>Sprites/piccolo/base4.png</file>
+        <file>Sprites/piccolo/entrada1.png</file>
+        <file>Sprites/piccolo/entrada2.png</file>
+        <file>Sprites/piccolo/entrada3.png</file>
+        <file>Sprites/piccolo/entrada4.png</file>
+        <file>Sprites/piccolo/salto1.png</file>
+        <file>Sprites/piccolo/salto2.png</file>
+        <file>Sprites/piccolo/salto3.png</file>
+        <file>Sprites/piccolo/salto4.png</file>
+        <file>Sprites/piccolo/salto5.png</file>
+        <file>Sprites/piccolo/salto6.png</file>
+    </qresource>
 </RCC>
