@@ -37,6 +37,10 @@ Personaje::Personaje(QObject *parent)
     hitboxVisible = false;
     hitboxVisual = nullptr;
     
+    // Inicializar trayectoria de salto - limitar a 50 puntos para evitar consumo excesivo de memoria
+    maxPuntosTrayectoriaSalto = 50;
+    trayectoriaSalto.clear();
+    
     // Inicializar variables de física del salto
     velocidadVertical = 0.0;
     aceleracionVertical = 0.0;
@@ -370,6 +374,14 @@ void Personaje::actualizarSalto()
         // Actualizar posición completa
         QGraphicsPixmapItem::setPos(posicionFinalX, posicionFinalY);
         
+        // Agregar punto a la trayectoria para visualización
+        trayectoriaSalto.append(QPointF(posicionFinalX, posicionFinalY));
+        
+        // Limitar el tamaño de la trayectoria
+        if (trayectoriaSalto.size() > maxPuntosTrayectoriaSalto) {
+            trayectoriaSalto.removeFirst();
+        }
+        
         // Debug menos frecuente
         static int debugCounter = 0;
         if (debugCounter % 60 == 0) { // Debug cada 60 frames (~1 segundo)
@@ -443,6 +455,9 @@ void Personaje::actualizarSalto()
             // Restaurar hitbox normal al aterrizar
             restaurarHitboxNormal();
             
+            // Limpiar trayectoria del salto al aterrizar
+            trayectoriaSalto.clear();
+            
             // Cambiar inmediatamente al sprite base1 al aterrizar
             cambiarSprite("base1");
             
@@ -485,6 +500,36 @@ void Personaje::actualizarAnimacion()
             setPixmap(nuevoSprite);
         } else {
             qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
+        }
+    }
+}
+
+void Personaje::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    // Dibujar el sprite normalmente
+    QGraphicsPixmapItem::paint(painter, option, widget);
+    
+    // Visualizar la trayectoria del salto si está habilitada la visualización de hitbox
+    if (hitboxVisible && !trayectoriaSalto.isEmpty() && trayectoriaSalto.size() > 1) {
+        // Configurar el pincel para la línea de trayectoria del salto
+        QPen penTrayectoria;
+        penTrayectoria.setColor(Qt::blue);
+        penTrayectoria.setWidth(2);
+        penTrayectoria.setStyle(Qt::DashLine);
+        painter->setPen(penTrayectoria);
+        
+        // Dibujar líneas conectando todos los puntos de la trayectoria
+        for (int i = 0; i < trayectoriaSalto.size() - 1; ++i) {
+            QPointF puntoInicio = mapFromScene(trayectoriaSalto[i]);
+            QPointF puntoFin = mapFromScene(trayectoriaSalto[i + 1]);
+            painter->drawLine(puntoInicio, puntoFin);
+        }
+        
+        // Conectar el último punto de la trayectoria con la posición actual
+        if (!trayectoriaSalto.isEmpty()) {
+            QPointF ultimoPunto = mapFromScene(trayectoriaSalto.last());
+            QPointF posicionActual = QPointF(0, 0); // Posición relativa al item
+            painter->drawLine(ultimoPunto, posicionActual);
         }
     }
 }

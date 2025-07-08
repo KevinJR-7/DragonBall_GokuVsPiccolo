@@ -1,5 +1,5 @@
-#ifndef KAMEHAMEHA_H
-#define KAMEHAMEHA_H
+#ifndef BOLAENERGIA_H
+#define BOLAENERGIA_H
 
 #include "habilidad.h"
 #include <QTimer>
@@ -7,13 +7,13 @@
 #include <QPainter>
 #include <QDebug>
 
-class Kamehameha : public Habilidad
+class BolaEnergia : public Habilidad
 {
     Q_OBJECT
     
 public:
-    explicit Kamehameha(QObject *parent = nullptr);
-    ~Kamehameha();
+    explicit BolaEnergia(QObject *parent = nullptr);
+    ~BolaEnergia();
     
     // Sistema simple de proyectil
     void crear(float x, float y, float dirX, float dirY, float velocidad, float alcance);
@@ -31,11 +31,7 @@ public:
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
     
-    // Métodos específicos del Kamehameha
-    void establecerPotencia(int potencia);
-    void establecerSegmentos(int segmentos);
-    
-    // Sistema de hitbox y colisiones
+    // Sistema de hitbox
     QRectF getHitbox() const;
     void verificarColisiones();
     bool colisionaCon(QGraphicsItem* item);
@@ -54,41 +50,34 @@ private:
     bool activo;
     QTimer *timer;
     
-    // Sprites del kamehameha
-    QPixmap hame1, hame2, hame3;
-    QPixmap hameha1, hameha2, hameha3;
+    // Sprites de la bola de energía
+    QPixmap bola1, bola2, bola3, bola4, bola5;
     bool spritesValidos;
     
-    // Configuración del rayo compuesto
-    int anchoTotal;
-    int altoTotal;
+    // Configuración del proyectil
+    int ancho;
+    int alto;
     
-    // Sistema de animación intercalada
-    bool usarHameha; // true = usar hameha, false = usar hame
+    // Sistema de animación
+    int frameActual;
     QTimer *animacionTimer;
-    int contadorAnimacion;
     
     // Variables del hitbox
     QRectF hitbox;
     int daño;
     bool hitboxActivo;
-    QList<QGraphicsItem*> objetosGolpeados; // Para evitar múltiples hits del mismo objeto
+    QList<QGraphicsItem*> objetosGolpeados;
     
-    // Variable estática para mostrar hitbox (controlada por tecla H)
+    // Variable estática para mostrar hitbox
     static bool mostrarHitbox;
     
-    // Variables para trazado de trayectoria
-    QList<QPointF> trayectoria; // Lista de puntos de la trayectoria
-    int maxPuntosTrayectoria; // Máximo número de puntos a guardar
-    
     void cargarSprites();
-    void construirRayo();
     void iniciarAnimacion();
     void detenerAnimacion();
     
 private slots:
     void actualizar_timeout();
-    void alternarSprites(); // Nuevo slot para alternar sprites
+    void siguienteFrame();
 };
 
-#endif // KAMEHAMEHA_H
+#endif // BOLAENERGIA_H

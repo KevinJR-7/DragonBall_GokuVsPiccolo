@@ -32,7 +32,14 @@ Kamehameha::Kamehameha(QObject *parent)
     animacionTimer->setInterval(200); // Cambiar cada 200ms (más lento)
     connect(animacionTimer, &QTimer::timeout, this, &Kamehameha::alternarSprites);
     
+    // Inicializar trayectoria - limitar a 100 puntos para evitar consumo excesivo de memoria
+    maxPuntosTrayectoria = 100;
+    trayectoria.clear();
+    
     cargarSprites();
+    
+    // Hacer el Kamehameha más pequeño (2.33x - reducido 1/3 del tamaño anterior)
+    setScale(2.33);
     
     qDebug() << "Kamehameha creado como proyectil simple";
 }
@@ -145,6 +152,14 @@ void Kamehameha::mover()
     // Actualizar posición en la escena
     setPos(x, y);
     
+    // Agregar punto a la trayectoria para visualización
+    trayectoria.append(QPointF(x, y));
+    
+    // Limitar el tamaño de la trayectoria
+    if (trayectoria.size() > maxPuntosTrayectoria) {
+        trayectoria.removeFirst();
+    }
+    
     // Actualizar distancia recorrida
     distanciaRecorrida += velocidad;
     
@@ -205,6 +220,9 @@ void Kamehameha::destruir()
     
     // Detener la animación intercalada
     detenerAnimacion();
+    
+    // Limpiar trayectoria
+    trayectoria.clear();
     
     // Remover de la escena
     if (scene()) {
@@ -289,10 +307,34 @@ void Kamehameha::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         
         float ancho = anchoTotal;
         float alto = altoTotal * 0.85f + 1.0f; // Aumentar altura 1 píxel más hacia abajo igual que en getHitbox()
-        float offsetY = altoTotal * 0.15f - 3.0f; // Subir hitbox 3 píxeles igual que en getHitbox()
+        float offsetY = altoTotal * 0.15f - 1.0f; // Subir hitbox 1 píxel igual que en getHitbox()
         
         painter->drawRect(0, offsetY, ancho, alto);
         qDebug() << "Hitbox dibujado - visible con tecla H (1 píxel más alto hacia abajo)";
+    }
+    
+    // Visualizar la trayectoria del Kamehameha si está habilitada la visualización de hitbox
+    if (mostrarHitbox && !trayectoria.isEmpty() && trayectoria.size() > 1) {
+        // Configurar el pincel para la línea de trayectoria del Kamehameha
+        QPen penTrayectoria;
+        penTrayectoria.setColor(Qt::green);
+        penTrayectoria.setWidth(2);
+        penTrayectoria.setStyle(Qt::DashLine);
+        painter->setPen(penTrayectoria);
+        
+        // Dibujar líneas conectando todos los puntos de la trayectoria
+        for (int i = 0; i < trayectoria.size() - 1; ++i) {
+            QPointF puntoInicio = mapFromScene(trayectoria[i]);
+            QPointF puntoFin = mapFromScene(trayectoria[i + 1]);
+            painter->drawLine(puntoInicio, puntoFin);
+        }
+        
+        // Conectar el último punto de la trayectoria con la posición actual
+        if (!trayectoria.isEmpty()) {
+            QPointF ultimoPunto = mapFromScene(trayectoria.last());
+            QPointF posicionActual = QPointF(0, 0); // Posición relativa al item
+            painter->drawLine(ultimoPunto, posicionActual);
+        }
     }
     
     qDebug() << "Kamehameha dibujado con sprites" << (usarHameha ? "hameha" : "hame") << "- ancho total:" << anchoTotal << "alto total:" << altoTotal;
@@ -365,9 +407,9 @@ QRectF Kamehameha::getHitbox() const
     float ancho = anchoTotal;
     float alto = altoTotal * 0.85f + 1.0f; // Aumentar altura 1 píxel más hacia abajo
     
-    // Posición global del hitbox (movido un poco menos hacia abajo)
+    // Posición global del hitbox (subido otra vez)
     QPointF posicionGlobal = pos();
-    float offsetY = altoTotal * 0.15f - 3.0f; // Subir hitbox 3 píxeles más hacia arriba
+    float offsetY = altoTotal * 0.15f - 1.0f; // Subir hitbox 1 píxel hacia arriba
     
     return QRectF(posicionGlobal.x(), posicionGlobal.y() + offsetY, ancho, alto);
 }

@@ -38,15 +38,24 @@
         <file>Sprites/goku/kame10.png</file>
         <file>Sprites/goku/kame11.png</file>
         <file>Sprites/goku/kame12.png</file>
-        <file>Sprites/goku/kame13.png</file>
-        <file>Sprites/goku/kame14.png</file>
-        <file>Sprites/goku/kame15.png</file>
+        <file>Sprites/goku/bolas1.png</file>
+        <file>Sprites/goku/bolas2.png</file>
+        <file>Sprites/goku/bolas3.png</file>
+        <file>Sprites/goku/bolas4.png</file>
+        <file>Sprites/goku/bolas5.png</file>
+        <file>Sprites/goku/blastb1.png</file>
+        <file>Sprites/goku/blastb2.png</file>
+        <file>Sprites/goku/blastb3.png</file>
+        <file>Sprites/goku/blastb4.png</file>
         <file>Sprites/goku/hame1.png</file>
         <file>Sprites/goku/hame2.png</file>
         <file>Sprites/goku/hame3.png</file>
         <file>Sprites/goku/hameha1.png</file>
         <file>Sprites/goku/hameha2.png</file>
         <file>Sprites/goku/hameha3.png</file>
+    </qresource>
+    <qresource prefix="/Fondos">
+        <file>Sprites/gui_scenes/torneo.png</file>
     </qresource>
     <qresource prefix="/Piccolo">
         <file>Sprites/piccolo/0.png</file>

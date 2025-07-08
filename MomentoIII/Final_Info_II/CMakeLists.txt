@@ -20,6 +20,7 @@ add_executable(Final_Info_II
   goku.h goku.cpp
   habilidad.h habilidad.cpp
   kamehameha.h kamehameha.cpp
+  blastb.h blastb.cpp
   Sprites.qrc
   ground.h ground.cpp
   piccolo.h piccolo.cpp

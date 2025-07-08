@@ -48,6 +48,16 @@ Goku::Goku(QObject *parent)
     timerKamehameha->setInterval(120); // 120ms por frame de Kamehameha
     connect(timerKamehameha, &QTimer::timeout, this, &Goku::actualizarAnimacionKamehameha);
     
+    // Posición fija para la animación de Kamehameha
+    posicionFijaKamehameha = QPointF(0, 0);
+    
+    // Inicializar animación de ráfaga
+    animacionRafagaActiva = false;
+    frameRafagaActual = 1;
+    timerRafaga = new QTimer(this);
+    timerRafaga->setInterval(100); // 100ms por frame de ráfaga
+    connect(timerRafaga, &QTimer::timeout, this, &Goku::actualizarAnimacionRafaga);
+    
     // Configurar propiedades específicas de Goku
     establecerNombre("Goku");
     establecerCarpetaSprites("goku");
@@ -58,11 +68,15 @@ Goku::Goku(QObject *parent)
     establecerVelocidadSalto(65.0);      // Goku salta SÚPER alto (aumentado de 50 a 65)
     establecerFisicaSalto(0.7, 0.03);    // Aún más ligero con menos resistencia
     
-    // Configurar hitbox específica para Goku - más delgada y hacia la izquierda
-    establecerHitbox(20, 40, 12, 25); // Hitbox: 20x40 (1/3 más delgada) con offset 12,25 (aún más a la izquierda)
+    // Configurar hitbox específica para Goku - escalada 3.5x
+    // Hitbox original: 20x40, offset 12x25
+    // Hitbox escalada: 70x140, offset 42x88
+    establecerHitbox(70, 140, 42, 88);
     
-    // Configurar hitbox de salto - menos largo, más a la izquierda y más abajo
-    establecerHitboxSalto(22, 20, 9, 20); // Hitbox de salto: más ancha (22), menos largo (20), más a la izquierda (9) y más abajo (20)
+    // Configurar hitbox de salto - escalada 3.5x  
+    // Hitbox salto original: 22x20, offset 9x20
+    // Hitbox salto escalada: 77x70, offset 32x70
+    establecerHitboxSalto(77, 70, 32, 70);
     
     // Hacer a Goku invisible al inicio - solo aparecerá en la animación de entrada
     setVisible(false);
@@ -478,9 +492,9 @@ void Goku::iniciarCargaKamehameha()
     
     qDebug() << "Goku inicia carga de Kamehameha";
     
-    // Guardar la posición actual del sprite quieto
-    posicionInicialQuieto = pos();
-    qDebug() << "Posición inicial de quieto guardada:" << posicionInicialQuieto;
+    // Guardar la posición actual como posición fija para toda la animación (usar posición idle)
+    posicionFijaKamehameha = pos();
+    qDebug() << "Posición fija guardada (idle):" << posicionFijaKamehameha;
     
     // Detener otras animaciones
     if (animacionTimer && animacionTimer->isActive()) {
@@ -490,8 +504,9 @@ void Goku::iniciarCargaKamehameha()
     animacionKamehamehaActiva = true;
     frameKamehamehaActual = 1; // Volver a empezar desde kame1
     
-    // Cargar el primer sprite de Kamehameha usando centrado automático
-    cambiarSpriteCentrado("kame1");
+    // Cargar el primer sprite de Kamehameha usando la función de posición fija
+    cambiarSpriteKamehamehaFijo("kame1");
+    qDebug() << "Sprite kame1 cargado en posición fija:" << posicionFijaKamehameha;
     
     // Iniciar el timer de Kamehameha
     timerKamehameha->start();
@@ -508,20 +523,17 @@ void Goku::detenerCargaKamehameha()
         animacionKamehamehaActiva = false;
         timerKamehameha->stop();
         
-        // Cambiar al sprite quieto usando centrado automático
-        cambiarSpriteCentrado("quieto");
-        
-        // Restaurar la posición inicial exacta del sprite quieto
-        setPos(posicionInicialQuieto.x(), posicionInicialQuieto.y());
-        qDebug() << "Posición restaurada a la inicial de quieto:" << posicionInicialQuieto;
-        
+        // Restaurar posición y sprite idle
+        setPos(posicionFijaKamehameha.x(), posicionFijaKamehameha.y());
+        cambiarSprite("quieto");
+
         // Configurar estado idle
         moviendose = false;
         frameActual = 1;
         if (animacionTimer->isActive()) {
             animacionTimer->stop();
         }
-        qDebug() << "Carga de Kamehameha cancelada - volvió a idle";
+        qDebug() << "Carga de Kamehameha cancelada - volvió a idle y posición restaurada:" << pos();
     }
 }
 
@@ -529,33 +541,34 @@ void Goku::actualizarAnimacionKamehameha()
 {
     if (!animacionKamehamehaActiva) return;
     
-    frameKamehamehaActual++;
-    
-    if (frameKamehamehaActual <= 15) {
-        // Mostrar kame1, kame2, ..., kame15 usando centrado automático
+    if (frameKamehamehaActual <= 12) {
+        // Usar la función de posición fija para mantener todos los frames en el mismo lugar
         QString spriteKamehameha = "kame" + QString::number(frameKamehamehaActual);
-        cambiarSpriteCentrado(spriteKamehameha);
-        qDebug() << "Animación Kamehameha - frame:" << frameKamehamehaActual;
+        cambiarSpriteKamehamehaFijo(spriteKamehameha);
+
+        qDebug() << "Animación Kamehameha - frame:" << frameKamehamehaActual << "sprite:" << spriteKamehameha << "posición fija:" << posicionFijaKamehameha;
+
+        frameKamehamehaActual++;
     } else {
-        // Al llegar al frame 15, lanzar el Kamehameha automáticamente
+        // Al llegar al frame 13, lanzar el Kamehameha automáticamente
         qDebug() << "Kamehameha completamente cargado - lanzando automáticamente";
         lanzarKamehameha();
-        
+
         // Terminar la animación
         animacionKamehamehaActiva = false;
         timerKamehameha->stop();
-        
-        // Volver al sprite quieto
-        cambiarSpriteCentrado("quieto");
-        setPos(posicionInicialQuieto.x(), posicionInicialQuieto.y());
-        
+
+        // Volver al sprite quieto y restaurar la posición original
+        setPos(posicionFijaKamehameha.x(), posicionFijaKamehameha.y()); // Restaurar posición original
+        cambiarSprite("quieto");
+
         // Configurar estado idle
         moviendose = false;
         frameActual = 1;
         if (animacionTimer->isActive()) {
             animacionTimer->stop();
         }
-        qDebug() << "Animación Kamehameha terminada automáticamente";
+        qDebug() << "Animación Kamehameha terminada y posición restaurada a:" << pos();
     }
 }
 
@@ -569,9 +582,11 @@ void Goku::lanzarKamehameha()
     // Obtener la posición actual de Goku
     QPointF posicionGoku = pos();
     
-    // Calcular la posición de lanzamiento (un poco adelante de Goku)
-    float posX = posicionGoku.x() + 60; // Más a la derecha (era 50)
-    float posY = posicionGoku.y() + 35; // Más abajo (era 20)
+    // Calcular la posición de lanzamiento ajustada para Goku escalado 3.5x
+    // Posición original: 60x35
+    // Posición escalada: 210x140 (60*3.5 x 40*3.5) - bajado un poco más
+    float posX = posicionGoku.x() + 210; // Mucho más a la derecha para Goku 3.5x
+    float posY = posicionGoku.y() + 140; // Un poco más abajo que antes para mejor alineación
     
     // Determinar dirección (hacia la derecha por defecto)
     float direccionX = 1.0f; // Hacia la derecha
@@ -593,5 +608,155 @@ void Goku::lanzarKamehameha()
     }
 }
 
+// ==================== MÉTODOS DE ANIMACIÓN DE RÁFAGA ====================
 
-// void Goku::saltar()
+void Goku::iniciarAnimacionRafaga()
+{
+    qDebug() << "Iniciando animación de ráfaga";
+    
+    // No permitir si ya está en otra animación
+    if (animacionEntradaActiva || animacionKiActiva || animacionKamehamehaActiva) {
+        qDebug() << "No se puede iniciar ráfaga: otra animación activa";
+        return;
+    }
+    
+    // Detener animación idle si está activa
+    if (animacionTimer->isActive()) {
+        animacionTimer->stop();
+    }
+    
+    // Configurar animación de ráfaga
+    animacionRafagaActiva = true;
+    frameRafagaActual = 1;
+    moviendose = true; // Marcar como en movimiento para evitar idle
+    
+    // Iniciar con el primer frame
+    cambiarSpriteCentrado("bolas1");
+    
+    // Iniciar timer
+    timerRafaga->start();
+    
+    qDebug() << "Animación de ráfaga iniciada";
+}
+
+void Goku::detenerAnimacionRafaga()
+{
+    if (!animacionRafagaActiva) {
+        return;
+    }
+    
+    qDebug() << "Deteniendo animación de ráfaga";
+    
+    // Detener timer
+    timerRafaga->stop();
+    
+    // Terminar la animación
+    animacionRafagaActiva = false;
+    
+    // Volver al sprite quieto
+    cambiarSpriteCentrado("quieto");
+    
+    // Configurar estado idle
+    moviendose = false;
+    frameActual = 1;
+    
+    qDebug() << "Animación de ráfaga detenida";
+}
+
+void Goku::actualizarAnimacionRafaga()
+{
+    if (!animacionRafagaActiva) {
+        return;
+    }
+    
+    // Ciclar entre bolas1 a bolas5
+    frameRafagaActual++;
+    if (frameRafagaActual > 5) {
+        frameRafagaActual = 1;
+    }
+    
+    // Cambiar sprite
+    QString spriteNombre = QString("bolas%1").arg(frameRafagaActual);
+    cambiarSpriteCentrado(spriteNombre);
+    
+    // Lanzar proyectiles BlastB en frames específicos
+    if (frameRafagaActual == 2 || frameRafagaActual == 3 || frameRafagaActual == 4) {
+        lanzarBlastB();
+        qDebug() << "Lanzando BlastB en frame:" << frameRafagaActual;
+    }
+    
+    qDebug() << "Animación ráfaga frame:" << frameRafagaActual;
+}
+
+void Goku::lanzarBlastB()
+{
+    qDebug() << "¡Lanzando BlastB con trayectoria caótica!";
+    
+    // Crear el proyectil BlastB
+    BlastB* blastB = new BlastB(this);
+    
+    // Obtener la posición actual de Goku
+    QPointF posicionGoku = pos();
+    
+    // Calcular la posición de lanzamiento ajustada para Goku escalado 3.5x
+    // Posición original: 40x25
+    // Posición escalada: 140x88 (40*3.5 x 25*3.5)
+    float posX = posicionGoku.x() + 140; // Mucho más adelante para Goku 3.5x
+    float posY = posicionGoku.y() + 88;  // Mucho más abajo para Goku 3.5x
+    
+    // Determinar dirección inicial (hacia la derecha por defecto)
+    float direccionX = 1.0f;
+    float direccionY = 0.0f;
+    
+    // Configurar el proyectil con trayectoria caótica
+    float velocidad = 6.0f;  // Velocidad base
+    float alcance = 1000.0f; // Alcance amplio para trayectoria caótica
+    
+    // Crear el proyectil
+    blastB->crear(posX, posY, direccionX, direccionY, velocidad, alcance);
+    
+    // Configurar parámetros caóticos (más dramático)
+    blastB->configurarCaos(10.0, 28.0, 8.0/3.0); // Parámetros clásicos del atractor de Lorenz
+    
+    // Agregar el proyectil a la escena
+    if (scene()) {
+        scene()->addItem(blastB);
+        
+        // Iniciar el proyectil
+        blastB->iniciar(QPointF(posX, posY), QPointF(direccionX, direccionY));
+        
+        qDebug() << "BlastB agregado a la escena en posición:" << posX << "," << posY;
+    } else {
+        qDebug() << "Error: No se pudo agregar BlastB a la escena (scene es null)";
+    }
+}
+
+void Goku::cambiarSpriteKamehamehaFijo(const QString& direccion)
+{
+    QString rutaSprite = ":/Goku/Sprites/" + carpetaSprites + "/" + direccion + ".png";
+    QPixmap nuevoSprite(rutaSprite);
+    
+    if (!nuevoSprite.isNull()) {
+        // Escalar el sprite si es necesario
+        if (escalaSprite != 1.0) {
+            nuevoSprite = nuevoSprite.scaled(
+                nuevoSprite.width() * escalaSprite,
+                nuevoSprite.height() * escalaSprite,
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation
+            );
+        }
+
+        // Cambiar el sprite
+        setPixmap(nuevoSprite);
+
+        // Centrar el sprite respecto a su centro (para todos los frames)
+        // Esto asegura que el centro del sprite siempre quede en la misma posición
+        QPointF centro(nuevoSprite.width() / 2.0, nuevoSprite.height() / 2.0);
+        QGraphicsPixmapItem::setPos(posicionFijaKamehameha - centro);
+
+        qDebug() << "Sprite Kamehameha cambiado a:" << direccion << "- Posición centrada en:" << (posicionFijaKamehameha - centro);
+    } else {
+        qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
+    }
+}
