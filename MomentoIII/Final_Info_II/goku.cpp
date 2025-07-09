@@ -61,7 +61,7 @@ Goku::Goku(QObject *parent)
     // Configurar propiedades específicas de Goku
     establecerNombre("Goku");
     establecerCarpetaSprites("goku");
-    establecerVida(150); // Goku tiene más vida
+    establecerVida(4); // Goku tiene más vida
     establecerVelocidad(10); // Goku es rápido
     
     // Configurar física del salto específica para Goku
@@ -453,11 +453,12 @@ void Goku::actualizarAnimacionKi()
     }
 }
 
-void Goku::establecerKi(int ki, int kiMax)
-{
-    kiActual = qMax(0, qMin(ki, kiMax)); // Asegurar que esté en rango válido
+void Goku::establecerKi(int ki, int kiMax) {
+    kiActual = ki;
     kiMaximo = kiMax;
-    qDebug() << "Ki establecido:" << kiActual << "/" << kiMaximo << "(" << obtenerPorcentajeKi() << "%)";
+    if (kiActual < 0) kiActual = 0;
+    if (kiActual > kiMaximo) kiActual = kiMaximo;
+    emit kiCambiado(kiActual, kiMaximo);
 }
 
 void Goku::recargarKi()
@@ -466,7 +467,8 @@ void Goku::recargarKi()
         // Incrementar ki (1 punto cada 100ms = 10 puntos por segundo)
         kiActual++;
         qDebug() << "Ki recargado:" << kiActual << "/" << kiMaximo << "(" << obtenerPorcentajeKi() << "%)";
-        
+        // EMITIR LA SEÑAL AQUÍ
+        emit kiCambiado(kiActual, kiMaximo);
         // Verificar si pasamos al estado final (95% o más)
         if (obtenerPorcentajeKi() >= 95.0f && estadoKiActual == BUCLE) {
             qDebug() << "Cambiando a estado FINAL - ki al 95%";
@@ -572,40 +574,45 @@ void Goku::actualizarAnimacionKamehameha()
 }
 void Goku::lanzarKamehameha()
 {
-    qDebug() << "¡Lanzando Kamehameha!";
-    
-    // Crear el proyectil Kamehameha
-    Kamehameha* kamehameha = new Kamehameha(this);
-    
-    // Obtener la posición actual de Goku
-    QPointF posicionGoku = pos();
-    
-    // Calcular la posición de lanzamiento ajustada para Goku escalado 3.5x
-    // Posición original: 60x35
-    // Posición escalada: 210x140 (60*3.5 x 40*3.5) - bajado un poco más
-    float posX = posicionGoku.x() + 210; // Mucho más a la derecha para Goku 3.5x
-    float posY = posicionGoku.y() + 140; // Un poco más abajo que antes para mejor alineación
-    
-    // Determinar dirección (hacia la derecha por defecto)
-    float direccionX = 1.0f; // Hacia la derecha
-    float direccionY = 0.0f; // Horizontal
-    
-    // Configurar el proyectil
-    float velocidad = 8.0f; // Velocidad del proyectil (más rápida)
-    float alcance = 600.0f;  // Alcance del proyectil
-    
-    // Crear el proyectil
-    kamehameha->crear(posX, posY, direccionX, direccionY, velocidad, alcance);
-    
-    // Agregar el proyectil a la escena
-    if (scene()) {
-        scene()->addItem(kamehameha);
-        qDebug() << "Kamehameha agregado a la escena en posición:" << posX << "," << posY;
+    int costoKi = 30; // Define el costo de ki para Kamehameha
+    if (kiActual >= costoKi) {
+        kiActual -= costoKi;
+        emit kiCambiado(kiActual, kiMaximo); // Actualiza la barra de ki
+
+        qDebug() << "¡Lanzando Kamehameha!";
+
+        // Crear el proyectil Kamehameha
+        Kamehameha* kamehameha = new Kamehameha(this);
+
+        // Obtener la posición actual de Goku
+        QPointF posicionGoku = pos();
+
+        // Calcular la posición de lanzamiento ajustada para Goku escalado 3.5x
+        float posX = posicionGoku.x() + 210;
+        float posY = posicionGoku.y() + 140;
+
+        // Determinar dirección (hacia la derecha por defecto)
+        float direccionX = 1.0f;
+        float direccionY = 0.0f;
+
+        // Configurar el proyectil
+        float velocidad = 8.0f;
+        float alcance = 600.0f;
+
+        // Crear el proyectil
+        kamehameha->crear(posX, posY, direccionX, direccionY, velocidad, alcance);
+
+        // Agregar el proyectil a la escena
+        if (scene()) {
+            scene()->addItem(kamehameha);
+            qDebug() << "Kamehameha agregado a la escena en posición:" << posX << "," << posY;
+        } else {
+            qDebug() << "Error: No se pudo agregar Kamehameha a la escena (scene es null)";
+        }
     } else {
-        qDebug() << "Error: No se pudo agregar Kamehameha a la escena (scene es null)";
+        qDebug() << "No hay suficiente ki para lanzar Kamehameha";
     }
 }
-
 // ==================== MÉTODOS DE ANIMACIÓN DE RÁFAGA ====================
 
 void Goku::iniciarAnimacionRafaga()
@@ -688,46 +695,51 @@ void Goku::actualizarAnimacionRafaga()
 
 void Goku::lanzarBlastB()
 {
-    qDebug() << "¡Lanzando BlastB con trayectoria caótica!";
-    
-    // Crear el proyectil BlastB
-    BlastB* blastB = new BlastB(this);
-    
-    // Obtener la posición actual de Goku
-    QPointF posicionGoku = pos();
-    
-    // Calcular la posición de lanzamiento ajustada para Goku escalado 3.5x
-    // Posición original: 40x25
-    // Posición escalada: 140x88 (40*3.5 x 25*3.5)
-    float posX = posicionGoku.x() + 140; // Mucho más adelante para Goku 3.5x
-    float posY = posicionGoku.y() + 88;  // Mucho más abajo para Goku 3.5x
-    
-    // Determinar dirección inicial (hacia la derecha por defecto)
-    float direccionX = 1.0f;
-    float direccionY = 0.0f;
-    
-    // Configurar el proyectil con trayectoria caótica
-    float velocidad = 6.0f;  // Velocidad base
-    float alcance = 1000.0f; // Alcance amplio para trayectoria caótica
-    
-    // Crear el proyectil
-    blastB->crear(posX, posY, direccionX, direccionY, velocidad, alcance);
-    
-    // Configurar parámetros caóticos (más dramático)
-    blastB->configurarCaos(10.0, 28.0, 8.0/3.0); // Parámetros clásicos del atractor de Lorenz
-    
-    // Agregar el proyectil a la escena
-    if (scene()) {
-        scene()->addItem(blastB);
-        
-        // Iniciar el proyectil
-        blastB->iniciar(QPointF(posX, posY), QPointF(direccionX, direccionY));
-        
-        qDebug() << "BlastB agregado a la escena en posición:" << posX << "," << posY;
+    int costoKi = 10; // Define el costo de ki para BlastB
+    if (kiActual >= costoKi) {
+        kiActual -= costoKi;
+        emit kiCambiado(kiActual, kiMaximo); // Actualiza la barra de ki
+
+        qDebug() << "¡Lanzando BlastB con trayectoria caótica!";
+
+        // Crear el proyectil BlastB
+        BlastB* blastB = new BlastB(this);
+
+        // Obtener la posición actual de Goku
+        QPointF posicionGoku = pos();
+
+        // Calcular la posición de lanzamiento ajustada para Goku escalado 3.5x
+        float posX = posicionGoku.x() + 140;
+        float posY = posicionGoku.y() + 88;
+
+        // Determinar dirección inicial (hacia la derecha por defecto)
+        float direccionX = 1.0f;
+        float direccionY = 0.0f;
+
+        // Configurar el proyectil con trayectoria caótica
+        float velocidad = 6.0f;
+        float alcance = 1000.0f;
+
+        // Crear el proyectil
+        blastB->crear(posX, posY, direccionX, direccionY, velocidad, alcance);
+
+        // Configurar parámetros caóticos
+        blastB->configurarCaos(10.0, 28.0, 8.0/3.0);
+
+        // Agregar el proyectil a la escena
+        if (scene()) {
+            scene()->addItem(blastB);
+            blastB->iniciar(QPointF(posX, posY), QPointF(direccionX, direccionY));
+            qDebug() << "BlastB agregado a la escena en posición:" << posX << "," << posY;
+        } else {
+            qDebug() << "Error: No se pudo agregar BlastB a la escena (scene es null)";
+        }
     } else {
-        qDebug() << "Error: No se pudo agregar BlastB a la escena (scene es null)";
+        qDebug() << "No hay suficiente ki para lanzar BlastB";
     }
 }
+
+
 
 void Goku::cambiarSpriteKamehamehaFijo(const QString& direccion)
 {

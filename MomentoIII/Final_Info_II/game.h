@@ -38,6 +38,12 @@ public:
     void agregarGrillaDebug();
     void alternarGrillaDebug();
 
+public slots:
+    //Actualizar barra vida
+    void actualizarBarraVida(int vidaActual, int vidaMaxima);
+    // Actualizar barra ki
+    void actualizarBarraKi(int kiActual, int kiMaximo);
+
 private slots:
     void actualizarMovimiento();
     void piccoloActualizarMovimiento();
@@ -83,6 +89,13 @@ private:
     
     // Método para alternar hitbox específicamente del Kamehameha
     void alternarHitboxKamehameha();
+
+    // Metodo para crear la barra de vida, ki, y personaje
+    QGraphicsPixmapItem* barraVida;
+    QGraphicsPixmapItem* carapersonaje;
+    QGraphicsPixmapItem* barraKi;
+
+
 
 signals:
 

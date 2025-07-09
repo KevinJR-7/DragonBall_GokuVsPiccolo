@@ -57,6 +57,19 @@
     <qresource prefix="/Fondos">
         <file>Sprites/gui_scenes/torneo.png</file>
         <file>Sprites/gui_scenes/torneo2.png</file>
+        <file>Sprites/gui_scenes/caragoku.png</file>
+        <file>Sprites/gui_scenes/carapic.png</file>
+        <file>Sprites/gui_scenes/vida0.png</file>
+        <file>Sprites/gui_scenes/vida1.png</file>
+        <file>Sprites/gui_scenes/vida2.png</file>
+        <file>Sprites/gui_scenes/vida3.png</file>
+        <file>Sprites/gui_scenes/vida4.png</file>
+        <file>Sprites/gui_scenes/kibar0.png</file>
+        <file>Sprites/gui_scenes/kibar1.png</file>
+        <file>Sprites/gui_scenes/kibar2.png</file>
+        <file>Sprites/gui_scenes/kibar3.png</file>
+        <file>Sprites/gui_scenes/kibar4.png</file>
+        <file>Sprites/gui_scenes/kibar5.png</file>
     </qresource>
     <qresource prefix="/Piccolo">
         <file>Sprites/piccolo/0.png</file>
