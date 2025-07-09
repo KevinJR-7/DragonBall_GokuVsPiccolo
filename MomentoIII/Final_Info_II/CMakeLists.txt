@@ -24,6 +24,7 @@ add_executable(Final_Info_II
   Sprites.qrc
   ground.h ground.cpp
   piccolo.h piccolo.cpp
+  rayo.h rayo.cpp
 )
 target_link_libraries(Final_Info_II
     Qt${QT_VERSION_MAJOR}::Core

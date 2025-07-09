@@ -65,7 +65,7 @@ game::game(QWidget *parent)
     
     pic = new Piccolo();
     scene->addItem(pic);
-    pic->setPos(400, 300);
+
 
     // Sprite de la cara de Goku
     carapersonaje = new QGraphicsPixmapItem(QPixmap(":/Fondos/Sprites/gui_scenes/caragoku.png"));
@@ -89,6 +89,12 @@ game::game(QWidget *parent)
 
     // Conectar singal de ki de goku a la barra
     connect(p, &Goku::kiCambiado, this, &game::actualizarBarraKi);
+
+    pic->setPos(700, 260);
+
+    // Hacer Piccolo más grande (3.5x el tamaño original - 350%)
+    pic->setScale(3.5);
+
     
     // Conectar señal de aterrizaje para movimiento continuo
     connect(p, &Personaje::personajeAterrizo, this, &game::verificarMovimientoContinuo);
@@ -100,10 +106,12 @@ game::game(QWidget *parent)
     // No iniciar automáticamente, solo cuando sea necesario
 
     // Configurar timer para movimiento Piccolo
-    piccoloMovTimer = new QTimer(this);
-    piccoloMovTimer->setInterval(50); // 20 FPS para movimiento suave
-    connect(piccoloMovTimer, &QTimer::timeout, this, &game::piccoloActualizarMovimiento);
+    // piccoloMovTimer = new QTimer(this);
+    // piccoloMovTimer->setInterval(50); // 20 FPS para movimiento suave
+    // connect(piccoloMovTimer, &QTimer::timeout, this, &game::piccoloActualizarMovimiento);
     //piccoloMovTimer->start();
+
+    cntPiccolo = 0;
 
     piccoloIATimer = new QTimer(this);
     piccoloIATimer->setInterval(50);
@@ -193,6 +201,18 @@ void game::keyPressEvent(QKeyEvent *e)
             BlastB::alternarVisualizacionHitbox();
             qDebug() << "Todos los hitboxes visibles";
         }
+        // Alternar visualización de todos los hitboxes con tecla H
+        if (pic->estaHitboxVisible()) {
+            pic->ocultarHitbox();
+            // También ocultar hitboxes de Kamehameha y BlastB
+            Rayo::alternarVisualizacionHitbox();
+            qDebug() << "Todos los hitboxes ocultos";
+        } else {
+            pic->mostrarHitbox();
+            // También mostrar hitboxes de Kamehameha y BlastB
+            Rayo::alternarVisualizacionHitbox();
+            qDebug() << "Todos los hitboxes visibles";
+        }
     }
     if(e->key() == Qt::Key_G){ 
         // Alternar visualización de grilla con tecla G
@@ -234,6 +254,12 @@ void game::keyPressEvent(QKeyEvent *e)
             teclaL_presionada = true;
             p->iniciarAnimacionRafaga();
             qDebug() << "Animación de ráfaga iniciada (mantener L presionada)";
+        }
+    }
+    // tecla para pruebitas
+    if(e->key() == Qt::Key_Z){
+        if (!piccoloJ_presionada && !p->estaCargandoKamehameha()){
+            piccoloJ_presionada = true;
         }
     }
 }
@@ -283,6 +309,13 @@ void game::keyReleaseEvent(QKeyEvent *e)
             p->detenerAnimacionRafaga();
             qDebug() << "Tecla L liberada - deteniendo animación de ráfaga";
         }
+    }
+    // tecla para pruebitas
+    if(e->key() == Qt::Key_Z)
+    {
+        piccoloJ_presionada = false;
+        pic->detenerCargaRayo();
+        pic->iniciarAnimacionIdle();
     }
     
     // Si no hay teclas presionadas, detener timer e iniciar idle
@@ -387,27 +420,53 @@ void game::piccoloActualizarMovimiento()
     qDebug() << "piccoloActualizarMovimiento() llamado - D:" << teclaD_presionada << "A:" << teclaA_presionada << "saltando:" << p->estaSaltando();
 
     // Codigo para hacer los cambios de movimeinto de piccolo
+    switch(cntPiccolo)
+    {
+    case 80:
+        piccoloA_presionada = true;
+        break;
+    case 100:
+        piccoloA_presionada = false;
+        piccoloJ_presionada = true;
+        break;
+    case 118:
+        piccoloJ_presionada = false;
+        pic->detenerCargaRayo();
+        piccoloD_presionada = true;
+        break;
+    case 138:
+        piccoloD_presionada = false;
+        piccoloW_presionada = true;
+        break;
+    case 150:
+        piccoloW_presionada = false;
+        pic->iniciarAnimacionIdle();
+        break;
+    }
+    if(pic->isVisible() || !pic->estaEnAnimacionEntrada()){ cntPiccolo++; }
 
     // Movimeintos Piccolo
-    if (!pic->estaSaltando()) {
-        if (piccoloD_presionada) {
-            qDebug() << "Piccolo moverDerecha()";
-            pic->moverDerecha();
-            // if (!piccoloMovTimer->isActive()) {
-            //     piccoloMovTimer->start();
-            //     qDebug() << "Timer iniciado para D (pic)";
-            // }
-        }
-        if (piccoloA_presionada) {
-            qDebug() << "Piccolo moverIzquierda()";
-            pic->moverIzquierda();
-        }
-        if (piccoloW_presionada) {
-            pic->moverArriba();
-        }
-        if (piccoloS_presionada) {
-            pic->moverAbajo();
-        }
+    if (piccoloD_presionada) {
+        qDebug() << "Piccolo moverDerecha()";
+        pic->moverDerecha();
+        //piccoloD_presionada = false;
+    }
+    if (piccoloA_presionada) {
+        qDebug() << "Piccolo moverIzquierda()";
+        pic->moverIzquierda();
+        //piccoloA_presionada = false;
+    }
+    if (piccoloW_presionada) {
+        pic->moverArriba();
+        //piccoloW_presionada = false;
+    }
+    if (piccoloS_presionada) {
+        pic->moverAbajo();
+        //piccoloS_presionada = false;
+    }
+    if (piccoloJ_presionada) {
+        pic->iniciarCargaRayo();
+        //piccoloJ_presionada = false;
     }
 }
 

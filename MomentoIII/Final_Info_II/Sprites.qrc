@@ -89,5 +89,17 @@
         <file>Sprites/piccolo/salto4.png</file>
         <file>Sprites/piccolo/salto5.png</file>
         <file>Sprites/piccolo/salto6.png</file>
+        <file>Sprites/piccolo/rayo1.png</file>
+        <file>Sprites/piccolo/rayo2.png</file>
+        <file>Sprites/piccolo/rayo3.png</file>
+        <file>Sprites/piccolo/rayo4.png</file>
+        <file>Sprites/piccolo/rayo5.png</file>
+        <file>Sprites/piccolo/rayo6.png</file>
+        <file>Sprites/piccolo/hame1.png</file>
+        <file>Sprites/piccolo/hame2.png</file>
+        <file>Sprites/piccolo/hame3.png</file>
+        <file>Sprites/piccolo/hameha1.png</file>
+        <file>Sprites/piccolo/hameha2.png</file>
+        <file>Sprites/piccolo/hameha3.png</file>
     </qresource>
 </RCC>
