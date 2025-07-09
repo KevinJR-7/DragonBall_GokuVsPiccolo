@@ -49,6 +49,8 @@ private:
     QTimer* movimientoTimer;
     QTimer* piccoloMovTimer;
     QTimer* piccoloIATimer;
+
+    unsigned int cntPiccolo;
     
     // Variables para rastrear teclas presionadas
     bool teclaD_presionada = false;

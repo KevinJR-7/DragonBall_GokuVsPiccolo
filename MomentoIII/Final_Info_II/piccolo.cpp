@@ -25,7 +25,7 @@ Piccolo::Piccolo(QObject *parent)
     animacionRayoActiva = false;
     frameRayoActual = 1;
     timerRayo = new QTimer(this);
-    timerRayo->setInterval(500); // 120ms por frame de Rayo
+    timerRayo->setInterval(150); // 120ms por frame de Rayo
     connect(timerRayo, &QTimer::timeout, this, &Piccolo::actualizarAnimacionRayo);
 
     // Configurar propiedades específicas de Piccolo
@@ -39,10 +39,10 @@ Piccolo::Piccolo(QObject *parent)
     establecerFisicaSalto(0.7, 0.03);    // Aún más ligero con menos resistencia
 
     // Configurar hitbox específica para Piccolo - más delgada y hacia la izquierda
-    establecerHitbox(20, 40, 12, 25); // Hitbox: 20x40 (1/3 más delgada) con offset 12,25 (aún más a la izquierda)
+    establecerHitbox(120, 160, 62, 68); // Hitbox: 20x40 (1/3 más delgada) con offset 12,25 (aún más a la izquierda)
 
     // Configurar hitbox de salto - menos largo, más a la izquierda y más abajo
-    establecerHitboxSalto(22, 20, 9, 20); // Hitbox de salto: más ancha (22), menos largo (20), más a la izquierda (9) y más abajo (20)
+    // establecerHitboxSalto(22, 20, 9, 20); // Hitbox de salto: más ancha (22), menos largo (20), más a la izquierda (9) y más abajo (20)
 
     // Hacer a Piccolo invisible al inicio - solo aparecerá en la animación de entrada
     setVisible(false);
@@ -366,19 +366,21 @@ void Piccolo::lanzarRayo()
     // Crear el proyectil Rayo
     Rayo* rayo = new Rayo(this);
 
-    // Obtener la posición actual de Goku
-    QPointF posicionGoku = pos();
+    // Obtener la posición actual de Piccolo
+    QPointF posicionPiccolo = pos();
 
-    // Calcular la posición de lanzamiento (un poco adelante de Goku)
-    float posX = posicionGoku.x() + 60; // Más a la derecha (era 50)
-    float posY = posicionGoku.y() + 35; // Más abajo (era 20)
+    // Calcular la posición de lanzamiento ajustada para Piccolo escalado 3.5x
+    // Posición original: 60x35
+    // Posición escalada: 210x140 (60*3.5 x 40*3.5) - bajado un poco más
+    float posX = posicionPiccolo.x() - 150; // Mucho más a la derecha para Piccolo 3.5x
+    float posY = posicionPiccolo.y() + 40; // Un poco más abajo que antes para mejor alineación
 
     // Determinar dirección (hacia la derecha por defecto)
-    float direccionX = 1.0f; // Hacia la derecha
+    float direccionX = -1.0f; // Hacia la derecha
     float direccionY = 0.0f; // Horizontal
 
     // Configurar el proyectil
-    float velocidad = 8.0f; // Velocidad del proyectil (más rápida)
+    float velocidad = 15.0f; // Velocidad del proyectil (más rápida)
     float alcance = 600.0f;  // Alcance del proyectil
 
     // Crear el proyectil

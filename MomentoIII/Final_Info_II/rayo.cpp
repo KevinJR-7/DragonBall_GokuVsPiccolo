@@ -11,8 +11,8 @@ bool Rayo::mostrarHitbox = false;
 Rayo::Rayo(QObject *parent)
     : Habilidad(parent)
     , x(0), y(0)
-    , dirX(1), dirY(0)
-    , velocidad(8.0)  // Velocidad por defecto más rápida
+    , dirX(-1), dirY(0)
+    , velocidad(15.0)  // Velocidad por defecto más rápida
     , alcance(800.0)
     , distanciaRecorrida(0)
     , activo(false)
@@ -24,6 +24,8 @@ Rayo::Rayo(QObject *parent)
     , daño(50)
     , hitboxActivo(false)
 {
+    transform.scale(-1, 1); // Refleja sobre el eje X
+
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &Rayo::actualizar_timeout);
 
@@ -32,7 +34,14 @@ Rayo::Rayo(QObject *parent)
     animacionTimer->setInterval(200); // Cambiar cada 200ms (más lento)
     connect(animacionTimer, &QTimer::timeout, this, &Rayo::alternarSprites);
 
+    // Inicializar trayectoria - limitar a 100 puntos para evitar consumo excesivo de memoria
+    maxPuntosTrayectoria = 100;
+    trayectoria.clear();
+
     cargarSprites();
+
+    // Hacer el Rayo más pequeño (2.33x - reducido 1/3 del tamaño anterior)
+    setScale(5);
 
     qDebug() << "Rayo creado como proyectil simple";
 }
@@ -48,14 +57,20 @@ Rayo::~Rayo()
 void Rayo::cargarSprites()
 {
     // Cargar sprites del Rayo (set 1)
-    hame1 = QPixmap(":/Goku/Sprites/goku/hame1.png");
-    hame2 = QPixmap(":/Goku/Sprites/goku/hame2.png");
-    hame3 = QPixmap(":/Goku/Sprites/goku/hame3.png");
+    hame1 = QPixmap(":/Piccolo/Sprites/piccolo/hame3.png");
+    hame2 = QPixmap(":/Piccolo/Sprites/piccolo/hame2.png");
+    hame3 = QPixmap(":/Piccolo/Sprites/piccolo/hame1.png");
+    hame1 = hame1.transformed(transform);
+    hame2 = hame2.transformed(transform);
+    hame3 = hame3.transformed(transform);
 
     // Cargar sprites del Rayo (set 2)
-    hameha1 = QPixmap(":/Goku/Sprites/goku/hameha1.png");
-    hameha2 = QPixmap(":/Goku/Sprites/goku/hameha2.png");
-    hameha3 = QPixmap(":/Goku/Sprites/goku/hameha3.png");
+    hameha1 = QPixmap(":/Piccolo/Sprites/piccolo/hameha3.png");
+    hameha2 = QPixmap(":/Piccolo/Sprites/piccolo/hameha2.png");
+    hameha3 = QPixmap(":/Piccolo/Sprites/piccolo/hameha1.png");
+    hameha1 = hameha1.transformed(transform);
+    hameha2 = hameha2.transformed(transform);
+    hameha3 = hameha3.transformed(transform);
 
     // Verificar si los sprites se cargaron correctamente
     bool hameValidos = !hame1.isNull() && !hame2.isNull() && !hame3.isNull();
@@ -99,7 +114,7 @@ void Rayo::cargarSprites()
     }
 
     // Calcular dimensiones del rayo compuesto con factor de escala
-    float factorEscala = 0.35f; // Hacer el Rayo aún más pequeño
+    float factorEscala = 1.0f; // Hacer el Rayo aún más pequeño
     anchoTotal = (hame1.width() + hame2.width() + hame3.width()) * factorEscala;
     altoTotal = qMax(hame1.height(), qMax(hame2.height(), hame3.height())) * factorEscala;
 }
@@ -229,7 +244,7 @@ void Rayo::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         return;
     }
 
-    float factorEscala = 0.35f; // Hacer el Rayo aún más pequeño
+    float factorEscala = 1.0f; // Hacer el Rayo aún más pequeño
     qreal posX = 0;
     qreal centroY = altoTotal / 2.0; // Centro vertical del rayo
 
@@ -339,7 +354,7 @@ void Rayo::iniciar(QPointF posicionInicial, QPointF direccion)
     float dirY = (magnitude > 0) ? direccion.y() / magnitude : 0.0f;
 
     // Usar valores por defecto para velocidad y alcance
-    float velocidad = 8.0f;  // Velocidad más rápida
+    float velocidad = 15.0f;  // Velocidad más rápida
     float alcance = 600.0f;
 
     // Llamar al método crear existente
@@ -361,7 +376,7 @@ QRectF Rayo::getHitbox() const
     }
 
     // El hitbox cubre todo el área del Rayo con altura aumentada
-    float factorEscala = 0.35f; // Usar el mismo factor de escala que los sprites
+    float factorEscala = 1.0f; // Usar el mismo factor de escala que los sprites
     float ancho = anchoTotal;
     float alto = altoTotal * 0.85f + 1.0f; // Aumentar altura 1 píxel más hacia abajo
 

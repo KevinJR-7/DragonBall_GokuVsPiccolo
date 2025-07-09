@@ -44,6 +44,10 @@ public:
     static void alternarVisualizacionHitbox();
 
 private:
+
+    // Variable para girar en x
+    QTransform transform;
+
     // Variables básicas del proyectil
     float x, y;
     float dirX, dirY;
@@ -75,6 +79,10 @@ private:
 
     // Variable estática para mostrar hitbox (controlada por tecla H)
     static bool mostrarHitbox;
+
+    // Variables para trazado de trayectoria
+    QList<QPointF> trayectoria; // Lista de puntos de la trayectoria
+    int maxPuntosTrayectoria; // Máximo número de puntos a guardar
 
     void cargarSprites();
     void construirRayo();
