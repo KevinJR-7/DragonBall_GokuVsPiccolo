@@ -17,7 +17,7 @@ game::game(QWidget *parent)
 
     // Inicializar lista de fondos disponibles
     fondosDisponibles << ":/Fondos/Sprites/gui_scenes/torneo.png"
-                      << "degradado"; // Opción especial para fondo degradado
+                      << ":/Fondos/Sprites/gui_scenes/torneo2.png";
     
     view = new QGraphicsView(this);
     scene = new QGraphicsScene(this);
