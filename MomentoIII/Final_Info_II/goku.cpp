@@ -540,29 +540,28 @@ void Goku::detenerCargaKamehameha()
 void Goku::actualizarAnimacionKamehameha()
 {
     if (!animacionKamehamehaActiva) return;
-    
+
     if (frameKamehamehaActual <= 12) {
-        // Usar la función de posición fija para mantener todos los frames en el mismo lugar
         QString spriteKamehameha = "kame" + QString::number(frameKamehamehaActual);
         cambiarSpriteKamehamehaFijo(spriteKamehameha);
 
         qDebug() << "Animación Kamehameha - frame:" << frameKamehamehaActual << "sprite:" << spriteKamehameha << "posición fija:" << posicionFijaKamehameha;
 
+        // Lanzar el proyectil en el frame 7 (puedes cambiar el número si quieres otro frame)
+        if (frameKamehamehaActual == 7) {
+            qDebug() << "Lanzando Kamehameha en el frame 7";
+            lanzarKamehameha();
+        }
+
         frameKamehamehaActual++;
     } else {
-        // Al llegar al frame 13, lanzar el Kamehameha automáticamente
-        qDebug() << "Kamehameha completamente cargado - lanzando automáticamente";
-        lanzarKamehameha();
-
         // Terminar la animación
         animacionKamehamehaActiva = false;
         timerKamehameha->stop();
 
-        // Volver al sprite quieto y restaurar la posición original
-        setPos(posicionFijaKamehameha.x(), posicionFijaKamehameha.y()); // Restaurar posición original
+        setPos(posicionFijaKamehameha.x(), posicionFijaKamehameha.y());
         cambiarSprite("quieto");
 
-        // Configurar estado idle
         moviendose = false;
         frameActual = 1;
         if (animacionTimer->isActive()) {
@@ -571,7 +570,6 @@ void Goku::actualizarAnimacionKamehameha()
         qDebug() << "Animación Kamehameha terminada y posición restaurada a:" << pos();
     }
 }
-
 void Goku::lanzarKamehameha()
 {
     qDebug() << "¡Lanzando Kamehameha!";
