@@ -500,14 +500,14 @@ void Goku::iniciarCargaKamehameha()
     if (animacionTimer && animacionTimer->isActive()) {
         animacionTimer->stop();
     }
-    
+
     animacionKamehamehaActiva = true;
     frameKamehamehaActual = 1; // Volver a empezar desde kame1
-    
+
     // Cargar el primer sprite de Kamehameha usando la función de posición fija
     cambiarSpriteKamehamehaFijo("kame1");
     qDebug() << "Sprite kame1 cargado en posición fija:" << posicionFijaKamehameha;
-    
+
     // Iniciar el timer de Kamehameha
     timerKamehameha->start();
 }
@@ -752,10 +752,10 @@ void Goku::cambiarSpriteKamehamehaFijo(const QString& direccion)
 
         // Centrar el sprite respecto a su centro (para todos los frames)
         // Esto asegura que el centro del sprite siempre quede en la misma posición
-        QPointF centro(nuevoSprite.width() / 2.0, nuevoSprite.height() / 2.0);
-        QGraphicsPixmapItem::setPos(posicionFijaKamehameha - centro);
 
-        qDebug() << "Sprite Kamehameha cambiado a:" << direccion << "- Posición centrada en:" << (posicionFijaKamehameha - centro);
+        QGraphicsPixmapItem::setPos(posicionFijaKamehameha);
+
+        qDebug() << "Sprite Kamehameha cambiado a:" << direccion << "- Posición centrada en:" << (posicionFijaKamehameha );
     } else {
         qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
     }
