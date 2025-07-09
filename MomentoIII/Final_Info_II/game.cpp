@@ -17,7 +17,7 @@ game::game(QWidget *parent)
 
     // Inicializar lista de fondos disponibles
     fondosDisponibles << ":/Fondos/Sprites/gui_scenes/torneo.png"
-                      << "degradado"; // Opción especial para fondo degradado
+                      << ":/Fondos/Sprites/gui_scenes/torneo2.png";
     
     view = new QGraphicsView(this);
     scene = new QGraphicsScene(this);
@@ -65,10 +65,36 @@ game::game(QWidget *parent)
     
     pic = new Piccolo();
     scene->addItem(pic);
+
+
+    // Sprite de la cara de Goku
+    carapersonaje = new QGraphicsPixmapItem(QPixmap(":/Fondos/Sprites/gui_scenes/caragoku.png"));
+    scene->addItem(carapersonaje);
+    carapersonaje->setPos(20, 10); // Fijo arriba a la izquierda
+
+    // Barra de vida, a la derecha de la cara
+    barraVida = new QGraphicsPixmapItem(QPixmap(":/Fondos/Sprites/gui_scenes/vida4.png"));
+    scene->addItem(barraVida);
+    int offsetX = carapersonaje->pixmap().width() + 10; // 15 píxeles de espacio
+    barraVida->setPos(10 + offsetX, 10);
+
+    //Barra Ki
+    barraKi = new QGraphicsPixmapItem(QPixmap(":/Fondos/Sprites/gui_scenes/kibar0.png"));
+    scene->addItem(barraKi);
+    int offsetY = barraVida->pixmap().height() + 5; // Debajo de la barra de vida
+    barraKi->setPos(10 + offsetX, 10 + offsetY);
+
+    // Conectar signal de vida de Goku a la barra
+    connect(p, &Personaje::vidaCambiada, this, &game::actualizarBarraVida);
+
+    // Conectar singal de ki de goku a la barra
+    connect(p, &Goku::kiCambiado, this, &game::actualizarBarraKi);
+
     pic->setPos(700, 260);
 
     // Hacer Piccolo más grande (3.5x el tamaño original - 350%)
     pic->setScale(3.5);
+
     
     // Conectar señal de aterrizaje para movimiento continuo
     connect(p, &Personaje::personajeAterrizo, this, &game::verificarMovimientoContinuo);
@@ -249,10 +275,12 @@ void game::keyReleaseEvent(QKeyEvent *e)
     if(e->key() == Qt::Key_D) { 
         teclaD_presionada = false;
     }
-    if(e->key() == Qt::Key_A) { 
+    if(e->key() == Qt::Key_A) {
+
         teclaA_presionada = false;
     }
-    if(e->key() == Qt::Key_W) { 
+    if(e->key() == Qt::Key_W) {
+        p->recibirDanio(1); // Goku recibe 1 de daño debug
         teclaW_presionada = false;
     }
     if(e->key() == Qt::Key_S) { 
@@ -373,6 +401,17 @@ void game::actualizarMovimiento()
         }
     }
 
+}
+
+
+void game::actualizarBarraVida(int vidaActual, int /*vidaMaxima*/) {
+    barraVida->setPixmap(QPixmap(QString(":/Fondos/Sprites/gui_scenes/vida%1.png").arg(vidaActual)));
+}
+
+void game::actualizarBarraKi(int kiActual, int /*kiMaximo*/) {
+    int spriteIndex = kiActual / 20; // 0-19:0, 20-39:1, ..., 100:5
+    if (spriteIndex > 5) spriteIndex = 5;
+    barraKi->setPixmap(QPixmap(QString(":/Fondos/Sprites/gui_scenes/kibar%1.png").arg(spriteIndex)));
 }
 
 void game::piccoloActualizarMovimiento()

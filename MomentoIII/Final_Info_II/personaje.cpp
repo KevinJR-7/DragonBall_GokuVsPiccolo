@@ -749,4 +749,8 @@ void Personaje::moverIzquierda(){}
 void Personaje::moverArriba(){}
 void Personaje::moverAbajo(){}
 void Personaje::atacar(){}
-void Personaje::recibirDanio(int danio){}
+void Personaje::recibirDanio(int danio){
+    vida -= danio;
+    if (vida < 0) vida = 0;
+    emit vidaCambiada(vida, vidaMaxima);
+}

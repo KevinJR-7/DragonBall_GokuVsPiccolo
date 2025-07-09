@@ -109,6 +109,7 @@ private:
     qreal offsetKiY;
 
 signals:
+    void kiCambiado(int kiActual, int kiMaximo);
 };
 
 #endif // GOKU_H
