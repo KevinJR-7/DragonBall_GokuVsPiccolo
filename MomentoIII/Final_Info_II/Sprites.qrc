@@ -53,6 +53,19 @@
         <file>Sprites/goku/hameha1.png</file>
         <file>Sprites/goku/hameha2.png</file>
         <file>Sprites/goku/hameha3.png</file>
+        <file>Sprites/goku/golpe1.png</file>
+        <file>Sprites/goku/golpe2.png</file>
+        <file>Sprites/goku/golpe3.png</file>
+        <file>Sprites/goku/muerto1.png</file>
+        <file>Sprites/goku/muerto2.png</file>
+        <file>Sprites/goku/muerto3.png</file>
+        <file>Sprites/goku/muerto4.png</file>
+        <file>Sprites/goku/patada1.png</file>
+        <file>Sprites/goku/patada2.png</file>
+        <file>Sprites/goku/patada3.png</file>
+        <file>Sprites/goku/herido.png</file>
+        
+
     </qresource>
     <qresource prefix="/Fondos">
         <file>Sprites/gui_scenes/torneo.png</file>

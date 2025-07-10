@@ -39,8 +39,7 @@ public:
     void detenerCargaKamehameha();
     void lanzarKamehameha(); // Nuevo método para lanzar el proyectil
     bool estaCargandoKamehameha() const { return animacionKamehamehaActiva; }
-    
-public:
+
     // Método para cambiar sprite de Kamehameha manteniendo posición fija
     void cambiarSpriteKamehamehaFijo(const QString& direccion);
 
@@ -57,6 +56,9 @@ public:
     int obtenerKi() const { return kiActual; }
     int obtenerKiMaximo() const { return kiMaximo; }
     float obtenerPorcentajeKi() const { return (float)kiActual / kiMaximo * 100.0f; }
+
+    //Metodos para morir
+    void morir() override;
 
 protected:
 
@@ -107,6 +109,11 @@ private:
     // Offsets para sprites de ki (para alinearlos con el sprite quieto)
     qreal offsetKiX;
     qreal offsetKiY;
+
+    // Timer para la muerte
+    int frameMuerteActual = 1;
+    QTimer* timerMuerte = nullptr;
+
 
 signals:
     void kiCambiado(int kiActual, int kiMaximo);
