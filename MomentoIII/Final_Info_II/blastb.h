@@ -19,6 +19,7 @@ public:
     void iniciar(QPointF posicionInicial, QPointF direccion) override;
     void actualizar() override;
     void detener() override;
+    void destruir();
     
     // Implementación de métodos virtuales puros de QGraphicsItem
     QRectF boundingRect() const override;
@@ -89,6 +90,7 @@ private:
     void calcularSiguientePosicion();
     void actualizarAtractorLorenz();
     QPointF obtenerPosicionCaotica();
+
 };
 
 #endif // BLASTB_H

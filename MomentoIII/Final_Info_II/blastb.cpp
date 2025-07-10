@@ -1,4 +1,5 @@
 #include "blastb.h"
+#include "piccolo.h"
 #include <QGraphicsScene>
 #include <QDebug>
 #include <cmath>
@@ -26,12 +27,12 @@ BlastB::BlastB(QObject *parent)
     
     // Configurar parámetros físicos por defecto
     establecerVelocidad(5.0);
-    establecerDano(25);
+    establecerDano(10);
     establecerAlcance(800.0);
     
     // Inicializar hitbox - hitbox extremadamente delgado en altura
     hitbox = QRectF(0, 0, 10, 1); // Hitbox muy delgado en altura: 10x1 píxeles
-    daño = 25;
+    daño = 10;
     hitboxActivo = true;
     
     // Inicializar variables del atractor
@@ -331,10 +332,35 @@ void BlastB::verificarColisiones()
             
             qDebug() << "BlastB colisionó con objeto, daño:" << daño;
             
-            // Aquí podrías agregar lógica para aplicar daño
+            // Si el item es Piccolo, aplicar daño
+            if (Piccolo* piccolo = dynamic_cast<Piccolo*>(item)) {
+                piccolo->recibirDanio(daño); // Usa el valor de daño del Blast
+                qDebug() << "Blast causó" << daño << "puntos de daño a Piccolo";
+                destruir();
+                return;
+            }
             // Por ejemplo: static_cast<Personaje*>(item)->recibirDanio(daño);
         }
     }
+}
+
+void BlastB::destruir()
+{
+    //activo = false;
+    timerAnimacion->stop();
+
+    // Detener la animación intercalada
+    //detenerAnimacion();
+
+    // Limpiar trayectoria
+    trayectoria.clear();
+
+    // Remover de la escena
+    if (scene()) {
+        scene()->removeItem(this);
+    }
+
+    qDebug() << "Blast destruido";
 }
 
 QRectF BlastB::obtenerHitbox() const
