@@ -30,10 +30,7 @@ public:
     
     // Método para salto direccional
     void saltoDireccional();
-    
-    // Método para verificar y aplicar movimiento continuo
-    void verificarMovimientoContinuo();
-    
+
     // Método para debug de posicionamiento
     void agregarGrillaDebug();
     void alternarGrillaDebug();

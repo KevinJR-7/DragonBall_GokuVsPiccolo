@@ -95,6 +95,7 @@ void Goku::moverDerecha()
     if (!isVisible() || animacionEntradaActiva || animacionKiActiva) {
         return;
     }
+    if (animacionKiActiva) return;
     
     qDebug() << "moverDerecha() - estaSaltando:" << estaSaltando() << "pos actual:" << this->pos().x();
     moviendose = true;
@@ -125,7 +126,7 @@ void Goku::moverIzquierda()
     if (!isVisible() || animacionEntradaActiva || animacionKiActiva) {
         return;
     }
-    
+    if (animacionKiActiva) return;
     qDebug() << "moverIzquierda() - estaSaltando:" << estaSaltando() << "pos actual:" << this->pos().x();
     moviendose = true;
     ultimaDireccionHorizontal = "atras"; // Rastrear dirección horizontal
@@ -155,7 +156,7 @@ void Goku::moverArriba()
     if (!isVisible() || animacionEntradaActiva || animacionKiActiva) {
         return;
     }
-    
+    if (animacionKiActiva) return;
     moviendose = true;
     
     // Solo detener animación idle si no está saltando
@@ -184,6 +185,7 @@ void Goku::moverAbajo()
     if (!isVisible() || animacionEntradaActiva || animacionKiActiva) {
         return;
     }
+    if (animacionKiActiva) return;
     
     moviendose = true;
     
@@ -207,26 +209,13 @@ void Goku::moverAbajo()
     }
 }
 
-void Goku::atacar()
-{
-    if (estaVivo()) {
-        qDebug() << nombre << " está atacando con Kamehameha";
-
-        cambiarSprite("atacando"); //
-        
-        emit personajeAtaco(this);
-        
-        // Volver a la animación idle después de un tiempo
-        QTimer::singleShot(500, this, [this]() {
-            if (!moviendose) {
-                iniciarAnimacionIdle();
-            }
-        });
-    }
-}
 
 void Goku::recibirDanio(int danio)
 {
+    if (animacionKiActiva) {
+        detenerRecargaKi();
+    }
+
     if (estaVivo()) {
         vida -= danio;
         if (vida < 0) vida = 0;
@@ -372,11 +361,7 @@ void Goku::detenerRecargaKi()
         animacionKiActiva = false;
         timerKi->stop();
         timerRecargaKi->stop();
-        
-        // Volver exactamente a la posición original
-        setPos(posicionOriginalKi.x(), posicionOriginalKi.y());
 
-        
         // Configurar estado idle
         moviendose = false;
         frameActual = 1;
@@ -522,9 +507,6 @@ void Goku::detenerCargaKamehameha()
         animacionKamehamehaActiva = false;
         timerKamehameha->stop();
         
-        // Restaurar posición y sprite idle
-        setPos(posicionFijaKamehameha.x(), posicionFijaKamehameha.y());
-        cambiarSprite("quieto");
 
         // Configurar estado idle
         moviendose = false;
@@ -794,4 +776,64 @@ void Goku::morir()
 }
 
 
+// ...existing code...
+void Goku::golpear() {
+    if (timerGolpe && timerGolpe->isActive()) return;
+    frameGolpe = 1;
+    animarGolpe();
+    if (!timerGolpe) timerGolpe = new QTimer(this);
+    connect(timerGolpe, &QTimer::timeout, this, &Goku::animarGolpe, Qt::UniqueConnection);
+    timerGolpe->start(60);
+}
 
+void Goku::animarGolpe() {
+    if (frameGolpe > 3) {
+        timerGolpe->stop();
+        iniciarAnimacionIdle();
+        return;
+    }
+    cambiarSprite(QString("golpe%1").arg(frameGolpe));
+    frameGolpe++;
+}
+
+void Goku::patear() {
+    if (timerPatada && timerPatada->isActive()) return;
+    framePatada = 1;
+    animarPatada();
+    if (!timerPatada) timerPatada = new QTimer(this);
+    connect(timerPatada, &QTimer::timeout, this, &Goku::animarPatada, Qt::UniqueConnection);
+    timerPatada->start(60);
+}
+
+void Goku::animarPatada() {
+    if (framePatada > 3) {
+        timerPatada->stop();
+        iniciarAnimacionIdle();
+        return;
+    }
+    cambiarSprite(QString("patada%1").arg(framePatada));
+    framePatada++;
+}
+
+
+void Goku::tp() {
+    if (animacionTeleportActiva) return; // No permitir si ya está en teleport
+    animacionTeleportActiva = true;
+    frameTeleport = 1;
+    animarTp();
+    if (!timerTeleport) timerTeleport = new QTimer(this);
+    connect(timerTeleport, &QTimer::timeout, this, &Goku::animarTp, Qt::UniqueConnection);
+    timerTeleport->start(200); // Cambia cada 50 ms (ajusta si quieres más rápido/lento)
+}
+
+void Goku::animarTp() {
+    moviendose = true;
+    if (frameTeleport > 7) {
+        timerTeleport->stop();
+        animacionTeleportActiva = false;
+        moviendose = false;
+        return;
+    }
+    cambiarSprite(QString("teleport%1").arg(frameTeleport));
+    frameTeleport++;
+}

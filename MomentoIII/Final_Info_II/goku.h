@@ -19,7 +19,6 @@ public:
     void moverIzquierda() override;
     void moverArriba() override;
     void moverAbajo() override;
-    void atacar() override;
     void recibirDanio(int danio) override;
     
     // Override para limpiar dirección horizontal en idle
@@ -62,6 +61,17 @@ public:
 
     // Animación de teletransportación
     void iniciarAnimacionTeleport();
+
+    // Ataques cuerpo a cuerpo
+    void golpear();
+    void patear();
+    void animarGolpe();
+    void animarPatada();
+
+    //teleport
+    void tp();
+
+
 
 protected:
 
@@ -115,7 +125,19 @@ private:
 
     // Timer para la muerte
     int frameMuerteActual = 1;
-    QTimer* timerMuerte = nullptr;
+    QTimer* timerMuerte;
+
+    // Timers golpes
+    int frameGolpe = 0;
+    int framePatada = 0;
+    QTimer *timerGolpe = nullptr;
+    QTimer *timerPatada = nullptr;
+
+    // Timers Teleport
+    void animarTp();
+    int frameTeleport = 1;
+    QTimer *timerTeleport = nullptr;
+    bool animacionTeleportActiva = false;
 
 
 signals:
