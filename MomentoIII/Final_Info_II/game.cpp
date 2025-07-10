@@ -114,7 +114,7 @@ game::game(QWidget *parent)
     cntPiccolo = 0;
 
     piccoloIATimer = new QTimer(this);
-    piccoloIATimer->setInterval(50);
+    piccoloIATimer->setInterval(25);
     connect(piccoloIATimer, &QTimer::timeout, this, &game::piccoloActualizarMovimiento);
     piccoloIATimer->start();
 
@@ -422,25 +422,70 @@ void game::piccoloActualizarMovimiento()
     // Codigo para hacer los cambios de movimeinto de piccolo
     switch(cntPiccolo)
     {
-    case 80:
+    case 160:
         piccoloA_presionada = true;
         break;
-    case 100:
+    case 200:
         piccoloA_presionada = false;
         piccoloJ_presionada = true;
         break;
-    case 118:
+    case 236:
         piccoloJ_presionada = false;
         pic->detenerCargaRayo();
         piccoloD_presionada = true;
         break;
-    case 138:
+    case 276:
         piccoloD_presionada = false;
         piccoloW_presionada = true;
         break;
-    case 150:
+    case 300:
         piccoloW_presionada = false;
+        piccoloJ_presionada = true;
+        break;
+    case 336:
+        piccoloJ_presionada = false;
+        pic->detenerCargaRayo();
+        piccoloS_presionada = true;
+        break;
+    case 360:
+        piccoloS_presionada = false;
+        piccoloJ_presionada = true;
+        break;
+    case 396:
+        piccoloJ_presionada = false;
+        pic->detenerCargaRayo();
+        piccoloW_presionada = true;
+        break;
+    case 420:
+        piccoloW_presionada = false;
+        piccoloA_presionada = true;
+        break;
+    case 440:
+        piccoloA_presionada = false;
+        piccoloJ_presionada = true;
+        break;
+    case 476:
+        piccoloJ_presionada = false;
+        pic->detenerCargaRayo();
+        piccoloD_presionada = true;
+        break;
+    case 496:
+        piccoloD_presionada = false;
+        piccoloJ_presionada = true;
+        break;
+    case 532:
+        piccoloJ_presionada = false;
+        pic->detenerCargaRayo();
+        piccoloS_presionada = true;
+        break;
+    case 556:
+        piccoloS_presionada = false;
+        break;
+    case 558:
         pic->iniciarAnimacionIdle();
+        break;
+    case 600:
+        if(pic->getVida() > (pic->getVidaMaxima())/2){ cntPiccolo = 159; }
         break;
     }
     if(pic->isVisible() || !pic->estaEnAnimacionEntrada()){ cntPiccolo++; }
