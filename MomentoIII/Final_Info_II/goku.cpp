@@ -227,16 +227,21 @@ void Goku::recibirDanio(int danio)
     if (estaVivo()) {
         vida -= danio;
         if (vida < 0) vida = 0;
-        
-        qDebug() << nombre << " recibió" << danio << "de daño. Vida restante:" << vida;
         emit vidaCambiada(vida, vidaMaxima);
-        
+
+        // Cambia al sprite de daño
+        cambiarSprite("herido");
+
+        // Después de 200 ms, vuelve a la animación idle
+        QTimer::singleShot(200, this, [this]() {
+            iniciarAnimacionIdle();
+        });
+
         if (vida <= 0) {
             morir();
         }
     }
 }
-
 void Goku::iniciarAnimacionIdle()
 {
     // Limpiar dirección horizontal al entrar en idle
@@ -769,4 +774,32 @@ void Goku::cambiarSpriteKamehamehaFijo(const QString& direccion)
     } else {
         qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
     }
+}
+
+
+void Goku::morir()
+{
+    // Detén otras animaciones y movimiento
+    if (animacionTimer && animacionTimer->isActive())
+        animacionTimer->stop();
+    moviendose = false;
+
+    // Inicia la animación de muerte
+    frameMuerteActual = 1;
+    if (!timerMuerte) {
+        timerMuerte = new QTimer(this);
+        connect(timerMuerte, &QTimer::timeout, this, [this]() {
+            if (frameMuerteActual <= 4) {
+                cambiarSprite(QString("muerto%1").arg(frameMuerteActual));
+                frameMuerteActual++;
+            } else {
+                timerMuerte->stop();
+                // Aquí puedes dejar el último sprite o hacer más lógica (ej: eliminar personaje)
+            }
+        });
+    }
+    timerMuerte->start(200); // Cambia de frame cada 200 ms
+
+    // Opcional: emite señal de muerte
+    emit personajeMuerto(this);
 }

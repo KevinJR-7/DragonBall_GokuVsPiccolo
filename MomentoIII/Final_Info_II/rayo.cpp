@@ -1,4 +1,5 @@
 #include "rayo.h"
+#include "goku.h" //Para que verifique colision
 #include <QGraphicsScene>
 #include <QApplication>
 #include <QGuiApplication>
@@ -21,7 +22,7 @@ Rayo::Rayo(QObject *parent)
     , altoTotal(50)
     , usarHameha(false)
     , contadorAnimacion(0)
-    , daño(50)
+    , daño(1)
     , hitboxActivo(false)
 {
     transform.scale(-1, 1); // Refleja sobre el eje X
@@ -428,22 +429,18 @@ void Rayo::procesarColision(QGraphicsItem* item)
 {
     qDebug() << "¡Rayo colisionó con un objeto!";
 
-    // Aquí puedes agregar lógica específica para diferentes tipos de objetos
-    // Por ejemplo, si el item es un enemigo, aplicar daño
-
-    // Verificar si el item es un personaje (implementar según tu jerarquía de clases)
-    /*
-    if (Personaje* personaje = dynamic_cast<Personaje*>(item)) {
-        personaje->recibirDaño(daño);
-        qDebug() << "Rayo causó" << daño << "puntos de daño";
+    // Si el item es Goku, aplicar daño
+    if (Goku* goku = dynamic_cast<Goku*>(item)) {
+        goku->recibirDanio(daño); // Usa el valor de daño del rayo
+        qDebug() << "Rayo causó" << daño << "puntos de daño a Goku";
+        destruir(); // Opcional: destruye el rayo tras golpear
+        return;
     }
-    */
+
+    // Puedes agregar más lógica para otros tipos de objetos aquí
 
     // Efectos visuales, sonidos, etc.
     qDebug() << "Procesando colisión con objeto en posición:" << item->pos();
-
-    // Opcional: destruir el Rayo después de golpear algo
-    // destruir();
 }
 
 void Rayo::alternarVisualizacionHitbox()
