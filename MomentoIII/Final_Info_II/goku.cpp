@@ -63,7 +63,7 @@ Goku::Goku(QObject *parent)
     // Configurar propiedades específicas de Goku
     establecerNombre("Goku");
     establecerCarpetaSprites("goku");
-    establecerVida(4); // Goku tiene más vida
+    establecerVida(100); // Goku tiene más vida
     establecerVelocidad(10); // Goku es rápido
     
     // Configurar física del salto específica para Goku

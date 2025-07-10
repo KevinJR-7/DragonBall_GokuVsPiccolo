@@ -20,8 +20,8 @@ public:
     void moverIzquierda() override;
     void moverArriba() override;
     void moverAbajo() override;
-    // void atacar() override;
-    // void recibirDanio(int danio) override;
+    void atacar() override;
+    void recibirDanio(int danio) override;
 
     // Override para limpiar dirección horizontal en idle
     void iniciarAnimacionIdle() override;
@@ -64,7 +64,13 @@ private:
     QTimer* timerRayo;
     QPointF posicionInicialQuieto; // Guardar posición del sprite quieto // Posición exacta antes de empezar Rayo
 
+    // Sistema de ki
+    int kiActual;
+    int kiMaximo;
+    int velocidadRecargaKi; // ki por segundo
+
 signals:
+    void kiCambiado(int kiActual, int kiMaximo);
 };
 
 #endif // PICCOLO_H

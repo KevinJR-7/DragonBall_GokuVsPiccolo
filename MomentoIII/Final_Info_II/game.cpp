@@ -65,6 +65,10 @@ game::game(QWidget *parent)
     
     pic = new Piccolo();
     scene->addItem(pic);
+    pic->setPos(700, 260);
+
+    // Hacer Piccolo más grande (3.5x el tamaño original - 350%)
+    pic->setScale(3.5);
 
 
     // Sprite de la cara de Goku
@@ -90,12 +94,29 @@ game::game(QWidget *parent)
     // Conectar singal de ki de goku a la barra
     connect(p, &Goku::kiCambiado, this, &game::actualizarBarraKi);
 
-    pic->setPos(700, 260);
+    //
+    transform.scale(-1, 1); // Refleja sobre el eje X
+    // Sprite de la cara de Piccolo
+    carapersonaje2 = new QGraphicsPixmapItem(QPixmap(":/Fondos/Sprites/gui_scenes/carapic.png"));
+    scene->addItem(carapersonaje2);
+    carapersonaje2->setPos(895, 10); // Fijo arriba a la izquierda
 
-    // Hacer Piccolo más grande (3.5x el tamaño original - 350%)
-    pic->setScale(3.5);
+    // Barra de vida, a la derecha de la cara
+    barraVida2 = new QGraphicsPixmapItem((QPixmap(":/Fondos/Sprites/gui_scenes/vida4.png")).transformed(transform));
+    scene->addItem(barraVida2);
+    int offsetX2 = (barraVida2->pixmap().width()); // 15 píxeles de espacio
+    barraVida2->setPos(895 - offsetX2, 10);
 
-    
+    //Barra Ki
+    barraKi2 = new QGraphicsPixmapItem((QPixmap(":/Fondos/Sprites/gui_scenes/kibar5.png")).transformed(transform));
+    scene->addItem(barraKi2);
+    int offsetX3 = barraKi2->pixmap().width(); // Debajo de la barra de vida
+    int offsetY2 = barraVida2->pixmap().height() + 5; // Debajo de la barra de vida
+    barraKi2->setPos(895 - offsetX3, 10 + offsetY2);
+
+    // Conectar signal de vida de Piccolo a la barra
+    connect(pic, &Personaje::vidaCambiada, this, &game::actualizarBarraVida2);
+
     // Conectar señal de aterrizaje para movimiento continuo
     connect(p, &Personaje::personajeAterrizo, this, &game::verificarMovimientoContinuo);
     
@@ -405,8 +426,14 @@ void game::actualizarMovimiento()
 }
 
 
-void game::actualizarBarraVida(int vidaActual, int /*vidaMaxima*/) {
+void game::actualizarBarraVida(int vidaActual, int vidaMaxima) {
+    vidaActual = ((vidaActual * 4) + vidaMaxima -1) / vidaMaxima;
     barraVida->setPixmap(QPixmap(QString(":/Fondos/Sprites/gui_scenes/vida%1.png").arg(vidaActual)));
+}
+
+void game::actualizarBarraVida2(int vidaActual, int vidaMaxima) {
+    vidaActual = ((vidaActual * 4) + vidaMaxima -1) / vidaMaxima;
+    barraVida2->setPixmap((QPixmap(QString(":/Fondos/Sprites/gui_scenes/vida%1.png").arg(vidaActual))).transformed(transform));
 }
 
 void game::actualizarBarraKi(int kiActual, int /*kiMaximo*/) {

@@ -31,7 +31,7 @@ Piccolo::Piccolo(QObject *parent)
     // Configurar propiedades específicas de Piccolo
     establecerNombre("Piccolo");
     establecerCarpetaSprites("piccolo");
-    establecerVida(150); // Piccolo tiene más vida
+    establecerVida(100); // Piccolo tiene más vida
     establecerVelocidad(10); // Piccolo es rápido
 
     // Configurar física del salto específica para Piccolo
@@ -166,6 +166,39 @@ void Piccolo::moverAbajo()
             cambiarSprite(ultimaDireccionHorizontal);
         } else {
             cambiarSprite("adelante");
+        }
+    }
+}
+
+void Piccolo::atacar()
+{
+    if (estaVivo()) {
+        qDebug() << nombre << " está atacando con rayo";
+
+        cambiarSprite("atacando"); //
+
+        emit personajeAtaco(this);
+
+        // Volver a la animación idle después de un tiempo
+        QTimer::singleShot(500, this, [this]() {
+            if (!moviendose) {
+                iniciarAnimacionIdle();
+            }
+        });
+    }
+}
+
+void Piccolo::recibirDanio(int danio)
+{
+    if (estaVivo()) {
+        vida -= danio;
+        if (vida < 0) vida = 0;
+
+        qDebug() << nombre << " recibió" << danio << "de daño. Vida restante:" << vida;
+        emit vidaCambiada(vida, vidaMaxima);
+
+        if (vida <= 0) {
+            morir();
         }
     }
 }

@@ -22,7 +22,7 @@ Rayo::Rayo(QObject *parent)
     , altoTotal(50)
     , usarHameha(false)
     , contadorAnimacion(0)
-    , daño(1)
+    , daño(10)
     , hitboxActivo(false)
 {
     transform.scale(-1, 1); // Refleja sobre el eje X
