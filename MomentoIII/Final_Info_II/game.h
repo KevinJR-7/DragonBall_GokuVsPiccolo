@@ -41,6 +41,7 @@ public:
 public slots:
     //Actualizar barra vida
     void actualizarBarraVida(int vidaActual, int vidaMaxima);
+    void actualizarBarraVida2(int vidaActual, int vidaMaxima);
     // Actualizar barra ki
     void actualizarBarraKi(int kiActual, int kiMaximo);
 
@@ -57,6 +58,8 @@ private:
     QTimer* piccoloIATimer;
 
     unsigned int cntPiccolo;
+    // Variable para girar en x
+    QTransform transform;
     
     // Variables para rastrear teclas presionadas
     bool teclaD_presionada = false;
@@ -97,7 +100,10 @@ private:
     QGraphicsPixmapItem* carapersonaje;
     QGraphicsPixmapItem* barraKi;
 
-
+    // Metodo para crear la barra de vida, ki, y personaje
+    QGraphicsPixmapItem* barraVida2;
+    QGraphicsPixmapItem* carapersonaje2;
+    QGraphicsPixmapItem* barraKi2;
 
 signals:
 
