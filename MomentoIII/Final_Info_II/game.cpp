@@ -272,9 +272,6 @@ void game::keyPressEvent(QKeyEvent *e)
 
     // --- Pruebas ---
     case Qt::Key_Z:
-        if (!piccoloL_presionada && !pic->estaCargandoGravityBlast()) {
-            piccoloL_presionada = true;
-        }
         break;
     }
 }
@@ -319,9 +316,9 @@ void game::keyReleaseEvent(QKeyEvent *e)
 
     // --- Pruebas ---
     case Qt::Key_Z:
-        piccoloL_presionada = false;
-        pic->detenerCargaGravityBlast();
-        pic->iniciarAnimacionIdle();
+        if(pic->getFase() == false){
+            cntPiccolo = 501; pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y); pic->setScale(5.5); pic->alternarFase();
+        }
         break;
     }
 
@@ -436,820 +433,292 @@ void game::piccoloActualizarMovimiento()
         break;
     // --- Fase 1: Vida > 75% ---
     case 160: // Inicia movimiento: Adelante-izquierda (Diagonal, DURACIÓN NORMAL)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloA_presionada = true; // Diagonal izquierda
             piccoloW_presionada = true; // Adelante (diagonal)
-        } else { // Si ya no está en esta fase, salta a la transición de la siguiente
-            cntPiccolo = 499; // ¡Ajustado! Salta al tick anterior al case 500
-            // Las variables de movimiento y animación idle ya se manejarán en el case 500
+        } else {
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 170: // Detiene movimiento 'W' y 'A' después de 10 ticks (duración normal)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloW_presionada = false;
             piccoloA_presionada = false;
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 171: // NUEVO: Pausa de 10 ticks después de un movimiento
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499;
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 181: // Inicia movimiento D (¡DURACIÓN DOBLE!) - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloD_presionada = true; // Derecha (movimiento lateral largo)
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 201: // Detiene movimiento D después de 20 ticks (duración doble)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloD_presionada = false;
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 202: // NUEVO: Pausa de 10 ticks después de un movimiento
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499;
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     // --- REEMPLAZO: Ataque rápido de 1 tick (Gravity Blast) ---
     case 212: // **NUEVO ATAQUE RÁPIDO: Inicia Gravity Blast (1 tick)** - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloL_presionada = true; // Inicia el ataque de 1 tick
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 213: // **NUEVO ATAQUE RÁPIDO: Detiene Gravity Blast (1 tick después)**
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloL_presionada = false;
             pic->detenerCargaGravityBlast(); // Detiene la carga del Gravity Blast
             pic->iniciarAnimacionIdle(); // Vuelve a idle inmediatamente
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     // --- FIN REEMPLAZO ---
     case 214: // NUEVO: Pausa de 10 ticks después del ataque rápido
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499;
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 224: // Inicia S+A (Atrás-izquierda, Diagonal, DURACIÓN NORMAL) - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloA_presionada = true; // Diagonal atrás izquierda
             piccoloS_presionada = true; // Atrás (diagonal)
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 234: // Detiene movimiento 'S' y 'A' después de 10 ticks (duración normal)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloS_presionada = false;
             piccoloA_presionada = false;
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 235: // Llama a idle después de un movimiento
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 245: // Inicia movimiento D (¡DURACIÓN DOBLE!) - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloD_presionada = true; // Movimiento lateral largo derecha
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 265: // Detiene movimiento D después de 20 ticks (duración doble)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloD_presionada = false;
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 266: // NUEVO: Pausa de 10 ticks después de un movimiento
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499;
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 276: // Ataque al nivel del suelo (Inicia ataque - Ajustado por +20 +10)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloJ_presionada = true; // Ataque
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 312: // Detiene ataque (36 ticks después de 276)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloJ_presionada = false;
             pic->detenerCargaRayo();
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 313: // Llama a idle después de un ataque
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 314: // NUEVO: Pausa de 10 ticks después de un ataque
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499;
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 324: // Inicia movimiento recto W (DURACIÓN NORMAL) - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloW_presionada = true; // Adelante (movimiento recto)
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 334: // Detiene movimiento 'W' después de 10 ticks (duración normal)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloW_presionada = false;
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 335: // Llama a idle después de un movimiento
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 345: // Nuevo inicio de ataque - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloJ_presionada = true; // Ataque
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 381: // Detiene ataque (36 ticks después de 345)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloJ_presionada = false;
             pic->detenerCargaRayo();
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 382: // Llama a idle después de un ataque
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 383: // NUEVO: Pausa de 10 ticks después de un ataque
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499;
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 393: // Inicia S+D después del ataque (Diagonal, DURACIÓN NORMAL) - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloS_presionada = true; // Atrás
             piccoloD_presionada = true; // Diagonal atrás derecha
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 403: // Detiene movimiento 'S' y 'D' después de 10 ticks (duración normal)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloS_presionada = false;
             piccoloD_presionada = false;
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 404: // Llama a idle después de un movimiento
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 414: // NUEVO: Inicia movimiento A (¡DURACIÓN DOBLE!) - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloA_presionada = true; // Izquierda (movimiento atravesado)
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 434: // NUEVO: Detiene movimiento A después de 20 ticks
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloA_presionada = false;
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 435: // NUEVO: Pausa de 10 ticks después de un movimiento
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499;
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 445: // NUEVO: Ataque atravesado (J) - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloJ_presionada = true; // Ataque
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 481: // NUEVO: Detiene ataque (36 ticks después de 445)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             piccoloJ_presionada = false;
             pic->detenerCargaRayo();
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 482: // NUEVO: Llama a idle después de un ataque
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
+        if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 483: // Pequeña pausa antes de reiniciar el ciclo (Ajustado por offset)
-        if (pic->getVida() <= (pic->getVidaMaxima() * 0.75)) { // Mismo condicional para la transición
-            // Aquí se mantiene el setPos y el reinicio de flags, porque 480 es donde ya se decide la transición
-            pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y);
-            pic->iniciarAnimacionIdle();
-            piccoloW_presionada = false;
-            piccoloA_presionada = false;
-            piccoloS_presionada = false;
-            piccoloD_presionada = false;
-            piccoloJ_presionada = false;
-            piccoloL_presionada = false; // Agregado para el nuevo ataque
-            cntPiccolo = 509; // Salta al inicio de la Fase 2 si la vida es menor o igual al 75%
-        }
-        break;
-    case 500: // Ajuste del reinicio o transición de fase (Ajustado por offset)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.75)) {
-            cntPiccolo = 159; // Repite la secuencia si la vida sigue alta
-        }
-        // --- Transición a la siguiente fase ---
-        else if (pic->getVida() > (pic->getVidaMaxima() * 0.40)) {
-            // Regresar a la posición original
-            pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y);
-            pic->iniciarAnimacionIdle();
-
-            cntPiccolo = 509; // Salta al *siguiente tick* del inicio de la Fase 2 (preparado para 510)
-            piccoloW_presionada = false;
-            piccoloA_presionada = false;
-            piccoloS_presionada = false;
-            piccoloD_presionada = false;
-            piccoloJ_presionada = false;
-            piccoloL_presionada = false; // Agregado para el nuevo ataque
-        }
-        break;
-
-        // --- Fase 2: 40% < Vida <= 75% (Ahora con un offset acumulado de +100) ---
-    case 510: // Inicia movimiento (Izquierda) (¡DURACIÓN DOBLE!)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloA_presionada = true; // Izquierda
-        } else { // Si ya no está en esta fase, salta a la transición de la siguiente
-            cntPiccolo = 769; // ¡Ajustado! Salta al tick anterior al case 770
-            // Las variables de movimiento y animación idle ya se manejarán en el case 770
-        }
-        break;
-    case 530: // Detiene movimiento 'A' después de 20 ticks (duración doble)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloA_presionada = false;
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 531: // NUEVO: Pausa de 10 ticks después de un movimiento
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 769;
-        }
-        break;
-    case 541: // Ataque al nivel del suelo (Inicia ataque - Ajustado por +20 de offset + 10)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloJ_presionada = true; // Ataque
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 577: // Detiene ataque (36 ticks después de 541)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloJ_presionada = false;
-            pic->detenerCargaRayo();
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 578: // Nueva: Llama a idle después de un ataque
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 579: // NUEVO: Pausa de 10 ticks después de un ataque
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 769;
-        }
-        break;
-    case 589: // Inicia movimiento W+D después del ataque (Diagonal, DURACIÓN NORMAL) - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloW_presionada = true; // Adelante
-            piccoloD_presionada = true; // Diagonal adelante derecha
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 599: // Detiene movimiento 'W' y 'D' después de 10 ticks (duración normal)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloW_presionada = false;
-            piccoloD_presionada = false;
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 600: // Nueva: Llama a idle después de un movimiento
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 610: // Ataque original (Inicia ataque) - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloJ_presionada = true; // Ataque
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 646: // Detiene ataque (36 ticks después de 610)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloJ_presionada = false;
-            pic->detenerCargaRayo();
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 647: // Nueva: Llama a idle después de un ataque
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 648: // NUEVO: Pausa de 10 ticks después de un ataque
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 769;
-        }
-        break;
-    case 658: // Inicia S después del ataque (Solo Atrás, DURACIÓN NORMAL) - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloS_presionada = true; // Atrás (movimiento recto)
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 668: // Detiene movimiento 'S' después de 10 ticks (duración normal)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloS_presionada = false;
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 669: // Nueva: Llama a idle después de un movimiento
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 679: // Otro movimiento 'A' (Izquierda) (DURACIÓN NORMAL) - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloA_presionada = true; // Izquierda
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 689: // Detiene 'A' y ataca (Ajustado por offset)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloA_presionada = false;
-            piccoloJ_presionada = true; // Ataque
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 725: // Detiene ataque (36 ticks después de 689)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloJ_presionada = false;
-            pic->detenerCargaRayo();
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 726: // Nueva: Llama a idle después de un ataque
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 727: // NUEVO: Pausa de 10 ticks después de un ataque
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 769;
-        }
-        break;
-    case 737: // Segundo ataque en esta sección (Inicia ataque) - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloJ_presionada = true; // Segundo Ataque
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 773: // Detiene segundo ataque (36 ticks después de 737)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloJ_presionada = false;
-            pic->detenerCargaRayo();
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 774: // Nueva: Llama a idle después de un ataque
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 775: // NUEVO: Pausa de 10 ticks después de un ataque
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 769;
-        }
-        break;
-    case 785: // Inicia D después de los ataques (Solo Derecha) (¡DURACIÓN DOBLE!) - Ajustado para la pausa
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloD_presionada = true; // Derecha
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 805: // Detiene D después de 20 ticks (duración doble)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            piccoloD_presionada = false;
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 806: // Nueva: Llama a idle después de un movimiento
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40) && pic->getVida() <= (pic->getVidaMaxima() * 0.75)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 769; // ¡Ajustado!
-        }
-        break;
-    case 807: // Pequeña pausa antes de reiniciar el ciclo (Ajustado por offset)
-        if (pic->getVida() > (pic->getVidaMaxima() * 0.40)) {
-            // Repite la secuencia si la vida sigue en esta fase
-            pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y);
-            pic->iniciarAnimacionIdle();
+        if (pic->getVida() > 0) { // Si Piccolo sigue vivo, repite la secuencia de la Fase 1
+            pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y); // Reset position if needed
+            pic->iniciarAnimacionIdle(); // Ensure idle animation
             piccoloW_presionada = false;
             piccoloA_presionada = false;
             piccoloS_presionada = false;
             piccoloD_presionada = false;
             piccoloJ_presionada = false;
             piccoloL_presionada = false;
-            cntPiccolo = 509; // Vuelve al inicio de la fase 2
-        }
-        // --- Transición a la siguiente fase ---
-        else if (pic->getVida() > 0) {
-            // Regresar a la posición original
-            pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y);
-            pic->iniciarAnimacionIdle();
-
-            cntPiccolo = 779; // Salta al *siguiente tick* del inicio de la Fase 3 (preparado para 780)
-            piccoloW_presionada = false;
-            piccoloA_presionada = false;
-            piccoloS_presionada = false;
-            piccoloD_presionada = false;
-            piccoloJ_presionada = false;
-            piccoloL_presionada = false; // Agregado para el nuevo ataque
-        }
-        break;
-
-        // --- Fase 3: Vida <= 40% (hasta que se acabe) (Ahora con un offset acumulado de +150) ---
-    case 780: // Inicia movimiento (Adelante-derecha, Diagonal, DURACIÓN NORMAL)
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloW_presionada = true; // Adelante (movimiento evasivo, diagonal)
-            piccoloD_presionada = true; // Diagonal adelante derecha
-        } else { // Si la vida es 0 o menos, asume que terminó y no hace nada aquí.
-            cntPiccolo = 1079; // ¡Ajustado! Salta al tick anterior al case 1080 (nuevo final)
-        }
-        break;
-    case 790: // Detiene movimiento 'W' y 'D' después de 10 ticks (duración normal)
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloW_presionada = false;
-            piccoloD_presionada = false;
+            cntPiccolo = 159; // Vuelve al inicio de la Fase 1
         } else {
-            cntPiccolo = 1079; // ¡Ajustado!
+            cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
-    case 791: // Nueva: Llama a idle después de un movimiento
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 801: // Ataque frecuente (Inicia ataque original) - Ajustado para la pausa
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloJ_presionada = true; // Ataque frecuente
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 837: // Detiene ataque (36 ticks después de 801)
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloJ_presionada = false;
-            pic->detenerCargaRayo();
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 838: // Nueva: Llama a idle después de un ataque
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 839: // NUEVO: Pausa de 10 ticks después de un ataque
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079;
-        }
-        break;
-    case 849: // Inicia S+A (Atrás-izquierda, Diagonal, DURACIÓN NORMAL) - Ajustado para la pausa
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloA_presionada = true; // Diagonal atrás izquierda
-            piccoloS_presionada = true; // Atrás (movimiento evasivo, diagonal)
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 859: // Detiene movimiento 'S' y 'A' después de 10 ticks (duración normal)
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloS_presionada = false;
-            piccoloA_presionada = false;
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 860: // Nueva: Llama a idle después de un movimiento
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 870: // Otro ataque (Inicia ataque) - Ajustado para la pausa
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloJ_presionada = true; // Otro ataque
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 906: // Detiene ataque (36 ticks después de 870)
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloJ_presionada = false;
-            pic->detenerCargaRayo();
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 907: // Nueva: Llama a idle después de un ataque
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 908: // NUEVO: Pausa de 10 ticks después de un ataque
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079;
-        }
-        break;
-    case 918: // Inicia W después del ataque (Solo Adelante, DURACIÓN NORMAL) - Ajustado para la pausa
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloW_presionada = true; // Adelante (movimiento recto)
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 928: // Detiene movimiento 'W' después de 10 ticks (duración normal)
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloW_presionada = false;
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 929: // Nueva: Llama a idle después de un movimiento
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 939: // Ataque al nivel del suelo (Inicia ataque) - Ajustado para la pausa
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloJ_presionada = true; // Ataque
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 975: // Detiene el ataque (36 ticks después de 939)
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloJ_presionada = false;
-            pic->detenerCargaRayo();
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 976: // Nueva: Llama a idle después de un ataque
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 977: // NUEVO: Pausa de 10 ticks después de un ataque
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079;
-        }
-        break;
-    case 987: // NUEVO: Inicia movimiento D (¡DURACIÓN DOBLE!) - Ajustado para la pausa
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloD_presionada = true; // Derecha (movimiento atravesado)
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 1007: // NUEVO: Detiene movimiento D después de 20 ticks
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloD_presionada = false;
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 1008: // NUEVO: Pausa de 10 ticks después de un movimiento
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079;
-        }
-        break;
-    case 1018: // NUEVO: Ataque atravesado (J) - Ajustado para la pausa
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloJ_presionada = true; // Ataque
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 1054: // NUEVO: Detiene ataque (36 ticks después de 1018)
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloJ_presionada = false;
-            pic->detenerCargaRayo();
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 1055: // NUEVO: Llama a idle después de un ataque
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 1056: // NUEVO: Pausa de 10 ticks después de un ataque
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079;
-        }
-        break;
-    case 1066: // NUEVO: Inicia movimiento A (¡DURACIÓN DOBLE!) - Ajustado para la pausa
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloA_presionada = true; // Izquierda (movimiento atravesado)
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 1086: // NUEVO: Detiene movimiento A después de 20 ticks
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloA_presionada = false;
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 1087: // NUEVO: Pausa de 10 ticks después de un movimiento
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079;
-        }
-        break;
-    case 1097: // NUEVO: Ataque atravesado (J) - Ajustado para la pausa
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloJ_presionada = true; // Ataque
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 1133: // NUEVO: Detiene ataque (36 ticks después de 1097)
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            piccoloJ_presionada = false;
-            pic->detenerCargaRayo();
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 1134: // NUEVO: Llama a idle después de un ataque
-        if (pic->getVida() > 0 && pic->getVida() <= (pic->getVidaMaxima() * 0.40)) {
-            pic->iniciarAnimacionIdle();
-        } else {
-            cntPiccolo = 1079; // ¡Ajustado!
-        }
-        break;
-    case 1144: // Reubicado el salto de fase para después del último ataque (Ajustado por offset y pausas)
+    case 500: // Este case ya no se usará para transición, solo para el ciclo principal de Fase 1
+        // La lógica de repetición para la Fase 1 si Piccolo sigue vivo está ahora en case 483.
+        // Si cntPiccolo llega aquí, es un caso de seguridad, o si Piccolo murió antes del 483.
+        // Si Piccolo murió, el timer eventualmente se detendrá o no hará nada.
+        // Si por alguna razón llega aquí y sigue vivo, se redirige al inicio.
         if (pic->getVida() > 0) {
-            // Al finalizar la última fase de ataques o si la vida sigue en esta fase pero se completó el ciclo
-            // Esto asegura que Piccolo regresa a la posición original y se resetea para el siguiente ciclo
-            pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y); // Asegúrate que estas constantes existen
-            pic->iniciarAnimacionIdle();
-            piccoloW_presionada = false;
-            piccoloA_presionada = false;
-            piccoloS_presionada = false;
-            piccoloD_presionada = false;
-            piccoloJ_presionada = false;
-            piccoloL_presionada = false; // Asegurar que también se resetee
-            cntPiccolo = 779; // Repite esta fase hasta que la vida llegue a 0
+            cntPiccolo = 159; // Asegura que vuelva a la Fase 1 si se salta el 483 por algún motivo.
+            pic->setScale(5.5);
         }
+        else{ pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y); pic->alternarFase(); } // Se llama aquí si la vida es 0 o menos.
         break;
 
-        // --- Otros casos y lógica general ---
-    case 509: // Lógica original para animacion Idle (Ajustado por offset en Fase 2)
-    case 779: // Lógica original para animacion Idle (Ajustado por offset en Fase 3)
-        pic->iniciarAnimacionIdle();
-        break;
-    default:
-        // Asegúrate de que las teclas estén desactivadas si no hay un movimiento específico en el caso
-        if (cntPiccolo < 160 || (cntPiccolo > 483 && cntPiccolo < 510) || (cntPiccolo > 807 && cntPiccolo < 780) || cntPiccolo > 1144) {
-            piccoloW_presionada = false;
-            piccoloA_presionada = false;
-            piccoloS_presionada = false;
-            piccoloD_presionada = false;
-            piccoloJ_presionada = false;
-            piccoloL_presionada = false; // Agregado para resetear en casos generales
-            pic->iniciarAnimacionIdle(); // Llama a idle en las pausas generales
-        }
-        break;
+        // Todas las fases superiores a la primera han sido eliminadas.
+        // La lógica de repetición ahora está contenida dentro de la Fase 1.
     }
 
     if (pic->isVisible() || !pic->estaEnAnimacionEntrada()) {
