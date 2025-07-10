@@ -116,9 +116,6 @@ game::game(QWidget *parent)
 
     // Conectar signal de vida de Piccolo a la barra
     connect(pic, &Personaje::vidaCambiada, this, &game::actualizarBarraVida2);
-
-    // Conectar señal de aterrizaje para movimiento continuo
-    connect(p, &Personaje::personajeAterrizo, this, &game::verificarMovimientoContinuo);
     
     // Configurar timer para movimiento continuo
     movimientoTimer = new QTimer(this);
@@ -167,190 +164,171 @@ game::~game()
 
 void game::keyPressEvent(QKeyEvent *e)
 {
-    // Ignorar auto-repeat del teclado
-    if (e->isAutoRepeat()) {
-        return;
+    if (e->isAutoRepeat()) return;
+
+    // Si Goku está cargando ki, ignorar otras acciones excepto soltar la carga (por ejemplo, tecla K)
+    if (p->estaRecargandoKi()) {
+        // Permitir solo la tecla K (para detener la carga)
+        if (e->key() != Qt::Key_K) {
+            return;
+        }
     }
-    
-    // Solo rastrear teclas de dirección y activar timer si es necesario
-    if(e->key() == Qt::Key_D) { 
+
+
+    switch (e->key()) {
+    // --- Movimiento ---
+    case Qt::Key_D:
         teclaD_presionada = true;
-        qDebug() << "Tecla D presionada - timer activo:" << movimientoTimer->isActive();
-        if (!movimientoTimer->isActive()) {
-            movimientoTimer->start();
-            qDebug() << "Timer iniciado para D";
-        }
-    }
-    if(e->key() == Qt::Key_A) { 
+        if (!movimientoTimer->isActive()) movimientoTimer->start();
+        break;
+    case Qt::Key_A:
         teclaA_presionada = true;
-        qDebug() << "Tecla A presionada - timer activo:" << movimientoTimer->isActive();
-        if (!movimientoTimer->isActive()) {
-            movimientoTimer->start();
-            qDebug() << "Timer iniciado para A";
-        }
-    }
-    if(e->key() == Qt::Key_W) { 
+        if (!movimientoTimer->isActive()) movimientoTimer->start();
+        break;
+    case Qt::Key_W:
         teclaW_presionada = true;
-        if (!movimientoTimer->isActive()) {
-            movimientoTimer->start();
-        }
-    }
-    if(e->key() == Qt::Key_S) { 
+        if (!movimientoTimer->isActive()) movimientoTimer->start();
+        break;
+    case Qt::Key_S:
         teclaS_presionada = true;
-        if (!movimientoTimer->isActive()) {
-            movimientoTimer->start();
+        if (!movimientoTimer->isActive()) movimientoTimer->start();
+        break;
+
+    // --- Ataques cuerpo a cuerpo ---
+    case Qt::Key_X:
+        p->golpear();
+        break;
+    case Qt::Key_C:
+        p->patear();
+        break;
+
+    // --- Salto direccional ---
+    case Qt::Key_Space:
+        if (!p->estaSaltando() && p->isVisible() && !p->estaEnAnimacionEntrada() && !p->estaRecargandoKi() && !p->estaCargandoKamehameha()) {
+            saltoDireccional();
         }
-    }
-    
-    // Salto direccional - no permitir si es invisible, durante animación de entrada, recargando ki o cargando Kamehameha
-    if(e->key() == Qt::Key_Space && !p->estaSaltando() && p->isVisible() && !p->estaEnAnimacionEntrada() && !p->estaRecargandoKi() && !p->estaCargandoKamehameha()){ 
-        saltoDireccional();
-        qDebug() << "Salto direccional iniciado";
-    }
-    if(e->key() == Qt::Key_H){ 
-        // Alternar visualización de todos los hitboxes con tecla H
+        break;
+
+    // --- Visualización y debug ---
+    case Qt::Key_H:
+        // Alternar hitboxes
         if (p->estaHitboxVisible()) {
             p->ocultarHitbox();
-            // También ocultar hitboxes de Kamehameha y BlastB
             Kamehameha::alternarVisualizacionHitbox();
             BlastB::alternarVisualizacionHitbox();
-            qDebug() << "Todos los hitboxes ocultos";
         } else {
             p->mostrarHitbox();
-            // También mostrar hitboxes de Kamehameha y BlastB
             Kamehameha::alternarVisualizacionHitbox();
             BlastB::alternarVisualizacionHitbox();
-            qDebug() << "Todos los hitboxes visibles";
         }
-        // Alternar visualización de todos los hitboxes con tecla H
         if (pic->estaHitboxVisible()) {
             pic->ocultarHitbox();
-            // También ocultar hitboxes de Kamehameha y BlastB
             Rayo::alternarVisualizacionHitbox();
-            qDebug() << "Todos los hitboxes ocultos";
         } else {
             pic->mostrarHitbox();
-            // También mostrar hitboxes de Kamehameha y BlastB
             Rayo::alternarVisualizacionHitbox();
-            qDebug() << "Todos los hitboxes visibles";
         }
-    }
-    if(e->key() == Qt::Key_G){ 
-        // Alternar visualización de grilla con tecla G
+        break;
+    case Qt::Key_G:
         alternarGrillaDebug();
-    }
-    if(e->key() == Qt::Key_B){ 
-        // Cambiar al siguiente fondo con tecla B
+        break;
+    case Qt::Key_B:
         cambiarFondo();
-    }
-    if(e->key() == Qt::Key_F11){ 
-        // Alternar pantalla completa con F11
-        if (isFullScreen()) {
-            showNormal();
-            qDebug() << "Saliendo de pantalla completa";
-        } else {
-            showFullScreen();
-            qDebug() << "Entrando en pantalla completa";
-        }
-    }
-    if(e->key() == Qt::Key_K){ 
-        // Iniciar recarga de ki al presionar K (solo si no está ya recargando)
+        break;
+
+    // --- Pantalla completa ---
+    case Qt::Key_F11:
+        if (isFullScreen()) showNormal();
+        else showFullScreen();
+        break;
+
+    // --- Ki y poderes ---
+    case Qt::Key_K:
         if (!teclaK_presionada && !p->estaRecargandoKi()) {
             teclaK_presionada = true;
             p->iniciarRecargaKi();
-            qDebug() << "Recarga de ki iniciada (mantener K presionada)";
         }
-    }
-    if(e->key() == Qt::Key_J){ 
-        // Iniciar carga de Kamehameha al presionar J (solo si no está ya cargando)
+        break;
+    case Qt::Key_J:
         if (!teclaJ_presionada && !p->estaCargandoKamehameha()) {
             teclaJ_presionada = true;
             p->iniciarCargaKamehameha();
-            qDebug() << "Carga de Kamehameha iniciada (mantener J presionada)";
         }
-    }
-    if(e->key() == Qt::Key_L){ 
-        // Iniciar animación de ráfaga al presionar L (solo si no está ya en ráfaga)
+        break;
+    case Qt::Key_L:
         if (!teclaL_presionada && !p->estaEnAnimacionRafaga()) {
             teclaL_presionada = true;
             p->iniciarAnimacionRafaga();
-            qDebug() << "Animación de ráfaga iniciada (mantener L presionada)";
         }
-    }
+        break;
 
-    // tecla para pruebitas
-    if(e->key() == Qt::Key_Z){
-        if (!piccoloJ_presionada && !p->estaCargandoKamehameha()){
+    case Qt::Key_T:
+        p->tp();
+        break;
+
+    // --- Pruebas ---
+    case Qt::Key_Z:
+        if (!piccoloJ_presionada && !p->estaCargandoKamehameha()) {
             piccoloJ_presionada = true;
         }
+        break;
     }
 }
-
 void game::keyReleaseEvent(QKeyEvent *e)
 {
-    // Ignorar auto-repeat del teclado
-    if (e->isAutoRepeat()) {
-        return;
-    }
-    
-    // Rastrear cuando se sueltan las teclas y detener timer si es necesario
-    if(e->key() == Qt::Key_D) { 
+    if (e->isAutoRepeat()) return;
+
+    switch (e->key()) {
+    // --- Movimiento ---
+    case Qt::Key_D:
         teclaD_presionada = false;
-    }
-    if(e->key() == Qt::Key_A) {
-
+        break;
+    case Qt::Key_A:
         teclaA_presionada = false;
-    }
-    if(e->key() == Qt::Key_W) {
-
+        break;
+    case Qt::Key_W:
         teclaW_presionada = false;
-    }
-    if(e->key() == Qt::Key_S) { 
+        break;
+    case Qt::Key_S:
         teclaS_presionada = false;
-    }
-    if(e->key() == Qt::Key_K) { 
-        // Detener recarga de ki al soltar K
+        break;
+
+    // --- Ki y poderes ---
+    case Qt::Key_K:
         if (teclaK_presionada) {
             teclaK_presionada = false;
             p->detenerRecargaKi();
-            qDebug() << "Tecla K liberada - deteniendo recarga de ki";
         }
-    }
-    if(e->key() == Qt::Key_J) { 
-        // Detener carga de Kamehameha al soltar J
+        break;
+    case Qt::Key_J:
         if (teclaJ_presionada) {
             teclaJ_presionada = false;
             p->detenerCargaKamehameha();
-            qDebug() << "Tecla J liberada - deteniendo carga de Kamehameha";
         }
-    }
-    if(e->key() == Qt::Key_L) { 
-        // Detener animación de ráfaga al soltar L
+        break;
+    case Qt::Key_L:
         if (teclaL_presionada) {
             teclaL_presionada = false;
             p->detenerAnimacionRafaga();
-            qDebug() << "Tecla L liberada - deteniendo animación de ráfaga";
         }
-    }
-    // tecla para pruebitas
-    if(e->key() == Qt::Key_Z)
-    {
+        break;
+
+    // --- Pruebas ---
+    case Qt::Key_Z:
         piccoloJ_presionada = false;
         pic->detenerCargaRayo();
         pic->iniciarAnimacionIdle();
+        break;
     }
-    
-    // Si no hay teclas presionadas, detener timer e iniciar idle
+
+    // --- Detener movimiento e iniciar idle si no hay teclas de movimiento presionadas ---
     if (!teclaD_presionada && !teclaA_presionada && !teclaW_presionada && !teclaS_presionada) {
-        qDebug() << "Deteniendo timer - no hay teclas presionadas";
         movimientoTimer->stop();
         if (!p->estaSaltando()) {
-            qDebug() << "Iniciando animación idle";
             p->iniciarAnimacionIdle();
         }
     }
 }
-
 void game::saltoDireccional()
 {
     // Configurar velocidad horizontal inicial del salto según las teclas presionadas
@@ -390,12 +368,6 @@ void game::saltoDireccional()
     } else {
         qDebug() << "Salto vertical iniciado - vel:" << velocidadSaltoVertical;
     }
-}
-
-void game::verificarMovimientoContinuo()
-{
-    // Este método ya no es necesario, el timer se encarga del movimiento continuo
-    qDebug() << "Personaje aterrizó - el timer se encargará del movimiento continuo";
 }
 
 void game::actualizarMovimiento()

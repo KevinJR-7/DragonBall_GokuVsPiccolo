@@ -216,10 +216,7 @@ void Personaje::morir()
     
     // Restaurar hitbox normal si estaba saltando
     restaurarHitboxNormal();
-    
-    // Aquí podrías cambiar a un sprite de muerte
-    // cambiarSprite("muerto");
-    
+
     emit personajeMuerto(this);
     emit vidaCambiada(vida, vidaMaxima);
 }
@@ -756,6 +753,8 @@ void Personaje::moverIzquierda(){}
 void Personaje::moverArriba(){}
 void Personaje::moverAbajo(){}
 void Personaje::atacar(){}
+
+
 void Personaje::recibirDanio(int danio){
     vida -= danio;
     if (vida < 0) vida = 0;
