@@ -13,6 +13,8 @@ class Piccolo : public Personaje
 public:
     Piccolo(QObject *parent = nullptr);
 
+    bool getFase() const { return fase;}
+
     // Override para funciones de movimiento
     void moverDerecha() override;
     void moverIzquierda() override;
@@ -44,6 +46,8 @@ private slots:
     void actualizarAnimacionRayo(); // Para la animación de Rayo
 
 private:
+    bool fase;
+
     QString ultimaDireccionHorizontal; // "adelante", "atras", o "" si no hay dirección horizontal
 
     // Variable para girar en x
