@@ -124,5 +124,6 @@
         <file>Sprites/piccolo/hameha1.png</file>
         <file>Sprites/piccolo/hameha2.png</file>
         <file>Sprites/piccolo/hameha3.png</file>
+        <file>Sprites/piccolo/herido.png</file>
     </qresource>
 </RCC>
