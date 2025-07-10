@@ -212,6 +212,7 @@ void Goku::moverAbajo()
 
 void Goku::recibirDanio(int danio)
 {
+    moviendose = true;
     if (animacionKiActiva) {
         detenerRecargaKi();
     }
@@ -227,7 +228,7 @@ void Goku::recibirDanio(int danio)
 
         // Después de 200 ms, vuelve a la animación idle
         QTimer::singleShot(1000, this, [this]() {
-            iniciarAnimacionIdle();
+            moviendose = false;
         });
 
         if (vida <= 0) {
@@ -275,6 +276,7 @@ void Goku::iniciarAnimacionEntrada()
 
 void Goku::actualizarAnimacionEntrada()
 {
+    moviendose = true;
     if (animacionEntradaActiva) {
         frameEntradaActual++;
         
@@ -295,7 +297,7 @@ void Goku::actualizarAnimacionEntrada()
             animacionEntradaActiva = false;
             
             // Cambiar a la animación idle normal
-            iniciarAnimacionIdle();
+            moviendose = false;
         }
     }
 }
@@ -787,9 +789,10 @@ void Goku::golpear() {
 }
 
 void Goku::animarGolpe() {
+    moviendose = true;
     if (frameGolpe > 3) {
         timerGolpe->stop();
-        iniciarAnimacionIdle();
+        moviendose = false;
         return;
     }
     cambiarSprite(QString("golpe%1").arg(frameGolpe));
@@ -806,9 +809,10 @@ void Goku::patear() {
 }
 
 void Goku::animarPatada() {
+    moviendose = true;
     if (framePatada > 3) {
         timerPatada->stop();
-        iniciarAnimacionIdle();
+        moviendose = false;
         return;
     }
     cambiarSprite(QString("patada%1").arg(framePatada));
