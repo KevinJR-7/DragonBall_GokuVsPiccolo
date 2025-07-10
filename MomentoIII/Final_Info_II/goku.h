@@ -68,6 +68,11 @@ public:
     void animarGolpe();
     void animarPatada();
 
+    //teleport
+    void tp();
+
+
+
 protected:
 
 private slots:
@@ -127,6 +132,12 @@ private:
     int framePatada = 0;
     QTimer *timerGolpe = nullptr;
     QTimer *timerPatada = nullptr;
+
+    // Timers Teleport
+    void animarTp();
+    int frameTeleport = 1;
+    QTimer *timerTeleport = nullptr;
+    bool animacionTeleportActiva = false;
 
 
 signals:

@@ -812,3 +812,26 @@ void Goku::animarPatada() {
     cambiarSprite(QString("patada%1").arg(framePatada));
     framePatada++;
 }
+
+
+void Goku::tp() {
+    if (animacionTeleportActiva) return; // No permitir si ya está en teleport
+    animacionTeleportActiva = true;
+    frameTeleport = 1;
+    animarTp();
+    if (!timerTeleport) timerTeleport = new QTimer(this);
+    connect(timerTeleport, &QTimer::timeout, this, &Goku::animarTp, Qt::UniqueConnection);
+    timerTeleport->start(200); // Cambia cada 50 ms (ajusta si quieres más rápido/lento)
+}
+
+void Goku::animarTp() {
+    moviendose = true;
+    if (frameTeleport > 7) {
+        timerTeleport->stop();
+        animacionTeleportActiva = false;
+        moviendose = false;
+        return;
+    }
+    cambiarSprite(QString("teleport%1").arg(frameTeleport));
+    frameTeleport++;
+}

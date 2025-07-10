@@ -262,6 +262,10 @@ void game::keyPressEvent(QKeyEvent *e)
         }
         break;
 
+    case Qt::Key_T:
+        p->tp();
+        break;
+
     // --- Pruebas ---
     case Qt::Key_Z:
         if (!piccoloJ_presionada && !p->estaCargandoKamehameha()) {
