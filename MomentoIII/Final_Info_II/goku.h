@@ -71,7 +71,6 @@ private slots:
     void recargarKi(); // Para incrementar el ki real
     void actualizarAnimacionKamehameha(); // Para la animación de Kamehameha
     void actualizarAnimacionRafaga(); // Para la animación de ráfaga
-    void actualizarAnimacionTeleport();
 
 private:
     QString ultimaDireccionHorizontal; // "adelante", "atras", o "" si no hay dirección horizontal
