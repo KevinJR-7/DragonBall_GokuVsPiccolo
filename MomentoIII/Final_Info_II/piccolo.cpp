@@ -9,6 +9,8 @@
 Piccolo::Piccolo(QObject *parent)
     : Personaje(parent)
 {
+    fase = false;
+
     transform.scale(-1, 1); // Refleja sobre el eje X
     frameMaximo = 4; // Por defecto 4 frames de animación idle
 
@@ -296,7 +298,9 @@ void Piccolo::actualizarAnimacion()
             frameActual = 1;
         }
 
-        QString rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/base" + QString::number(frameActual) + ".png";
+        QString rutaSprite;
+        if(!fase){ rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/base" + QString::number(frameActual) + ".png"; }
+        else{ rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/base_giga" + QString::number(frameActual) + ".png";; }
         QPixmap nuevoSprite(rutaSprite);
 
         if (!nuevoSprite.isNull()) {
@@ -309,7 +313,8 @@ void Piccolo::actualizarAnimacion()
                     Qt::SmoothTransformation
                     );
             }
-            nuevoSprite = nuevoSprite.transformed(transform);
+            if(fase == false){ nuevoSprite = nuevoSprite.transformed(transform); }
+
             setPixmap(nuevoSprite);
         } else {
             qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
@@ -544,9 +549,35 @@ void Piccolo::actualizarAnimacionGravityBlast()
     update();
 }
 
+void Piccolo::alternarFase()
+{
+    if (!fase) { // Si está en fase 1 (fase == false), cambia a fase 2
+        fase = true; // Establecer el booleano 'fase' a true
+        qDebug() << "Piccolo ha cambiado a Fase 2!";
+        // Cambiar el sprite a la nueva fase. Asume que tienes un sprite llamado "fase2_base1.png"
+        // Este sprite debe existir en la carpeta ":/Piccolo/Sprites/piccolo/"
+        cambiarSprite("base_giga1");
+        setPos(pos().x()-470, pos().y() - 510);
+        // Opcionalmente, puedes ajustar otras propiedades como velocidad, vida, etc.
+        // establecerVelocidad(15);
+        // establecerVida(150);
+    } else { // Si está en fase 2 (fase == true), cambia a fase 1
+        fase = false; // Establecer el booleano 'fase' a false
+        qDebug() << "Piccolo ha vuelto a Fase 1!";
+        // Cambiar el sprite de vuelta a la fase 1. Asume que tu sprite base es "base1.png"
+        // Este sprite debe existir en la carpeta ":/Piccolo/Sprites/piccolo/"
+        cambiarSprite("base1");
+        setPos(pos().x()+470, pos().y() + 510);
+        // Opcionalmente, puedes revertir otras propiedades como velocidad, vida, etc.
+        // establecerVelocidad(10);
+        // establecerVida(100);
+    }
+}
+
 void Piccolo::cambiarSprite(const QString& direccion)
 {
-    QString rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/" + direccion + ".png";
+    QString rutaSprite;
+    if(!fase){ rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/" + direccion + ".png"; }
     QPixmap nuevoSprite(rutaSprite);
 
     if (!nuevoSprite.isNull()) {
@@ -559,7 +590,7 @@ void Piccolo::cambiarSprite(const QString& direccion)
                 Qt::SmoothTransformation
                 );
         }
-        nuevoSprite = nuevoSprite.transformed(transform);
+        if(fase == false){ nuevoSprite = nuevoSprite.transformed(transform); }
         setPixmap(nuevoSprite);
     } else {
         qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
@@ -571,7 +602,8 @@ void Piccolo::cambiarSpriteCentrado(const QString& direccion)
     // Guardar la posición central actual
     QPointF centroActual = pos() + QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
 
-    QString rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/" + direccion + ".png";
+    QString rutaSprite;
+    if(!fase){ rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/" + direccion + ".png"; }
     QPixmap nuevoSprite(rutaSprite);
 
     if (!nuevoSprite.isNull()) {
@@ -586,7 +618,8 @@ void Piccolo::cambiarSpriteCentrado(const QString& direccion)
         }
 
         // Cambiar el sprite
-        nuevoSprite = nuevoSprite.transformed(transform);
+        if(fase == false){ nuevoSprite = nuevoSprite.transformed(transform); }
+
         setPixmap(nuevoSprite);
 
         // Calcular nueva posición para mantener el centro

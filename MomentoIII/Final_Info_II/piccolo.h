@@ -15,6 +15,8 @@ public:
     Piccolo(QObject *parent = nullptr);
 
     bool getFase() const { return fase;}
+    void setFase(bool newFase) { fase = newFase;}
+    void alternarFase();
 
     // Override para funciones de movimiento
     void moverDerecha() override;
