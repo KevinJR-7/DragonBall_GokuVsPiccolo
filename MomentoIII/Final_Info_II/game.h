@@ -79,6 +79,7 @@ private:
     bool piccoloS_presionada = false;
     bool piccoloK_presionada = false; // Para recarga de ki
     bool piccoloJ_presionada = false; // Para Kamehameha
+    bool piccoloL_presionada = false; // Para Blast
     
     // Variables para grilla de debug
     QList<QGraphicsLineItem*> lineasGrilla;

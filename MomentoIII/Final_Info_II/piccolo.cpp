@@ -4,6 +4,7 @@
 #include <QDebug>
 
 #include "piccolo.h"
+#include "goku.h"
 
 Piccolo::Piccolo(QObject *parent)
     : Personaje(parent)
@@ -27,6 +28,16 @@ Piccolo::Piccolo(QObject *parent)
     timerRayo = new QTimer(this);
     timerRayo->setInterval(150); // 120ms por frame de Rayo
     connect(timerRayo, &QTimer::timeout, this, &Piccolo::actualizarAnimacionRayo);
+
+    // Inicializar animación de Gravity Blast
+    animacionGravityBlastActiva = false;
+    frameGravityBlastActual = 1;
+    timerGravityBlast = new QTimer(this);
+    timerGravityBlast->setInterval(200); // Frecuencia de disparo (ej: cada 200ms)
+    connect(timerGravityBlast, &QTimer::timeout, this, &Piccolo::actualizarAnimacionGravityBlast);
+
+    // Inicializar objetivo actual
+    objetivoActual = nullptr;
 
     // Configurar propiedades específicas de Piccolo
     establecerNombre("Piccolo");
@@ -55,7 +66,7 @@ Piccolo::Piccolo(QObject *parent)
 void Piccolo::moverDerecha()
 {
     // No permitir movimiento si es invisible, durante animación de entrada o recargando ki
-    if (!isVisible() || animacionEntradaActiva) {
+    if (!isVisible() || animacionGravityBlastActiva || animacionEntradaActiva) {
         return;
     }
 
@@ -85,7 +96,7 @@ void Piccolo::moverDerecha()
 void Piccolo::moverIzquierda()
 {
     // No permitir movimiento si es invisible, durante animación de entrada o recargando ki
-    if (!isVisible() || animacionEntradaActiva ) {
+    if (!isVisible() || animacionGravityBlastActiva || animacionEntradaActiva ) {
         return;
     }
 
@@ -115,7 +126,7 @@ void Piccolo::moverIzquierda()
 void Piccolo::moverArriba()
 {
     // No permitir movimiento si es invisible, durante animación de entrada o recargando ki
-    if (!isVisible() || animacionEntradaActiva) {
+    if (!isVisible() || animacionGravityBlastActiva || animacionEntradaActiva) {
         return;
     }
 
@@ -144,7 +155,7 @@ void Piccolo::moverArriba()
 void Piccolo::moverAbajo()
 {
     // No permitir movimiento si es invisible, durante animación de entrada o recargando ki
-    if (!isVisible() || animacionEntradaActiva) {
+    if (!isVisible() || animacionGravityBlastActiva || animacionEntradaActiva) {
         return;
     }
 
@@ -309,7 +320,7 @@ void Piccolo::actualizarAnimacion()
 void Piccolo::iniciarCargaRayo()
 {
     // Verificar que no esté ya cargando Rayo
-    if (animacionRayoActiva) {
+    if (animacionRayoActiva || animacionGravityBlastActiva) {
         qDebug() << "No se puede cargar Rayo - ya hay otra animación activa";
         return;
     }
@@ -432,6 +443,105 @@ void Piccolo::lanzarRayo()
     } else {
         qDebug() << "Error: No se pudo agregar Rayo a la escena (scene es null)";
     }
+}
+
+void Piccolo::lanzarGravityBlast(Goku* gokuTarget)
+{
+    if (!scene()) {
+        qDebug() << "No hay escena de juego para lanzar GravityBlast.";
+        return;
+    }
+
+    Goku* targetToUse = gokuTarget ? gokuTarget : objetivoActual;
+
+    if (!targetToUse) {
+        qDebug() << "No hay objetivo Goku para lanzar GravityBlast.";
+        return;
+    }
+
+    GravityBlast* blast = new GravityBlast(this);
+    blast->establecerEscena(scene());
+    blast->establecerObjetivo(targetToUse);
+
+    QPointF posicionInicial = pos() + QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
+
+    QPointF direccionInicial(1.0, 0.0);
+    if (ultimaDireccionHorizontal == "atras") {
+        direccionInicial.setX(-1.0);
+    } else if (ultimaDireccionHorizontal == "adelante") {
+        direccionInicial.setX(1.0);
+    } else {
+        if (transform.m11() < 0) {
+            direccionInicial.setX(-1.0);
+        } else {
+            direccionInicial.setX(1.0);
+        }
+    }
+
+    blast->iniciar(posicionInicial, direccionInicial);
+    scene()->addItem(blast);
+
+    qDebug() << "Piccolo lanzó GravityBlast hacia Goku.";
+}
+
+void Piccolo::establecerObjetivo(Goku* objetivo)
+{
+    objetivoActual = objetivo;
+    qDebug() << "Piccolo: Objetivo establecido a Goku.";
+}
+
+void Piccolo::iniciarCargaGravityBlast()
+{
+    if (animacionGravityBlastActiva) return;
+    if (animacionRayoActiva || estaEnAnimacionEntrada()) {
+        qDebug() << "Piccolo: No se puede iniciar Gravity Blast. Otra acción en curso.";
+        return;
+    }
+
+    animacionGravityBlastActiva = true;
+    frameGravityBlastActual = 1;
+    timerGravityBlast->start();
+    qDebug() << "Piccolo inició carga de Gravity Blast.";
+
+    if (objetivoActual) {
+        lanzarGravityBlast(objetivoActual);
+    } else {
+        qDebug() << "Piccolo: No hay objetivo para lanzar el primer Gravity Blast.";
+    }
+}
+
+void Piccolo::detenerCargaGravityBlast()
+{
+    if (!animacionGravityBlastActiva) return;
+
+    animacionGravityBlastActiva = false;
+    timerGravityBlast->stop();
+    qDebug() << "Piccolo detuvo carga de Gravity Blast.";
+
+    iniciarAnimacionIdle();
+}
+
+void Piccolo::actualizarAnimacionGravityBlast()
+{
+    if (!animacionGravityBlastActiva) return;
+
+    frameGravityBlastActual++;
+
+    if (frameGravityBlastActual > 4) {
+        frameGravityBlastActual = 1;
+    }
+
+    // Puedes cambiar el sprite de Piccolo aquí si tienes una animación específica
+    // cambiarSprite(QString("gravity_blast_%1").arg(frameGravityBlastActual));
+
+    if (frameGravityBlastActual % 2 == 0) { // Ejemplo: Lanzar cada 2 frames
+        if (objetivoActual) {
+            lanzarGravityBlast(objetivoActual);
+        } else {
+            qDebug() << "Piccolo: No hay objetivo para lanzar Gravity Blast continuo.";
+        }
+    }
+    update();
 }
 
 void Piccolo::cambiarSprite(const QString& direccion)

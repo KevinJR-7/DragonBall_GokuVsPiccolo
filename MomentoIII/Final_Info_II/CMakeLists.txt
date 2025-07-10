@@ -26,6 +26,7 @@ add_executable(Final_Info_II
   piccolo.h piccolo.cpp
   rayo.h rayo.cpp
   mainmenu.h mainmenu.cpp
+  gravityblast.h gravityblast.cpp
 )
 target_link_libraries(Final_Info_II
     Qt${QT_VERSION_MAJOR}::Core
