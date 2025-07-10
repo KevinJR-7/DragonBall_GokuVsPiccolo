@@ -425,12 +425,14 @@ void game::actualizarMovimiento()
 }
 
 
-void game::actualizarBarraVida(int vidaActual, int /*vidaMaxima*/) {
+void game::actualizarBarraVida(int vidaActual, int vidaMaxima) {
+    vidaActual = ((vidaActual * 4) + vidaMaxima -1) / vidaMaxima;
     barraVida->setPixmap(QPixmap(QString(":/Fondos/Sprites/gui_scenes/vida%1.png").arg(vidaActual)));
 }
 
-void game::actualizarBarraVida2(int vidaActual, int /*vidaMaxima*/) {
-    barraVida->setPixmap((QPixmap(QString(":/Fondos/Sprites/gui_scenes/vida%1.png").arg(vidaActual))).transformed(transform));
+void game::actualizarBarraVida2(int vidaActual, int vidaMaxima) {
+    vidaActual = ((vidaActual * 4) + vidaMaxima -1) / vidaMaxima;
+    barraVida2->setPixmap((QPixmap(QString(":/Fondos/Sprites/gui_scenes/vida%1.png").arg(vidaActual))).transformed(transform));
 }
 
 void game::actualizarBarraKi(int kiActual, int /*kiMaximo*/) {

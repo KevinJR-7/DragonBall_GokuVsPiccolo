@@ -1,4 +1,5 @@
 #include "kamehameha.h"
+#include "piccolo.h"
 #include <QGraphicsScene>
 #include <QApplication>
 #include <QGuiApplication>
@@ -21,7 +22,7 @@ Kamehameha::Kamehameha(QObject *parent)
     , altoTotal(50)
     , usarHameha(false)
     , contadorAnimacion(0)
-    , daño(50)
+    , daño(20)
     , hitboxActivo(false)
 {
     timer = new QTimer(this);
@@ -455,16 +456,15 @@ void Kamehameha::procesarColision(QGraphicsItem* item)
 {
     qDebug() << "¡Kamehameha colisionó con un objeto!";
     
-    // Aquí puedes agregar lógica específica para diferentes tipos de objetos
-    // Por ejemplo, si el item es un enemigo, aplicar daño
-    
-    // Verificar si el item es un personaje (implementar según tu jerarquía de clases)
-    /*
-    if (Personaje* personaje = dynamic_cast<Personaje*>(item)) {
-        personaje->recibirDaño(daño);
-        qDebug() << "Kamehameha causó" << daño << "puntos de daño";
+    // Si el item es Piccolo, aplicar daño
+    if (Piccolo* piccolo = dynamic_cast<Piccolo*>(item)) {
+        piccolo->recibirDanio(daño); // Usa el valor de daño del kame
+        qDebug() << "Kame causó" << daño << "puntos de daño a Piccolo";
+        destruir();
+        return;
     }
-    */
+
+    // Puedes agregar más lógica para otros tipos de objetos aquí
     
     // Efectos visuales, sonidos, etc.
     qDebug() << "Procesando colisión con objeto en posición:" << item->pos();

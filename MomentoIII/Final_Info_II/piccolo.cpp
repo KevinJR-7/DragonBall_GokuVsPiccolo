@@ -31,7 +31,7 @@ Piccolo::Piccolo(QObject *parent)
     // Configurar propiedades específicas de Piccolo
     establecerNombre("Piccolo");
     establecerCarpetaSprites("piccolo");
-    establecerVida(150); // Piccolo tiene más vida
+    establecerVida(100); // Piccolo tiene más vida
     establecerVelocidad(10); // Piccolo es rápido
 
     // Configurar física del salto específica para Piccolo
