@@ -193,9 +193,15 @@ void Piccolo::recibirDanio(int danio)
     if (estaVivo()) {
         vida -= danio;
         if (vida < 0) vida = 0;
-
-        qDebug() << nombre << " recibió" << danio << "de daño. Vida restante:" << vida;
         emit vidaCambiada(vida, vidaMaxima);
+
+        // Cambia al sprite de daño
+        cambiarSprite("herido");
+
+        // Después de 200 ms, vuelve a la animación idle
+        QTimer::singleShot(200, this, [this]() {
+            iniciarAnimacionIdle();
+        });
 
         if (vida <= 0) {
             morir();

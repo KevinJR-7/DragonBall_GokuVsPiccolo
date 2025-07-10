@@ -433,6 +433,12 @@ void game::actualizarBarraVida(int vidaActual, int vidaMaxima) {
 void game::actualizarBarraVida2(int vidaActual, int vidaMaxima) {
     vidaActual = ((vidaActual * 4) + vidaMaxima -1) / vidaMaxima;
     barraVida2->setPixmap((QPixmap(QString(":/Fondos/Sprites/gui_scenes/vida%1.png").arg(vidaActual))).transformed(transform));
+    piccoloW_presionada = false;
+    piccoloA_presionada = false;
+    piccoloS_presionada = false;
+    piccoloD_presionada = false;
+    piccoloJ_presionada = false;
+    cntPiccolo -= 3;
 }
 
 void game::actualizarBarraKi(int kiActual, int /*kiMaximo*/) {
@@ -1162,6 +1168,7 @@ void game::piccoloActualizarMovimiento()
         //piccoloJ_presionada = false;
     }
 }
+
 
 void game::agregarGrillaDebug()
 {

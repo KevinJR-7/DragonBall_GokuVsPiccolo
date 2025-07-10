@@ -64,8 +64,6 @@
         <file>Sprites/goku/patada2.png</file>
         <file>Sprites/goku/patada3.png</file>
         <file>Sprites/goku/herido.png</file>
-        
-
     </qresource>
     <qresource prefix="/Fondos">
         <file>Sprites/gui_scenes/torneo.png</file>
@@ -114,5 +112,6 @@
         <file>Sprites/piccolo/hameha1.png</file>
         <file>Sprites/piccolo/hameha2.png</file>
         <file>Sprites/piccolo/hameha3.png</file>
+        <file>Sprites/piccolo/herido.png</file>
     </qresource>
 </RCC>

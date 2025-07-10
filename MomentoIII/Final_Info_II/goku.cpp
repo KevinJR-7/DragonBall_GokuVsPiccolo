@@ -4,6 +4,7 @@
 #include <QDebug>
 
 #include "goku.h"
+#include "game.h"
 
 Goku::Goku(QObject *parent)
     : Personaje(parent)
@@ -231,6 +232,7 @@ void Goku::recibirDanio(int danio)
 
         // Cambia al sprite de daño
         cambiarSprite("herido");
+
 
         // Después de 200 ms, vuelve a la animación idle
         QTimer::singleShot(200, this, [this]() {
