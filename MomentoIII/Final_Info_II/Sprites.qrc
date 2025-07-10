@@ -83,6 +83,8 @@
         <file>Sprites/gui_scenes/kibar3.png</file>
         <file>Sprites/gui_scenes/kibar4.png</file>
         <file>Sprites/gui_scenes/kibar5.png</file>
+        <file>Sprites/gui_scenes/boton_start.png</file>
+        <file>Sprites/gui_scenes/menu_bg.png</file>
     </qresource>
     <qresource prefix="/Piccolo">
         <file>Sprites/piccolo/0.png</file>

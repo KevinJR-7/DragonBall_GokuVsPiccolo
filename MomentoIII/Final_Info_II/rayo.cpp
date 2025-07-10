@@ -401,14 +401,10 @@ void Rayo::verificarColisiones()
     for (QGraphicsItem* item : itemsColisionando) {
         // No colisionar consigo mismo
         if (item == this) continue;
-
-        // No golpear objetos que ya fueron golpeados
-        if (objetosGolpeados.contains(item)) continue;
-
         // Verificar si realmente colisiona
         if (colisionaCon(item)) {
             procesarColision(item);
-            objetosGolpeados.append(item);
+
         }
     }
 }

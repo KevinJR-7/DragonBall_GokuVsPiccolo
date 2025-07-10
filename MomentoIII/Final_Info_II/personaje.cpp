@@ -118,9 +118,12 @@ void Personaje::saltar()
 
 void Personaje::cambiarSprite(const QString& direccion)
 {
+    // 1. Guardar el centro actual del sprite
+    QPointF centroActual = pos() + QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
+
     QString rutaSprite = ":/Goku/Sprites/" + carpetaSprites + "/" + direccion + ".png";
     QPixmap nuevoSprite(rutaSprite);
-    
+
     if (!nuevoSprite.isNull()) {
         // Escalar el sprite si es necesario
         if (escalaSprite != 1.0) {
@@ -129,9 +132,13 @@ void Personaje::cambiarSprite(const QString& direccion)
                 nuevoSprite.height() * escalaSprite,
                 Qt::KeepAspectRatio,
                 Qt::SmoothTransformation
-            );
+                );
         }
         setPixmap(nuevoSprite);
+
+        // 2. Recalcular la posición para mantener el centro
+        QPointF nuevaPos = centroActual - QPointF(nuevoSprite.width() / 2.0, nuevoSprite.height() / 2.0);
+        QGraphicsPixmapItem::setPos(nuevaPos);
     } else {
         qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
     }

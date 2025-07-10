@@ -60,6 +60,9 @@ public:
     //Metodos para morir
     void morir() override;
 
+    // Animación de teletransportación
+    void iniciarAnimacionTeleport();
+
 protected:
 
 private slots:

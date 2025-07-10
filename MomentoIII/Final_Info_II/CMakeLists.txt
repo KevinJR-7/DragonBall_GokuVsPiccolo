@@ -25,6 +25,7 @@ add_executable(Final_Info_II
   ground.h ground.cpp
   piccolo.h piccolo.cpp
   rayo.h rayo.cpp
+  mainmenu.h mainmenu.cpp
 )
 target_link_libraries(Final_Info_II
     Qt${QT_VERSION_MAJOR}::Core
