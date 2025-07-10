@@ -60,6 +60,9 @@ private:
     unsigned int cntPiccolo;
     // Variable para girar en x
     QTransform transform;
+
+    qreal POSICION_ORIGINAL_X = 700;
+    qreal POSICION_ORIGINAL_Y = 260;
     
     // Variables para rastrear teclas presionadas
     bool teclaD_presionada = false;
