@@ -1,3 +1,5 @@
+#include <QTimer>
+
 #include <QBrush>
 #include <QPixmap>
 #include <QPainter>
@@ -10,7 +12,7 @@ Goku::Goku(QObject *parent)
 {
     // Inicializar dirección horizontal
     ultimaDireccionHorizontal = "";
-    
+
     // Inicializar animación de entrada
     animacionEntradaActiva = false;
     frameEntradaActual = 1;
@@ -233,7 +235,7 @@ void Goku::recibirDanio(int danio)
         cambiarSprite("herido");
 
         // Después de 200 ms, vuelve a la animación idle
-        QTimer::singleShot(200, this, [this]() {
+        QTimer::singleShot(1000, this, [this]() {
             iniciarAnimacionIdle();
         });
 
@@ -352,7 +354,7 @@ void Goku::iniciarRecargaKi()
     // Calcular nueva posición para que ki1 tenga el mismo centro que "quieto"
     QPointF nuevaPosicion = centroActual - QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
     setPos(nuevaPosicion.x(), nuevaPosicion.y());
-    
+
     qDebug() << "Sprite ki1 centrado en posición:" << nuevaPosicion;
     
     // Iniciar los timers
@@ -371,10 +373,7 @@ void Goku::detenerRecargaKi()
         
         // Volver exactamente a la posición original
         setPos(posicionOriginalKi.x(), posicionOriginalKi.y());
-        
-        // Cambiar al sprite quieto en la posición original
-        cambiarSprite("quieto");
-        qDebug() << "Vuelto a posición original exacta:" << posicionOriginalKi;
+
         
         // Configurar estado idle
         moviendose = false;
@@ -442,20 +441,11 @@ void Goku::actualizarAnimacionKi()
             }
             break;
     }
-    
-    // Mostrar el sprite calculado SIN cambiar la posición
-    if (!spriteActual.isEmpty()) {
-        QString rutaSprite = ":/Goku/Sprites/goku/" + spriteActual + ".png";
-        QPixmap spriteKi(rutaSprite);
-        
-        if (!spriteKi.isNull()) {
-            // Cambiar SOLO el pixmap, sin afectar la posición
-            setPixmap(spriteKi);
+
+        if (!spriteActual.isEmpty()) {
+            cambiarSprite(spriteActual);
             qDebug() << "Animación Ki - frame:" << spriteActual << "posición mantenida:" << pos();
-        } else {
-            qDebug() << "Error: No se pudo cargar sprite ki" << spriteActual << "desde" << rutaSprite;
         }
-    }
 }
 
 void Goku::establecerKi(int ki, int kiMax) {
@@ -641,7 +631,7 @@ void Goku::iniciarAnimacionRafaga()
     moviendose = true; // Marcar como en movimiento para evitar idle
     
     // Iniciar con el primer frame
-    cambiarSpriteCentrado("bolas1");
+    cambiarSprite("bolas1");
     
     // Iniciar timer
     timerRafaga->start();
@@ -662,10 +652,7 @@ void Goku::detenerAnimacionRafaga()
     
     // Terminar la animación
     animacionRafagaActiva = false;
-    
-    // Volver al sprite quieto
-    cambiarSpriteCentrado("quieto");
-    
+     
     // Configurar estado idle
     moviendose = false;
     frameActual = 1;
@@ -687,7 +674,7 @@ void Goku::actualizarAnimacionRafaga()
     
     // Cambiar sprite
     QString spriteNombre = QString("bolas%1").arg(frameRafagaActual);
-    cambiarSpriteCentrado(spriteNombre);
+    cambiarSprite(spriteNombre);
     
     // Lanzar proyectiles BlastB en frames específicos
     if (frameRafagaActual == 2 || frameRafagaActual == 3 || frameRafagaActual == 4) {
@@ -803,3 +790,6 @@ void Goku::morir()
     // Opcional: emite señal de muerte
     emit personajeMuerto(this);
 }
+
+
+

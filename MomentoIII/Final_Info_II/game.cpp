@@ -256,6 +256,7 @@ void game::keyPressEvent(QKeyEvent *e)
             qDebug() << "Animación de ráfaga iniciada (mantener L presionada)";
         }
     }
+
     // tecla para pruebitas
     if(e->key() == Qt::Key_Z){
         if (!piccoloJ_presionada && !p->estaCargandoKamehameha()){
@@ -280,7 +281,7 @@ void game::keyReleaseEvent(QKeyEvent *e)
         teclaA_presionada = false;
     }
     if(e->key() == Qt::Key_W) {
-        p->recibirDanio(1); // Goku recibe 1 de daño debug
+
         teclaW_presionada = false;
     }
     if(e->key() == Qt::Key_S) { 
