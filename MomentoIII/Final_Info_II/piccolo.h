@@ -6,6 +6,7 @@
 #include <QKeyEvent>
 #include "personaje.h"
 #include "rayo.h"
+#include "gravityblast.h"
 
 class Piccolo : public Personaje
 {
@@ -14,6 +15,8 @@ public:
     Piccolo(QObject *parent = nullptr);
 
     bool getFase() const { return fase;}
+    void setFase(bool newFase) { fase = newFase;}
+    void alternarFase();
 
     // Override para funciones de movimiento
     void moverDerecha() override;
@@ -41,9 +44,19 @@ public:
     void lanzarRayo(); // Nuevo método para lanzar el proyectil
     bool estaCargandoRayo() const { return animacionRayoActiva; }
 
+    // Métodos para GBlast
+    void lanzarGravityBlast(Goku* gokuTarget);
+    void iniciarCargaGravityBlast();
+    void detenerCargaGravityBlast();
+    bool estaCargandoGravityBlast() const { return animacionGravityBlastActiva; }
+
+    // Para que Piccolo sepa a quién atacar con Gravity Blast
+    void establecerObjetivo(Goku* objetivo);
+
 private slots:
     void actualizarAnimacionEntrada();
     void actualizarAnimacionRayo(); // Para la animación de Rayo
+    void actualizarAnimacionGravityBlast(); // Nuevo slot para animación de Gravity Blast
 
 private:
     bool fase;
@@ -68,6 +81,13 @@ private:
     int kiActual;
     int kiMaximo;
     int velocidadRecargaKi; // ki por segundo
+
+    // Variables para animación de Gravity Blast
+    bool animacionGravityBlastActiva;
+    int frameGravityBlastActual;
+    QTimer* timerGravityBlast;
+
+    Goku* objetivoActual; // Puntero al objetivo de Piccolo
 
 signals:
     void kiCambiado(int kiActual, int kiMaximo);

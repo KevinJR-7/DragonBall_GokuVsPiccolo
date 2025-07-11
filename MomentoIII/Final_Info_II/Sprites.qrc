@@ -62,6 +62,7 @@
         <file>Sprites/goku/patada2.png</file>
         <file>Sprites/goku/patada3.png</file>
         <file>Sprites/goku/herido.png</file>
+<<<<<<< HEAD
         <file>Sprites/goku/teleport1.png</file>
         <file>Sprites/goku/teleport2.png</file>
         <file>Sprites/goku/teleport3.png</file>
@@ -143,6 +144,8 @@
 
         
 
+=======
+>>>>>>> 04cbaf59117f1f7dcce40db6da969167df5ca353
     </qresource>
     <qresource prefix="/Fondos">
         <file>Sprites/gui_scenes/torneo.png</file>
@@ -194,5 +197,28 @@
         <file>Sprites/piccolo/hameha2.png</file>
         <file>Sprites/piccolo/hameha3.png</file>
         <file>Sprites/piccolo/herido.png</file>
+        <file>Sprites/piccolo/blastg1.png</file>
+        <file>Sprites/piccolo/blastg2.png</file>
+        <file>Sprites/piccolo/blastg3.png</file>
+        <file>Sprites/piccolo/blastg4.png</file>
+        <file>Sprites/piccolo/base_giga1.png</file>
+        <file>Sprites/piccolo/base_giga2.png</file>
+        <file>Sprites/piccolo/base_giga3.png</file>
+        <file>Sprites/piccolo/base_giga4.png</file>
+        <file>Sprites/piccolo/kick_alta1.png</file>
+        <file>Sprites/piccolo/kick_alta2.png</file>
+        <file>Sprites/piccolo/kick_alta3.png</file>
+        <file>Sprites/piccolo/kick_alta4.png</file>
+        <file>Sprites/piccolo/kick_baja1.png</file>
+        <file>Sprites/piccolo/kick_baja2.png</file>
+        <file>Sprites/piccolo/kick_baja3.png</file>
+        <file>Sprites/piccolo/kick_baja4.png</file>
+        <file>Sprites/piccolo/salto_giga1.png</file>
+        <file>Sprites/piccolo/salto_giga2.png</file>
+        <file>Sprites/piccolo/salto_giga3.png</file>
+        <file>Sprites/piccolo/salto_giga4.png</file>
+        <file>Sprites/piccolo/salto_giga5.png</file>
+        <file>Sprites/piccolo/salto_giga6.png</file>
+        <file>Sprites/piccolo/salto_giga7.png</file>
     </qresource>
 </RCC>
