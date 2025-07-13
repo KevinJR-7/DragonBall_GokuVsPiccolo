@@ -99,6 +99,7 @@ protected:
     int frameMaximo;
     QTimer *animacionTimer;
     bool moviendose;
+    QString baseFase;
     
     // Variables de salto
     bool saltando;

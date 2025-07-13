@@ -38,13 +38,21 @@ Piccolo::Piccolo(QObject *parent)
     timerGravityBlast->setInterval(200); // Frecuencia de disparo (ej: cada 200ms)
     connect(timerGravityBlast, &QTimer::timeout, this, &Piccolo::actualizarAnimacionGravityBlast);
 
+    // Inicializar animación de Kcik
+    animacionKickActiva = false;
+    frameKickActual = 1;
+    timerKick = new QTimer(this);
+    timerKick->setInterval(150); // 120ms por frame de Rayo
+    connect(timerKick, &QTimer::timeout, this, &Piccolo::actualizarAnimacionKick);
+    kickAlta = true;
+
     // Inicializar objetivo actual
     objetivoActual = nullptr;
 
     // Configurar propiedades específicas de Piccolo
     establecerNombre("Piccolo");
     establecerCarpetaSprites("piccolo");
-    establecerVida(100); // Piccolo tiene más vida
+    establecerVida(70); // Piccolo tiene más vida
     establecerVelocidad(10); // Piccolo es rápido
 
     // Configurar física del salto específica para Piccolo
@@ -185,20 +193,23 @@ void Piccolo::moverAbajo()
 
 void Piccolo::atacar()
 {
-    if (estaVivo()) {
-        qDebug() << nombre << " está atacando con rayo";
-
-        cambiarSprite("atacando"); //
-
-        emit personajeAtaco(this);
-
-        // Volver a la animación idle después de un tiempo
-        QTimer::singleShot(500, this, [this]() {
-            if (!moviendose) {
-                iniciarAnimacionIdle();
-            }
-        });
+    if (!scene()) {
+        qDebug() << "No hay escena de juego para lanzar Kick.";
+        return;
     }
+
+    Kick* patada = new Kick(this);
+    patada->establecerEscena(scene());
+    //patada->establecerObjetivo(targetToUse);
+
+    QPointF posicionInicial;
+    if(kickAlta) {posicionInicial = pos() + QPointF(-100, this->pixmap().height() * 3); }
+    else{ posicionInicial = pos() + QPointF(-100, this->pixmap().height() * 4); }
+
+    patada->iniciar(posicionInicial, QPointF(0,0));
+    scene()->addItem(patada);
+
+    qDebug() << "Piccolo lanzó Kick hacia Goku.";
 }
 
 void Piccolo::recibirDanio(int danio)
@@ -209,7 +220,10 @@ void Piccolo::recibirDanio(int danio)
         emit vidaCambiada(vida, vidaMaxima);
 
         // Cambia al sprite de daño
-        cambiarSprite("herido");
+        if(danio > 0 && !fase){
+            cambiarSprite("herido");
+
+        }
 
         // Después de 200 ms, vuelve a la animación idle
         QTimer::singleShot(200, this, [this]() {
@@ -352,6 +366,38 @@ void Piccolo::iniciarCargaRayo()
     timerRayo->start();
 }
 
+void Piccolo::iniciarCargaKick()
+{
+    // Verificar que no esté ya cargando Kick
+    if (animacionKickActiva) {
+        qDebug() << "No se puede cargar Kick - ya hay otra animación activa";
+        return;
+    }
+
+    qDebug() << "Piccolo inicia carga de Kick";
+
+    // Guardar la posición actual del sprite quieto
+    posicionInicialQuieto = pos();
+    qDebug() << "Posición inicial de quieto guardada:" << posicionInicialQuieto;
+
+    // Detener otras animaciones
+    if (animacionTimer && animacionTimer->isActive()) {
+        animacionTimer->stop();
+    }
+
+    animacionKickActiva = true;
+    frameKickActual = 1; // Volver a empezar desde Kick1
+
+    // Cargar el primer sprite de Kick usando centrado automático
+    // cambiarSpriteCentrado("Kick1");
+    if(kickAlta){ cambiarSprite("kick_baja1"); }
+    else{ cambiarSprite("kick_alta1"); }
+
+    // Iniciar el timer de Kick
+    timerKick->start();
+    qDebug() << "2";
+}
+
 void Piccolo::detenerCargaRayo()
 {
     if (animacionRayoActiva) {
@@ -377,6 +423,34 @@ void Piccolo::detenerCargaRayo()
             animacionTimer->stop();
         }
         qDebug() << "Carga de Rayo cancelada - volvió a idle";
+    }
+}
+
+void Piccolo::detenerCargaKick()
+{
+    if (animacionKickActiva) {
+        qDebug() << "Piccolo detiene carga de Kick prematuramente - frame actual:" << frameKickActual;
+
+        // Solo detener la carga sin lanzar el proyectil
+        // El proyectil se lanza automáticamente al completar la animación
+
+        animacionKickActiva = false;
+        timerKick->stop();
+
+        // Cambiar al sprite quieto usando centrado automático
+        cambiarSpriteCentrado("quieto");
+
+        // Restaurar la posición inicial exacta del sprite quieto
+        setPos(posicionInicialQuieto.x(), posicionInicialQuieto.y());
+        qDebug() << "Posición restaurada a la inicial de quieto:" << posicionInicialQuieto;
+
+        // Configurar estado idle
+        moviendose = false;
+        frameActual = 1;
+        if (animacionTimer->isActive()) {
+            animacionTimer->stop();
+        }
+        qDebug() << "Carga de Kick cancelada - volvió a idle";
     }
 }
 
@@ -411,6 +485,43 @@ void Piccolo::actualizarAnimacionRayo()
             animacionTimer->stop();
         }
         qDebug() << "Animación Rayo terminada automáticamente";
+    }
+}
+
+void Piccolo::actualizarAnimacionKick()
+{
+    if (!animacionKickActiva) return;
+
+    frameKickActual++;
+
+    if (frameKickActual <= 4) {
+        QString spriteKick;
+        if(kickAlta){ spriteKick = "kick_alta" + QString::number(frameKickActual); }
+        else{ spriteKick = "kick_baja" + QString::number(frameKickActual); }
+        cambiarSprite(spriteKick);
+        qDebug() << "Animación Kick - frame:" << frameKickActual;
+    }
+    else {
+        // Terminar la animación
+        animacionKickActiva = false;
+        timerKick->stop();
+
+        // Volver al sprite quieto
+        cambiarSpriteCentrado("quieto");
+        setPos(posicionInicialQuieto.x(), posicionInicialQuieto.y());
+
+        // Configurar estado idle
+        moviendose = false;
+        frameActual = 1;
+        if (animacionTimer->isActive()) {
+            animacionTimer->stop();
+        }
+        qDebug() << "Animación Kick terminada automáticamente";
+    }
+    if(frameKickActual == 3){
+        qDebug() << "Kick completamente cargado - lanzando automáticamente";
+        atacar();
+        qDebug() << "1";
     }
 }
 
@@ -573,11 +684,38 @@ void Piccolo::alternarFase()
         // establecerVida(100);
     }
 }
+void Piccolo::morir()
+{
+    if(!fase)
+    {
+        fase = true;
+        baseFase = "base_giga";
+        cambiarSprite("base_giga1");
+        setScale(5.5);
+        vida = vidaMaxima;
+        recibirDanio(0);
+        //
+    }
+    else{
+        vida = 0;
+        animacionTimer->stop();
+        jumpTimer->stop();
+        moviendose = false;
+        saltando = false;
+        velocidadHorizontal = 0.0; // Limpiar velocidad horizontal
+
+        // Restaurar hitbox normal si estaba saltando
+        restaurarHitboxNormal();
+
+        emit personajeMuerto(this);
+        emit vidaCambiada(vida, vidaMaxima);
+    }
+}
 
 void Piccolo::cambiarSprite(const QString& direccion)
 {
     QString rutaSprite;
-    if(!fase){ rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/" + direccion + ".png"; }
+    rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/" + direccion + ".png";
     QPixmap nuevoSprite(rutaSprite);
 
     if (!nuevoSprite.isNull()) {
@@ -603,7 +741,7 @@ void Piccolo::cambiarSpriteCentrado(const QString& direccion)
     QPointF centroActual = pos() + QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
 
     QString rutaSprite;
-    if(!fase){ rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/" + direccion + ".png"; }
+    rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/" + direccion + ".png";
     QPixmap nuevoSprite(rutaSprite);
 
     if (!nuevoSprite.isNull()) {

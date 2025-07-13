@@ -63,6 +63,7 @@ Personaje::Personaje(QObject *parent)
     connect(jumpTimer, SIGNAL(timeout()), this, SLOT(actualizarSalto()));
 
     // Configurar timer para animación idle
+    baseFase = "/base";
     animacionTimer = new QTimer(this);
     animacionTimer->setInterval(200); // Cambiar frame cada 200ms
     connect(animacionTimer, SIGNAL(timeout()), this, SLOT(actualizarAnimacion()));
@@ -488,7 +489,7 @@ void Personaje::actualizarAnimacion()
             frameActual = 1;
         }
 
-        QString rutaSprite = ":/Goku/Sprites/" + carpetaSprites + "/base" + QString::number(frameActual) + ".png";
+        QString rutaSprite = ":/Goku/Sprites/" + carpetaSprites + baseFase + QString::number(frameActual) + ".png";
         QPixmap nuevoSprite(rutaSprite);
 
         if (!nuevoSprite.isNull()) {
