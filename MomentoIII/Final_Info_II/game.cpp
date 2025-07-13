@@ -405,6 +405,10 @@ void game::actualizarBarraVida(int vidaActual, int vidaMaxima) {
 }
 
 void game::actualizarBarraVida2(int vidaActual, int vidaMaxima) {
+    if (vidaActual <= 0 && !piccoloDerrotado) {
+        piccoloDerrotado = true;
+        manejarDerrotaPiccolo();
+    }
     vidaActual = ((vidaActual * 4) + vidaMaxima -1) / vidaMaxima;
     barraVida2->setPixmap((QPixmap(QString(":/Fondos/Sprites/gui_scenes/vida%1.png").arg(vidaActual))).transformed(transform));
     piccoloW_presionada = false;
@@ -420,6 +424,27 @@ void game::actualizarBarraKi(int kiActual, int /*kiMaximo*/) {
     if (spriteIndex > 5) spriteIndex = 5;
     barraKi->setPixmap(QPixmap(QString(":/Fondos/Sprites/gui_scenes/kibar%1.png").arg(spriteIndex)));
 }
+
+// <<<<<<<<<<<< IMPLEMENTACIÓN DE LOS CAMBIOS DE PICCOLO >>>>>>>>>>>>>>><
+
+void game::manejarDerrotaPiccolo() {
+    if (nivelActual == 1) {
+        nivelActual = 2;
+
+        // Cambiar fondo
+        cambiarFondo();
+
+
+        // Mostrar mensaje opcional
+        qDebug() << "¡Nivel 2 comenzado!";
+    } else {
+        // Juego terminado
+        qDebug() << "¡Ganaste el juego!";
+
+
+    }
+}
+
 
 void game::piccoloActualizarMovimiento()
 {

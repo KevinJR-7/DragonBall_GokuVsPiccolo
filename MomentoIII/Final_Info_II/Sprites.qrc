@@ -11,9 +11,6 @@
         <file>Sprites/goku/entrada1.png</file>
         <file>Sprites/goku/entrada2.png</file>
         <file>Sprites/goku/entrada3.png</file>
-        <file>Sprites/goku/entrada4.png</file>
-        <file>Sprites/goku/entrada5.png</file>
-        <file>Sprites/goku/entrada6.png</file>
         <file>Sprites/goku/salto1.png</file>
         <file>Sprites/goku/salto2.png</file>
         <file>Sprites/goku/salto3.png</file>
@@ -25,6 +22,10 @@
         <file>Sprites/goku/ki2.png</file>
         <file>Sprites/goku/ki3.png</file>
         <file>Sprites/goku/ki4.png</file>
+        <file>Sprites/goku/ki5.png</file>
+        <file>Sprites/goku/ki6.png</file>
+        <file>Sprites/goku/ki7.png</file>
+        <file>Sprites/goku/ki8.png</file>
         <file>Sprites/goku/kame1.png</file>
         <file>Sprites/goku/kame2.png</file>
         <file>Sprites/goku/kame3.png</file>
@@ -36,6 +37,7 @@
         <file>Sprites/goku/kame9.png</file>
         <file>Sprites/goku/kame10.png</file>
         <file>Sprites/goku/kame11.png</file>
+        <file>Sprites/goku/kame12.png</file>
         <file>Sprites/goku/bolas1.png</file>
         <file>Sprites/goku/bolas2.png</file>
         <file>Sprites/goku/bolas3.png</file>
@@ -62,14 +64,6 @@
         <file>Sprites/goku/patada2.png</file>
         <file>Sprites/goku/patada3.png</file>
         <file>Sprites/goku/herido.png</file>
-<<<<<<< HEAD
-        <file>Sprites/goku/teleport1.png</file>
-        <file>Sprites/goku/teleport2.png</file>
-        <file>Sprites/goku/teleport3.png</file>
-        <file>Sprites/goku/teleport4.png</file>
-        <file>Sprites/goku/teleport5.png</file>
-        <file>Sprites/goku/teleport6.png</file>
-        <file>Sprites/goku/teleport7.png</file>
     </qresource>
     <qresource prefix="/Goku2">
         <file>Sprites/goku2/adelante.png</file>
@@ -83,9 +77,6 @@
         <file>Sprites/goku2/entrada1.png</file>
         <file>Sprites/goku2/entrada2.png</file>
         <file>Sprites/goku2/entrada3.png</file>
-        <file>Sprites/goku2/entrada4.png</file>
-        <file>Sprites/goku2/entrada5.png</file>
-        <file>Sprites/goku2/entrada6.png</file>
         <file>Sprites/goku2/salto1.png</file>
         <file>Sprites/goku2/salto2.png</file>
         <file>Sprites/goku2/salto3.png</file>
@@ -97,6 +88,10 @@
         <file>Sprites/goku2/ki2.png</file>
         <file>Sprites/goku2/ki3.png</file>
         <file>Sprites/goku2/ki4.png</file>
+        <file>Sprites/goku2/ki5.png</file>
+        <file>Sprites/goku2/ki6.png</file>
+        <file>Sprites/goku2/ki7.png</file>
+        <file>Sprites/goku2/ki8.png</file>
         <file>Sprites/goku2/kame1.png</file>
         <file>Sprites/goku2/kame2.png</file>
         <file>Sprites/goku2/kame3.png</file>
@@ -108,6 +103,7 @@
         <file>Sprites/goku2/kame9.png</file>
         <file>Sprites/goku2/kame10.png</file>
         <file>Sprites/goku2/kame11.png</file>
+        <file>Sprites/goku2/kame12.png</file>
         <file>Sprites/goku2/bolas1.png</file>
         <file>Sprites/goku2/bolas2.png</file>
         <file>Sprites/goku2/bolas3.png</file>
@@ -134,18 +130,6 @@
         <file>Sprites/goku2/patada2.png</file>
         <file>Sprites/goku2/patada3.png</file>
         <file>Sprites/goku2/herido.png</file>
-        <file>Sprites/goku2/teleport1.png</file>
-        <file>Sprites/goku2/teleport2.png</file>
-        <file>Sprites/goku2/teleport3.png</file>
-        <file>Sprites/goku2/teleport4.png</file>
-        <file>Sprites/goku2/teleport5.png</file>
-        <file>Sprites/goku2/teleport6.png</file>
-        <file>Sprites/goku2/teleport7.png</file>
-
-        
-
-=======
->>>>>>> 04cbaf59117f1f7dcce40db6da969167df5ca353
     </qresource>
     <qresource prefix="/Fondos">
         <file>Sprites/gui_scenes/torneo.png</file>

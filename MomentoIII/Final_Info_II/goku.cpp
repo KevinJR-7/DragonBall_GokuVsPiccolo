@@ -20,71 +20,71 @@ Goku::Goku(QObject *parent)
     timerEntrada = new QTimer(this);
     timerEntrada->setInterval(180); // 180ms por frame
     connect(timerEntrada, &QTimer::timeout, this, &Goku::actualizarAnimacionEntrada);
-    
+
     // Inicializar animación de recarga de ki
     animacionKiActiva = false;
     frameKiActual = 1;
     timerKi = new QTimer(this);
     timerKi->setInterval(150); // 150ms por frame de ki
     connect(timerKi, &QTimer::timeout, this, &Goku::actualizarAnimacionKi);
-    
+
     // Inicializar sistema de ki
     estadoKiActual = INICIO;
     frameDentroEstado = 1;
     kiActual = 0;
     kiMaximo = 100;
     velocidadRecargaKi = 10; // 10 puntos de ki por segundo
-    
+
     // Configurar offsets para sprites de ki (ajustar según sea necesario)
     offsetKiX = -18.0; // 10 píxeles más a la izquierda (era -8.0)
     offsetKiY = -16.0; // 10 píxeles más arriba (era -6.0)
-    
+
     // Timer para recarga real de ki (separado de la animación)
     timerRecargaKi = new QTimer(this);
     timerRecargaKi->setInterval(100); // 100ms = 0.1 segundos
     connect(timerRecargaKi, &QTimer::timeout, this, &Goku::recargarKi);
-    
+
     // Inicializar animación de Kamehameha
     animacionKamehamehaActiva = false;
     frameKamehamehaActual = 1;
     timerKamehameha = new QTimer(this);
     timerKamehameha->setInterval(120); // 120ms por frame de Kamehameha
     connect(timerKamehameha, &QTimer::timeout, this, &Goku::actualizarAnimacionKamehameha);
-    
+
     // Posición fija para la animación de Kamehameha
     posicionFijaKamehameha = QPointF(0, 0);
-    
+
     // Inicializar animación de ráfaga
     animacionRafagaActiva = false;
     frameRafagaActual = 1;
     timerRafaga = new QTimer(this);
     timerRafaga->setInterval(100); // 100ms por frame de ráfaga
     connect(timerRafaga, &QTimer::timeout, this, &Goku::actualizarAnimacionRafaga);
-    
+
     // Configurar propiedades específicas de Goku
     establecerNombre("Goku");
     establecerCarpetaSprites("goku");
     establecerVida(100); // Goku tiene más vida
     establecerVelocidad(10); // Goku es rápido
-    
+
     // Configurar física del salto específica para Goku
     establecerVelocidadSalto(65.0);      // Goku salta SÚPER alto (aumentado de 50 a 65)
     establecerFisicaSalto(0.7, 0.03);    // Aún más ligero con menos resistencia
-    
+
     // Configurar hitbox específica para Goku - escalada 3.5x
     // Hitbox original: 20x40, offset 12x25
     // Hitbox escalada: 70x140, offset 42x88
     establecerHitbox(70, 140, 42, 88);
-    
-    // Configurar hitbox de salto - escalada 3.5x  
+
+    // Configurar hitbox de salto - escalada 3.5x
     // Hitbox salto original: 22x20, offset 9x20
     // Hitbox salto escalada: 77x70, offset 32x70
     establecerHitboxSalto(77, 70, 32, 70);
-    
+
     // Hacer a Goku invisible al inicio - solo aparecerá en la animación de entrada
     setVisible(false);
     qDebug() << "Goku inicializado como invisible - aparecerá en 2 segundos";
-    
+
     // Programar la animación de entrada para después de 2 segundos
     QTimer::singleShot(2000, this, &Goku::iniciarAnimacionEntrada);
 }
@@ -96,11 +96,11 @@ void Goku::moverDerecha()
         return;
     }
     if (animacionKiActiva) return;
-    
+
     qDebug() << "moverDerecha() - estaSaltando:" << estaSaltando() << "pos actual:" << this->pos().x();
     moviendose = true;
     ultimaDireccionHorizontal = "adelante"; // Rastrear dirección horizontal
-    
+
     if (estaSaltando()) {
         // Durante el salto, usar el sistema de movimiento horizontal
         qreal velocidadSalto = velocidadMovimiento * 3; // 3x más rápido en el aire
@@ -115,7 +115,7 @@ void Goku::moverDerecha()
         animacionTimer->stop();
         cambiarSprite("adelante");
     }
-    
+
     verificarLimitesPantalla(limitesEscena);
     actualizarVisualizacionHitbox();
 }
@@ -130,7 +130,7 @@ void Goku::moverIzquierda()
     qDebug() << "moverIzquierda() - estaSaltando:" << estaSaltando() << "pos actual:" << this->pos().x();
     moviendose = true;
     ultimaDireccionHorizontal = "atras"; // Rastrear dirección horizontal
-    
+
     if (estaSaltando()) {
         // Durante el salto, usar el sistema de movimiento horizontal
         qreal velocidadSalto = velocidadMovimiento * 3; // 3x más rápido en el aire
@@ -145,7 +145,7 @@ void Goku::moverIzquierda()
         animacionTimer->stop();
         cambiarSprite("atras");
     }
-    
+
     verificarLimitesPantalla(limitesEscena);
     actualizarVisualizacionHitbox();
 }
@@ -158,16 +158,16 @@ void Goku::moverArriba()
     }
     if (animacionKiActiva) return;
     moviendose = true;
-    
+
     // Solo detener animación idle si no está saltando
     if (!estaSaltando()) {
         animacionTimer->stop(); // Detener animación idle
     }
-    
+
     this->setPos(this->pos().x(), this->pos().y() - velocidadMovimiento);
     verificarLimitesPantalla(limitesEscena); // Verificar límites después del movimiento
     actualizarVisualizacionHitbox(); // Actualizar hitbox visual
-    
+
     // Solo cambiar sprite si no está saltando (mantener animación de salto)
     if (!estaSaltando()) {
         // Usar la dirección horizontal si existe, sino "adelante" por defecto
@@ -186,18 +186,18 @@ void Goku::moverAbajo()
         return;
     }
     if (animacionKiActiva) return;
-    
+
     moviendose = true;
-    
+
     // Solo detener animación idle si no está saltando
     if (!estaSaltando()) {
         animacionTimer->stop(); // Detener animación idle
     }
-    
+
     this->setPos(this->pos().x(), this->pos().y() + velocidadMovimiento);
     verificarLimitesPantalla(limitesEscena); // Verificar límites después del movimiento
     actualizarVisualizacionHitbox(); // Actualizar hitbox visual
-    
+
     // Solo cambiar sprite si no está saltando (mantener animación de salto)
     if (!estaSaltando()) {
         // Usar la dirección horizontal si existe, sino "adelante" por defecto
@@ -240,7 +240,7 @@ void Goku::iniciarAnimacionIdle()
 {
     // Limpiar dirección horizontal al entrar en idle
     ultimaDireccionHorizontal = "";
-    
+
     // Llamar al método de la clase padre
     Personaje::iniciarAnimacionIdle();
 }
@@ -248,18 +248,18 @@ void Goku::iniciarAnimacionIdle()
 void Goku::iniciarAnimacionEntrada()
 {
     qDebug() << "Iniciando animación de entrada de Goku después de 2 segundos";
-    
+
     // Hacer visible a Goku al comenzar la animación de entrada
     setVisible(true);
-    
+
     // Detener la animación idle si está activa
     if (animacionTimer && animacionTimer->isActive()) {
         animacionTimer->stop();
     }
-    
+
     animacionEntradaActiva = true;
     frameEntradaActual = 1;
-    
+
     // Cargar el primer sprite de entrada SIN cambiar posición
     QString rutaSprite = ":/Goku/Sprites/goku/entrada1.png";
     QPixmap spriteEntrada(rutaSprite);
@@ -269,7 +269,7 @@ void Goku::iniciarAnimacionEntrada()
     } else {
         qDebug() << "Error: No se pudo cargar sprite entrada1 desde" << rutaSprite;
     }
-    
+
     // Iniciar el timer de entrada
     timerEntrada->start();
 }
@@ -279,7 +279,7 @@ void Goku::actualizarAnimacionEntrada()
     moviendose = true;
     if (animacionEntradaActiva) {
         frameEntradaActual++;
-        
+
         if (frameEntradaActual <= 3) {
             // Mostrar entrada1, entrada2, entrada3 SIN cambiar posición
             QString rutaSprite = ":/Goku/Sprites/goku/entrada" + QString::number(frameEntradaActual) + ".png";
@@ -295,7 +295,7 @@ void Goku::actualizarAnimacionEntrada()
             qDebug() << "Animación de entrada completada";
             timerEntrada->stop();
             animacionEntradaActiva = false;
-            
+
             // Cambiar a la animación idle normal
             moviendose = false;
         }
@@ -309,47 +309,47 @@ void Goku::iniciarRecargaKi()
         qDebug() << "Ki ya está completo (" << kiActual << "/" << kiMaximo << ") - no se puede recargar más";
         return;
     }
-    
+
     qDebug() << "Goku inicia recarga de ki - Ki actual:" << kiActual << "/" << kiMaximo;
-    
+
     // Guardar la posición exacta antes de cambiar cualquier sprite
     posicionOriginalKi = pos();
     qDebug() << "Posición original guardada:" << posicionOriginalKi;
-    
+
     // Detener otras animaciones
     if (animacionTimer && animacionTimer->isActive()) {
         animacionTimer->stop();
     }
-    
+
     animacionKiActiva = true;
-    
+
     // Configurar estado inicial y velocidad según ki actual
     estadoKiActual = INICIO;
     frameDentroEstado = 1;
-    
+
     // Ajustar velocidad de animación según ki actual
     int velocidadAnimacion = 150 - (int)(obtenerPorcentajeKi() * 1.2f); // Más rápido con más ki
     velocidadAnimacion = qMax(30, velocidadAnimacion); // Mínimo 30ms
     timerKi->setInterval(velocidadAnimacion);
     qDebug() << "Velocidad animación ki:" << velocidadAnimacion << "ms (ki al" << obtenerPorcentajeKi() << "%)";
-    
+
     // Guardar la posición actual antes de cambiar sprites
     posicionOriginalKi = pos();
     qDebug() << "Guardando posición antes de ki:" << posicionOriginalKi;
-    
+
     // Cargar el primer sprite de ki y centrarlo UNA SOLA VEZ
     // Guardar el centro actual del sprite "quieto"
     QPointF centroActual = pos() + QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
-    
+
     // Cambiar al sprite ki1
     cambiarSprite("ki1");
-    
+
     // Calcular nueva posición para que ki1 tenga el mismo centro que "quieto"
     QPointF nuevaPosicion = centroActual - QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
     setPos(nuevaPosicion.x(), nuevaPosicion.y());
 
     qDebug() << "Sprite ki1 centrado en posición:" << nuevaPosicion;
-    
+
     // Iniciar los timers
     timerKi->start();
     timerRecargaKi->start();
@@ -359,7 +359,7 @@ void Goku::detenerRecargaKi()
 {
     if (animacionKiActiva) {
         qDebug() << "Goku detiene recarga de ki - Ki final:" << kiActual << "/" << kiMaximo;
-        
+
         animacionKiActiva = false;
         timerKi->stop();
         timerRecargaKi->stop();
@@ -377,9 +377,9 @@ void Goku::detenerRecargaKi()
 void Goku::actualizarAnimacionKi()
 {
     if (!animacionKiActiva) return;
-    
+
     QString spriteActual;
-    
+
     switch (estadoKiActual) {
         case INICIO:
             // Frames 1, 2 (una sola vez)
@@ -390,7 +390,7 @@ void Goku::actualizarAnimacionKi()
                 spriteActual = "ki2";
                 qDebug() << "Estado INICIO - Frame 2";
             }
-            
+
             frameDentroEstado++;
             if (frameDentroEstado > 2) {
                 // Cambiar a estado BUCLE
@@ -399,19 +399,19 @@ void Goku::actualizarAnimacionKi()
                 frameDentroEstado = 1;
             }
             break;
-            
+
         case BUCLE: {
             // Frames 3, 4, 5, 6 (repetir infinitamente)
             int frameEnBucle = ((frameDentroEstado - 1) % 4) + 3; // Ciclo: 3,4,5,6
             spriteActual = "ki" + QString::number(frameEnBucle);
             qDebug() << "Estado BUCLE - Frame" << frameEnBucle << "(iteración" << (frameDentroEstado-1)/4 + 1 << ")";
-            
+
             frameDentroEstado++;
             // En estado BUCLE no cambiamos de estado automáticamente
             // El cambio se hace en recargarKi() cuando ki >= 95%
             break;
         }
-            
+
         case FINAL:
             // Frames 7, 8 (una sola vez y terminar)
             if (frameDentroEstado == 1) {
@@ -459,7 +459,7 @@ void Goku::recargarKi()
             estadoKiActual = FINAL;
             frameDentroEstado = 1; // Reiniciar para frames 7, 8
         }
-        
+
         // Si el ki está lleno, detener la recarga
         if (kiActual >= kiMaximo) {
             qDebug() << "Ki completamente lleno - deteniendo recarga";
@@ -475,13 +475,13 @@ void Goku::iniciarCargaKamehameha()
         qDebug() << "No se puede cargar Kamehameha - ya hay otra animación activa";
         return;
     }
-    
+
     qDebug() << "Goku inicia carga de Kamehameha";
-    
+
     // Guardar la posición actual como posición fija para toda la animación (usar posición idle)
     posicionFijaKamehameha = pos();
     qDebug() << "Posición fija guardada (idle):" << posicionFijaKamehameha;
-    
+
     // Detener otras animaciones
     if (animacionTimer && animacionTimer->isActive()) {
         animacionTimer->stop();
@@ -502,13 +502,13 @@ void Goku::detenerCargaKamehameha()
 {
     if (animacionKamehamehaActiva) {
         qDebug() << "Goku detiene carga de Kamehameha prematuramente - frame actual:" << frameKamehamehaActual;
-        
+
         // Solo detener la carga sin lanzar el proyectil
         // El proyectil se lanza automáticamente al completar la animación
-        
+
         animacionKamehamehaActiva = false;
         timerKamehameha->stop();
-        
+
 
         // Configurar estado idle
         moviendose = false;
@@ -599,29 +599,29 @@ void Goku::lanzarKamehameha()
 void Goku::iniciarAnimacionRafaga()
 {
     qDebug() << "Iniciando animación de ráfaga";
-    
+
     // No permitir si ya está en otra animación
     if (animacionEntradaActiva || animacionKiActiva || animacionKamehamehaActiva) {
         qDebug() << "No se puede iniciar ráfaga: otra animación activa";
         return;
     }
-    
+
     // Detener animación idle si está activa
     if (animacionTimer->isActive()) {
         animacionTimer->stop();
     }
-    
+
     // Configurar animación de ráfaga
     animacionRafagaActiva = true;
     frameRafagaActual = 1;
     moviendose = true; // Marcar como en movimiento para evitar idle
-    
+
     // Iniciar con el primer frame
     cambiarSprite("bolas1");
-    
+
     // Iniciar timer
     timerRafaga->start();
-    
+
     qDebug() << "Animación de ráfaga iniciada";
 }
 
@@ -630,19 +630,19 @@ void Goku::detenerAnimacionRafaga()
     if (!animacionRafagaActiva) {
         return;
     }
-    
+
     qDebug() << "Deteniendo animación de ráfaga";
-    
+
     // Detener timer
     timerRafaga->stop();
-    
+
     // Terminar la animación
     animacionRafagaActiva = false;
-     
+
     // Configurar estado idle
     moviendose = false;
     frameActual = 1;
-    
+
     qDebug() << "Animación de ráfaga detenida";
 }
 
@@ -651,23 +651,23 @@ void Goku::actualizarAnimacionRafaga()
     if (!animacionRafagaActiva) {
         return;
     }
-    
+
     // Ciclar entre bolas1 a bolas5
     frameRafagaActual++;
     if (frameRafagaActual > 5) {
         frameRafagaActual = 1;
     }
-    
+
     // Cambiar sprite
     QString spriteNombre = QString("bolas%1").arg(frameRafagaActual);
     cambiarSprite(spriteNombre);
-    
+
     // Lanzar proyectiles BlastB en frames específicos
     if (frameRafagaActual == 2 || frameRafagaActual == 3 || frameRafagaActual == 4) {
         lanzarBlastB();
         qDebug() << "Lanzando BlastB en frame:" << frameRafagaActual;
     }
-    
+
     qDebug() << "Animación ráfaga frame:" << frameRafagaActual;
 }
 
@@ -723,7 +723,7 @@ void Goku::cambiarSpriteKamehamehaFijo(const QString& direccion)
 {
     QString rutaSprite = ":/Goku/Sprites/" + carpetaSprites + "/" + direccion + ".png";
     QPixmap nuevoSprite(rutaSprite);
-    
+
     if (!nuevoSprite.isNull()) {
         // Escalar el sprite si es necesario
         if (escalaSprite != 1.0) {
