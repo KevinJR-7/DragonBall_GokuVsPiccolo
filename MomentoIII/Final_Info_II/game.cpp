@@ -104,6 +104,7 @@ game::game(QWidget *parent)
 
     // Conectar signal de vida de Goku a la barra
     connect(p, &Personaje::vidaCambiada, this, &game::actualizarBarraVida);
+    connect(p, &Goku::personajeMuerto, this, &game::manejarDerrotaGoku);
 
     // Conectar singal de ki de goku a la barra
     connect(p, &Goku::kiCambiado, this, &game::actualizarBarraKi);
@@ -437,6 +438,46 @@ void game::actualizarBarraKi(int kiActual, int /*kiMaximo*/) {
     int spriteIndex = kiActual / 20; // 0-19:0, 20-39:1, ..., 100:5
     if (spriteIndex > 5) spriteIndex = 5;
     barraKi->setPixmap(QPixmap(QString(":/Fondos/Sprites/gui_scenes/kibar%1.png").arg(spriteIndex)));
+}
+
+
+// <<<<<<<<<<<< FINALIZACION DE JUEGO >>>>>>>>>>>>>>>>>>>>
+
+void game::manejarDerrotaGoku()
+{
+    qDebug() << "¡Goku ha muerto! Fin del juego.";
+
+    movimientoTimer->stop();
+    piccoloIATimer->stop();
+
+    if (p) p->setVisible(false); // o scene()->removeItem(p);
+
+    QGraphicsRectItem* overlayNegro = new QGraphicsRectItem();
+    overlayNegro->setRect(0, 0, scene->width(), scene->height());
+    overlayNegro->setBrush(QBrush(Qt::black));
+    overlayNegro->setZValue(999);
+    overlayNegro->setOpacity(0.0);
+    scene->addItem(overlayNegro);
+
+    QTimer* timerFade = new QTimer(this);
+    int* alphaStep = new int(0);
+    connect(timerFade, &QTimer::timeout, this, [=]() mutable {
+        float opacidad = *alphaStep / 20.0f;
+        overlayNegro->setOpacity(opacidad);
+        (*alphaStep)++;
+
+        if (*alphaStep > 20) {
+            timerFade->stop();
+            delete timerFade;
+            delete alphaStep;
+
+            // Final del juego (puedes mostrar una escena de Game Over o cerrar)
+            qDebug() << "GAME OVER. Cerrando juego...";
+            QApplication::quit();  // o reemplaza con otra acción
+        }
+    });
+
+    timerFade->start(50);
 }
 
 // <<<<<<<<<<<< IMPLEMENTACIÓN DE LOS CAMBIOS DE NIVEL>>>>>>>>>>>>>>><

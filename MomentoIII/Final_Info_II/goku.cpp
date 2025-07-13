@@ -786,14 +786,18 @@ void Goku::morir()
                 frameMuerteActual++;
             } else {
                 timerMuerte->stop();
-                // Aquí puedes dejar el último sprite o hacer más lógica (ej: eliminar personaje)
+                QTimer::singleShot(100, this, [this]() {
+                    emit personajeMuerto(this);
+                });
+                //emit personajeMuerto(this);
+
             }
         });
     }
     timerMuerte->start(200); // Cambia de frame cada 200 ms
 
-    // Opcional: emite señal de muerte
-    emit personajeMuerto(this);
+
+
 }
 
 

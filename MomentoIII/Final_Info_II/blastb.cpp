@@ -26,7 +26,7 @@ BlastB::BlastB(QObject *parent)
     configurarCaos();
     
     // Configurar parámetros físicos por defecto
-    establecerVelocidad(5.0);
+    establecerVelocidad(30.0);
     establecerDano(10);
     establecerAlcance(800.0);
     
@@ -37,7 +37,7 @@ BlastB::BlastB(QObject *parent)
     
     // Inicializar variables del atractor
     dt = 0.01; // Paso de tiempo pequeño para mayor precisión
-    escala = 3.0; // Escala para convertir coordenadas del atractor a píxeles
+    escala = 6.0; // Escala para convertir coordenadas del atractor a píxeles
     
     // Inicializar posición en el atractor con valores aleatorios pequeños
     std::random_device rd;
@@ -213,8 +213,8 @@ void BlastB::calcularSiguientePosicion()
 
     } else if (tipoTrayectoria == ESPIRAL) {
         // Trayectoria espiral programada
-        float velocidadRadial = 2.0f;    // Qué tan rápido crece el radio
-        float velocidadAngular = 5.0f;   // Velocidad de rotación (radianes/segundo)
+        float velocidadRadial = 15.0f;    // Qué tan rápido crece el radio
+        float velocidadAngular = 10.0f;   // Velocidad de rotación (radianes/segundo)
 
         float r = velocidadRadial * tiempoVida;
         float theta = velocidadAngular * tiempoVida;
