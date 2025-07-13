@@ -48,7 +48,11 @@ private slots:
 
 private:
     Ui::game *ui;
-    
+    //Manejo de niveles
+    int nivelActual = 1;
+    bool piccoloDerrotado = false;
+    void manejarDerrotaPiccolo();
+
     // Timer para movimiento continuo
     QTimer* movimientoTimer;
     QTimer* piccoloMovTimer;

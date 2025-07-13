@@ -64,11 +64,12 @@ BlastB::~BlastB()
 
 void BlastB::cargarSprites()
 {
-    // Cargar sprites para la animación
-    spriteBlastB1 = QPixmap(":/Goku/Sprites/goku/blastb1.png");
-    spriteBlastB2 = QPixmap(":/Goku/Sprites/goku/blastb2.png");
-    spriteBlastB3 = QPixmap(":/Goku/Sprites/goku/blastb3.png");
-    spriteBlastB4 = QPixmap(":/Goku/Sprites/goku/blastb4.png");
+    QString base = ":/Goku/Sprites/" + carpetaSprites + "/";
+    spriteBlastB1 = QPixmap(base + "blastb1.png");
+    spriteBlastB2 = QPixmap(base + "blastb2.png");
+    spriteBlastB3 = QPixmap(base + "blastb3.png");
+    spriteBlastB4 = QPixmap(base + "blastb4.png");
+
     
     // Verificar que los sprites se cargaron correctamente
     if (spriteBlastB1.isNull() || spriteBlastB2.isNull() || 
@@ -202,33 +203,40 @@ void BlastB::detener()
 
 void BlastB::calcularSiguientePosicion()
 {
-    // Actualizar el atractor de Lorenz
-    actualizarAtractorLorenz();
-    
-    // Obtener la posición caótica
-    QPointF posicionCaotica = obtenerPosicionCaotica();
-    
-    // Combinar movimiento base con trayectoria caótica
     QPointF movimientoBase = direccionBase * velocidadHabilidad;
-    QPointF posicionFinal = posicionBase + movimientoBase + posicionCaotica;
-    
-    // Actualizar posición base para el siguiente frame
-    posicionBase += movimientoBase * 0.1; // Movimiento base más lento
-    
-    // Establecer nueva posición
-    setPos(posicionFinal);
-    
-    // Agregar punto a la trayectoria para visualización
-    trayectoria.append(posicionFinal);
-    
-    // Limitar el número de puntos para evitar consumo excesivo de memoria
-    if (trayectoria.size() > maxPuntosTrayectoria) {
-        trayectoria.removeFirst();
+    QPointF offset(0, 0);
+
+    if (tipoTrayectoria == LORENZ) {
+        // Trayectoria caótica original
+        actualizarAtractorLorenz();
+        offset = obtenerPosicionCaotica();
+
+    } else if (tipoTrayectoria == ESPIRAL) {
+        // Trayectoria espiral programada
+        float velocidadRadial = 2.0f;    // Qué tan rápido crece el radio
+        float velocidadAngular = 5.0f;   // Velocidad de rotación (radianes/segundo)
+
+        float r = velocidadRadial * tiempoVida;
+        float theta = velocidadAngular * tiempoVida;
+
+        offset.setX(r * cos(theta));
+        offset.setY(r * sin(theta));
     }
-    
-    // Actualizar distancia recorrida
+
+    // Posición final = avance recto + trayectoria espiral/caótica
+    QPointF posicionFinal = posicionBase + movimientoBase + offset;
+
+    // Avanzar un poco para el siguiente frame
+    posicionBase += movimientoBase * 0.1;
+
+    // Aplicar
+    setPos(posicionFinal);
+    trayectoria.append(posicionFinal);
+    if (trayectoria.size() > maxPuntosTrayectoria) trayectoria.removeFirst();
+
     distanciaRecorrida += velocidadHabilidad * 0.1;
 }
+
 
 void BlastB::actualizarAtractorLorenz()
 {
@@ -426,4 +434,16 @@ void BlastB::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
             }
         }
     }
+}
+
+//Cambio de nivel
+
+void BlastB::setCarpetaSprites(const QString& carpeta)
+{
+    carpetaSprites = carpeta;
+}
+
+void BlastB::setTipoTrayectoria(TipoTrayectoria tipo)
+{
+    tipoTrayectoria = tipo;
 }
