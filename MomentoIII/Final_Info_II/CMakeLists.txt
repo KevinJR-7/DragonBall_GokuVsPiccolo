@@ -28,6 +28,7 @@ add_executable(Final_Info_II
   rayo.h rayo.cpp
   mainmenu.h mainmenu.cpp
   gravityblast.h gravityblast.cpp
+  kick.h kick.cpp
 
 )
 target_link_libraries(Final_Info_II

@@ -36,7 +36,7 @@ public:
     qreal obtenerAlcance() const { return alcanceMaximo; }
     bool estaActiva() const { return activa; }
     
-    // Métodos virtuales puros de QGraphicsItem
+    // Métodos virtuales de QGraphicsItem
     virtual QRectF boundingRect() const override = 0;
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override = 0;
     
