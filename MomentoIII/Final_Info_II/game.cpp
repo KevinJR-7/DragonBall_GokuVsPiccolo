@@ -436,6 +436,7 @@ void game::manejarDerrotaPiccolo() {
         p->establecerCarpetaSprites("goku2");
 
 
+
         // Mostrar mensaje opcional
         qDebug() << "¡Nivel 2 comenzado!";
     } else {

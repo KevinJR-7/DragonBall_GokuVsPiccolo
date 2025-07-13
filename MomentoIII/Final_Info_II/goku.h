@@ -140,6 +140,8 @@ private:
     bool animacionTeleportActiva = false;
 
 
+
+
 signals:
     void kiCambiado(int kiActual, int kiMaximo);
 };

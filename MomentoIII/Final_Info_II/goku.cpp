@@ -260,12 +260,12 @@ void Goku::iniciarAnimacionEntrada()
     animacionEntradaActiva = true;
     frameEntradaActual = 1;
 
-    // Cargar el primer sprite de entrada SIN cambiar posición
-    QString rutaSprite = ":/Goku/Sprites/goku/entrada1.png";
+    // Usar la carpetaSprites actual (puede ser goku o goku2)
+    QString rutaSprite = ":/Goku/Sprites/" + carpetaSprites + "/entrada1.png";
     QPixmap spriteEntrada(rutaSprite);
     if (!spriteEntrada.isNull()) {
         setPixmap(spriteEntrada);
-        qDebug() << "Sprite entrada1 cargado en posición:" << pos();
+        qDebug() << "Sprite entrada1 cargado desde carpeta:" << carpetaSprites << "en posición:" << pos();
     } else {
         qDebug() << "Error: No se pudo cargar sprite entrada1 desde" << rutaSprite;
     }
@@ -282,11 +282,11 @@ void Goku::actualizarAnimacionEntrada()
 
         if (frameEntradaActual <= 3) {
             // Mostrar entrada1, entrada2, entrada3 SIN cambiar posición
-            QString rutaSprite = ":/Goku/Sprites/goku/entrada" + QString::number(frameEntradaActual) + ".png";
+            QString rutaSprite = ":/Goku/Sprites/" + carpetaSprites + "/entrada" + QString::number(frameEntradaActual) + ".png";
             QPixmap spriteEntrada(rutaSprite);
             if (!spriteEntrada.isNull()) {
                 setPixmap(spriteEntrada);
-                qDebug() << "Animación entrada - frame:" << frameEntradaActual << "posición mantenida:" << pos();
+                qDebug() << "Animación entrada - frame:" << frameEntradaActual << "desde carpeta:" << carpetaSprites << "posición mantenida:" << pos();
             } else {
                 qDebug() << "Error: No se pudo cargar sprite entrada" << frameEntradaActual << "desde" << rutaSprite;
             }
@@ -295,12 +295,11 @@ void Goku::actualizarAnimacionEntrada()
             qDebug() << "Animación de entrada completada";
             timerEntrada->stop();
             animacionEntradaActiva = false;
-
-            // Cambiar a la animación idle normal
             moviendose = false;
         }
     }
 }
+
 
 void Goku::iniciarRecargaKi()
 {
@@ -798,7 +797,6 @@ void Goku::morir()
 }
 
 
-// ...existing code...
 void Goku::golpear() {
     if (timerGolpe && timerGolpe->isActive()) return;
     frameGolpe = 1;
