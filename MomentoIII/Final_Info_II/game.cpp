@@ -427,25 +427,73 @@ void game::actualizarBarraKi(int kiActual, int /*kiMaximo*/) {
 
 // <<<<<<<<<<<< IMPLEMENTACIÓN DE LOS CAMBIOS DE PICCOLO >>>>>>>>>>>>>>><
 
-void game::manejarDerrotaPiccolo() {
+void game::manejarDerrotaPiccolo()
+{
     if (nivelActual == 1) {
-        nivelActual = 2;
+        qDebug() << "Transición a nivel 2 iniciada...";
 
-        // Cambiar fondo
-        cambiarFondo();
-        p->establecerCarpetaSprites("goku2");
+        // Crear overlay negro encima de todo
+        QGraphicsRectItem* overlayNegro = new QGraphicsRectItem();
+        overlayNegro->setRect(0, 0, scene->width(), scene->height());
+        overlayNegro->setBrush(QBrush(Qt::black));
+        overlayNegro->setZValue(999); // Muy arriba
+        overlayNegro->setOpacity(0.0);
+        scene->addItem(overlayNegro);
 
+        // Timer para hacer el fade-out (oscurecer)
+        QTimer* timerFade = new QTimer(this);
+        int* alphaStep = new int(0);  // para modificar dentro del lambda
 
+        connect(timerFade, &QTimer::timeout, this, [=]() mutable {
+            float opacidad = *alphaStep / 20.0f;
+            overlayNegro->setOpacity(opacidad);
+            (*alphaStep)++;
 
-        // Mostrar mensaje opcional
-        qDebug() << "¡Nivel 2 comenzado!";
+            if (*alphaStep > 20) {
+                timerFade->stop();
+                delete timerFade;
+                delete alphaStep;
+
+                // ⏳ Aquí ocurre el cambio de nivel después del fade
+
+                nivelActual = 2;
+
+                cambiarFondo();
+                p->establecerCarpetaSprites("goku2");
+
+                qDebug() << "¡Nivel 2 comenzado!";
+
+                // (Opcional) fade-in de nuevo
+                int* fadeInStep = new int(20); // empieza opaco
+                QTimer* timerFadeIn = new QTimer();
+
+                connect(timerFadeIn, &QTimer::timeout, this, [=]() mutable {
+                    float opacidad = *fadeInStep / 20.0f;
+                    overlayNegro->setOpacity(opacidad);
+                    (*fadeInStep)--;
+
+                    if (*fadeInStep < 0) {
+                        timerFadeIn->stop();
+                        scene->removeItem(overlayNegro);
+                        delete overlayNegro;
+                        delete timerFadeIn;
+                        delete fadeInStep;
+                        qDebug() << "Transición de nivel completada";
+                    }
+                });
+
+                timerFadeIn->start(50);  // 50ms entre pasos
+            }
+        });
+
+        timerFade->start(50);  // 50ms entre pasos
+
     } else {
         // Juego terminado
         qDebug() << "¡Ganaste el juego!";
-
-
     }
 }
+
 
 
 void game::piccoloActualizarMovimiento()
