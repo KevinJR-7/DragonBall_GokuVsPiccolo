@@ -5,6 +5,8 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QTimer>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 
 #include "piccolo.h"
 #include "goku.h"
@@ -109,6 +111,10 @@ private:
     QGraphicsPixmapItem* barraVida2;
     QGraphicsPixmapItem* carapersonaje2;
     QGraphicsPixmapItem* barraKi2;
+
+    //Musica
+    QMediaPlayer* musicPlayer;
+    QAudioOutput* audioOutput;
 
 signals:
 

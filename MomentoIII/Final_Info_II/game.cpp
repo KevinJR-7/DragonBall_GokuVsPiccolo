@@ -10,10 +10,24 @@
 #include <QTimer>
 #include <QApplication>
 
+
+
 game::game(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::game), fondoItem(nullptr), fondoActual(0)
 {
     ui->setupUi(this);
+    // Inicializar reproductor de música
+    musicPlayer = new QMediaPlayer(this);
+    audioOutput = new QAudioOutput(this);
+    musicPlayer->setAudioOutput(audioOutput);
+    musicPlayer->setSource(QUrl("../../sonidos/nivel1.wav"));  // Ruta en tu .qrc
+    musicPlayer->setLoops(QMediaPlayer::Infinite);  // Para que se repita
+    audioOutput->setVolume(1.0);
+
+    musicPlayer->play();
+
+    qDebug() << "Estado del reproductor:" << musicPlayer->mediaStatus();
+    qDebug() << "Error del reproductor:" << musicPlayer->errorString();
 
     // Inicializar lista de fondos disponibles
     fondosDisponibles << ":/Fondos/Sprites/gui_scenes/torneo.png"
@@ -425,7 +439,7 @@ void game::actualizarBarraKi(int kiActual, int /*kiMaximo*/) {
     barraKi->setPixmap(QPixmap(QString(":/Fondos/Sprites/gui_scenes/kibar%1.png").arg(spriteIndex)));
 }
 
-// <<<<<<<<<<<< IMPLEMENTACIÓN DE LOS CAMBIOS DE PICCOLO >>>>>>>>>>>>>>><
+// <<<<<<<<<<<< IMPLEMENTACIÓN DE LOS CAMBIOS DE NIVEL>>>>>>>>>>>>>>><
 
 void game::manejarDerrotaPiccolo()
 {
@@ -454,12 +468,17 @@ void game::manejarDerrotaPiccolo()
                 delete timerFade;
                 delete alphaStep;
 
-                // ⏳ Aquí ocurre el cambio de nivel después del fade
+                //Aquí ocurre el cambio de nivel después del fade
 
                 nivelActual = 2;
 
                 cambiarFondo();
                 p->establecerCarpetaSprites("goku2");
+
+                musicPlayer->stop();
+                musicPlayer->setSource(QUrl("../../sonidos/nivel2.wav"));
+                musicPlayer->play();
+
 
                 qDebug() << "¡Nivel 2 comenzado!";
 
