@@ -54,6 +54,7 @@ private:
     int nivelActual = 1;
     bool piccoloDerrotado = false;
     void manejarDerrotaPiccolo();
+    void manejarDerrotaGoku();
 
     // Timer para movimiento continuo
     QTimer* movimientoTimer;
