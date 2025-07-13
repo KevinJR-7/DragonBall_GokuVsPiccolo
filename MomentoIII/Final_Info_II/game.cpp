@@ -9,7 +9,7 @@
 #include <QScreen>
 #include <QTimer>
 #include <QApplication>
-
+#include <QRandomGenerator>
 
 
 game::game(QWidget *parent)
@@ -240,11 +240,13 @@ void game::keyPressEvent(QKeyEvent *e)
             pic->ocultarHitbox();
             Rayo::alternarVisualizacionHitbox();
             GravityBlast::alternarVisualizacionHitbox();
+            Kick::alternarVisualizacionHitbox();
             qDebug() << "Todos los hitboxes ocultos";
         } else {
             pic->mostrarHitbox();
             Rayo::alternarVisualizacionHitbox();
             GravityBlast::alternarVisualizacionHitbox();
+            Kick::alternarVisualizacionHitbox();
             qDebug() << "Todos los hitboxes visibles";
         }
         break;
@@ -287,6 +289,10 @@ void game::keyPressEvent(QKeyEvent *e)
 
     // --- Pruebas ---
     case Qt::Key_Z:
+        // if (!piccoloK_presionada) {
+        //     piccoloK_presionada = true;
+        //     qDebug() << "5";
+        // }
         break;
     }
 }
@@ -331,9 +337,10 @@ void game::keyReleaseEvent(QKeyEvent *e)
 
     // --- Pruebas ---
     case Qt::Key_Z:
-        if(pic->getFase() == false){
-            cntPiccolo = 501; pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y); pic->setScale(5.5); pic->alternarFase();
-        }
+        // piccoloK_presionada = false;
+        // // pic->detenerCargaKick();
+        // // pic->atacar();
+        // qDebug() << "Z";
         break;
     }
 
@@ -424,6 +431,7 @@ void game::actualizarBarraVida2(int vidaActual, int vidaMaxima) {
         piccoloDerrotado = true;
         manejarDerrotaPiccolo();
     }
+    else{ piccoloDerrotado = false; }
     vidaActual = ((vidaActual * 4) + vidaMaxima -1) / vidaMaxima;
     barraVida2->setPixmap((QPixmap(QString(":/Fondos/Sprites/gui_scenes/vida%1.png").arg(vidaActual))).transformed(transform));
     piccoloW_presionada = false;
@@ -547,10 +555,38 @@ void game::manejarDerrotaPiccolo()
         });
 
         timerFade->start(50);  // 50ms entre pasos
-
-    } else {
+    }
+    else {
         // Juego terminado
         qDebug() << "¡Ganaste el juego!";
+
+        movimientoTimer->stop();
+        piccoloIATimer->stop();
+
+        QGraphicsRectItem* overlayNegro = new QGraphicsRectItem();
+        overlayNegro->setRect(0, 0, scene->width(), scene->height());
+        overlayNegro->setBrush(QBrush(Qt::black));
+        overlayNegro->setZValue(999);
+        overlayNegro->setOpacity(0.0);
+        scene->addItem(overlayNegro);
+
+        QTimer* timerFade = new QTimer(this);
+        int* alphaStep = new int(0);
+        connect(timerFade, &QTimer::timeout, this, [=]() mutable {
+            float opacidad = *alphaStep / 20.0f;
+            overlayNegro->setOpacity(opacidad);
+            (*alphaStep)++;
+
+            if (*alphaStep > 20) {
+                timerFade->stop();
+                delete timerFade;
+                delete alphaStep;
+
+                QApplication::quit();  // o reemplaza con otra acción
+            }
+        });
+
+        timerFade->start(50);
     }
 }
 
@@ -568,7 +604,7 @@ void game::piccoloActualizarMovimiento()
         break;
     // --- Fase 1: Vida > 75% ---
     case 160: // Inicia movimiento: Adelante-izquierda (Diagonal, DURACIÓN NORMAL)
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloA_presionada = true; // Diagonal izquierda
             piccoloW_presionada = true; // Adelante (diagonal)
         } else {
@@ -576,7 +612,7 @@ void game::piccoloActualizarMovimiento()
         }
         break;
     case 170: // Detiene movimiento 'W' y 'A' después de 10 ticks (duración normal)
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloW_presionada = false;
             piccoloA_presionada = false;
         } else {
@@ -584,28 +620,28 @@ void game::piccoloActualizarMovimiento()
         }
         break;
     case 171: // NUEVO: Pausa de 10 ticks después de un movimiento
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 181: // Inicia movimiento D (¡DURACIÓN DOBLE!) - Ajustado para la pausa
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloD_presionada = true; // Derecha (movimiento lateral largo)
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 201: // Detiene movimiento D después de 20 ticks (duración doble)
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloD_presionada = false;
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 202: // NUEVO: Pausa de 10 ticks después de un movimiento
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
@@ -613,14 +649,14 @@ void game::piccoloActualizarMovimiento()
         break;
     // --- REEMPLAZO: Ataque rápido de 1 tick (Gravity Blast) ---
     case 212: // **NUEVO ATAQUE RÁPIDO: Inicia Gravity Blast (1 tick)** - Ajustado para la pausa
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloL_presionada = true; // Inicia el ataque de 1 tick
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 213: // **NUEVO ATAQUE RÁPIDO: Detiene Gravity Blast (1 tick después)**
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloL_presionada = false;
             pic->detenerCargaGravityBlast(); // Detiene la carga del Gravity Blast
             pic->iniciarAnimacionIdle(); // Vuelve a idle inmediatamente
@@ -630,14 +666,14 @@ void game::piccoloActualizarMovimiento()
         break;
     // --- FIN REEMPLAZO ---
     case 214: // NUEVO: Pausa de 10 ticks después del ataque rápido
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 224: // Inicia S+A (Atrás-izquierda, Diagonal, DURACIÓN NORMAL) - Ajustado para la pausa
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloA_presionada = true; // Diagonal atrás izquierda
             piccoloS_presionada = true; // Atrás (diagonal)
         } else {
@@ -645,7 +681,7 @@ void game::piccoloActualizarMovimiento()
         }
         break;
     case 234: // Detiene movimiento 'S' y 'A' después de 10 ticks (duración normal)
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloS_presionada = false;
             piccoloA_presionada = false;
         } else {
@@ -653,42 +689,42 @@ void game::piccoloActualizarMovimiento()
         }
         break;
     case 235: // Llama a idle después de un movimiento
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 245: // Inicia movimiento D (¡DURACIÓN DOBLE!) - Ajustado para la pausa
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloD_presionada = true; // Movimiento lateral largo derecha
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 265: // Detiene movimiento D después de 20 ticks (duración doble)
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloD_presionada = false;
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 266: // NUEVO: Pausa de 10 ticks después de un movimiento
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 276: // Ataque al nivel del suelo (Inicia ataque - Ajustado por +20 +10)
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloJ_presionada = true; // Ataque
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 312: // Detiene ataque (36 ticks después de 276)
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloJ_presionada = false;
             pic->detenerCargaRayo();
         } else {
@@ -696,49 +732,49 @@ void game::piccoloActualizarMovimiento()
         }
         break;
     case 313: // Llama a idle después de un ataque
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 314: // NUEVO: Pausa de 10 ticks después de un ataque
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 324: // Inicia movimiento recto W (DURACIÓN NORMAL) - Ajustado para la pausa
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloW_presionada = true; // Adelante (movimiento recto)
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 334: // Detiene movimiento 'W' después de 10 ticks (duración normal)
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloW_presionada = false;
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 335: // Llama a idle después de un movimiento
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 345: // Nuevo inicio de ataque - Ajustado para la pausa
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloJ_presionada = true; // Ataque
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 381: // Detiene ataque (36 ticks después de 345)
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloJ_presionada = false;
             pic->detenerCargaRayo();
         } else {
@@ -746,21 +782,21 @@ void game::piccoloActualizarMovimiento()
         }
         break;
     case 382: // Llama a idle después de un ataque
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 383: // NUEVO: Pausa de 10 ticks después de un ataque
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 393: // Inicia S+D después del ataque (Diagonal, DURACIÓN NORMAL) - Ajustado para la pausa
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloS_presionada = true; // Atrás
             piccoloD_presionada = true; // Diagonal atrás derecha
         } else {
@@ -768,7 +804,7 @@ void game::piccoloActualizarMovimiento()
         }
         break;
     case 403: // Detiene movimiento 'S' y 'D' después de 10 ticks (duración normal)
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloS_presionada = false;
             piccoloD_presionada = false;
         } else {
@@ -776,42 +812,42 @@ void game::piccoloActualizarMovimiento()
         }
         break;
     case 404: // Llama a idle después de un movimiento
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 414: // NUEVO: Inicia movimiento A (¡DURACIÓN DOBLE!) - Ajustado para la pausa
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloA_presionada = true; // Izquierda (movimiento atravesado)
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 434: // NUEVO: Detiene movimiento A después de 20 ticks
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloA_presionada = false;
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 435: // NUEVO: Pausa de 10 ticks después de un movimiento
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 445: // NUEVO: Ataque atravesado (J) - Ajustado para la pausa
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloJ_presionada = true; // Ataque
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 481: // NUEVO: Detiene ataque (36 ticks después de 445)
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             piccoloJ_presionada = false;
             pic->detenerCargaRayo();
         } else {
@@ -819,14 +855,14 @@ void game::piccoloActualizarMovimiento()
         }
         break;
     case 482: // NUEVO: Llama a idle después de un ataque
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
             cntPiccolo = 499; // Salta al último case si no tiene vida
         }
         break;
     case 483: // Pequeña pausa antes de reiniciar el ciclo (Ajustado por offset)
-        if (pic->getVida() > 0) { // Si Piccolo sigue vivo, repite la secuencia de la Fase 1
+        if (!pic->getFase()) { // Si Piccolo sigue vivo, repite la secuencia de la Fase 1
             pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y); // Reset position if needed
             pic->iniciarAnimacionIdle(); // Ensure idle animation
             piccoloW_presionada = false;
@@ -841,19 +877,70 @@ void game::piccoloActualizarMovimiento()
         }
         break;
     case 500: // Este case ya no se usará para transición, solo para el ciclo principal de Fase 1
-        // La lógica de repetición para la Fase 1 si Piccolo sigue vivo está ahora en case 483.
-        // Si cntPiccolo llega aquí, es un caso de seguridad, o si Piccolo murió antes del 483.
-        // Si Piccolo murió, el timer eventualmente se detendrá o no hará nada.
-        // Si por alguna razón llega aquí y sigue vivo, se redirige al inicio.
-        if (pic->getVida() > 0) {
+        if (!pic->getFase()) {
             cntPiccolo = 159; // Asegura que vuelva a la Fase 1 si se salta el 483 por algún motivo.
-            pic->setScale(5.5);
+            //pic->setScale(5.5);
         }
-        else{ pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y); pic->alternarFase(); } // Se llama aquí si la vida es 0 o menos.
+        else{
+            pic->setPos(POSICION_ORIGINAL_X-470, POSICION_ORIGINAL_Y - 510);
+            //pic->alternarFase();
+        } // Se llama aquí si la vida es 0 o menos.
         break;
 
-        // Todas las fases superiores a la primera han sido eliminadas.
-        // La lógica de repetición ahora está contenida dentro de la Fase 1.
+
+    case 510: // Este case ya no se usará para transición, solo para el ciclo principal de Fase 1
+        pic->setPos(POSICION_ORIGINAL_X-470, POSICION_ORIGINAL_Y - 510);
+        pic->iniciarAnimacionIdle();
+        break;
+    case 520: // Este case ya no se usará para transición, solo para el ciclo principal de Fase 1
+        pic->iniciarAnimacionIdle();
+        break;
+
+    case 620: //620
+        if (pic->getVida() > 0) {
+            pic->setkickAlta(!(pic->getkickAlta()));
+            piccoloK_presionada = true; // Ataque
+        } else {
+            cntPiccolo = 659; // Salta al último case si no tiene vida
+        }
+        break;
+    case 637:
+        if (pic->getVida() > 0) {
+            piccoloK_presionada = false;
+            pic->detenerCargaKick();
+        } else {
+            cntPiccolo = 659; // Salta al último case si no tiene vida
+        }
+        break;
+    case 641:
+        if (pic->getVida() > 0) {
+            pic->iniciarAnimacionIdle();
+        } else {
+            cntPiccolo = 659; // Salta al último case si no tiene vida
+        }
+        break;
+    case 642: // NUEVO: Pausa de 10 ticks después de un ataque
+        if (pic->getVida() > 0) {
+            pic->iniciarAnimacionIdle();
+        } else {
+            cntPiccolo = 659; // Salta al último case si no tiene vida
+        }
+        break;
+    case 643: // Pequeña pausa antes de reiniciar el ciclo (Ajustado por offset)
+        if (pic->getVida() > 0) { // Si Piccolo sigue vivo, repite la secuencia de la Fase 1
+            pic->iniciarAnimacionIdle(); // Ensure idle animation
+            piccoloK_presionada = false;
+            cntPiccolo = 509; // Vuelve al inicio de la Fase 1
+        } else {
+            cntPiccolo = 659; // Salta al último case si no tiene vida
+        }
+        break;
+    case 660: // Este case ya no se usará para transición, solo para el ciclo principal de Fase 1
+        if (pic->getVida() > 0) {
+            cntPiccolo = 509; // Asegura que vuelva a la Fase 1 si se salta el 483 por algún motivo.
+            //pic->setScale(5.5);
+        }
+        break;
     }
 
     if (pic->isVisible() || !pic->estaEnAnimacionEntrada()) {
@@ -887,6 +974,10 @@ void game::piccoloActualizarMovimiento()
         //pic->iniciarCargaRayo();
         pic->iniciarCargaGravityBlast();
         //piccoloJ_presionada = false;
+    }
+    if (piccoloK_presionada) {
+        qDebug() << "3";
+        pic->iniciarCargaKick();
     }
 }
 

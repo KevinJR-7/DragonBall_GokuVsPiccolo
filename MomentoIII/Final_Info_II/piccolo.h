@@ -7,6 +7,7 @@
 #include "personaje.h"
 #include "rayo.h"
 #include "gravityblast.h"
+#include "kick.h"
 
 class Piccolo : public Personaje
 {
@@ -18,6 +19,9 @@ public:
     void setFase(bool newFase) { fase = newFase;}
     void alternarFase();
 
+    bool getkickAlta() const { return kickAlta;}
+    void setkickAlta(bool newkickAlta) { kickAlta = newkickAlta;}
+
     // Override para funciones de movimiento
     void moverDerecha() override;
     void moverIzquierda() override;
@@ -25,6 +29,7 @@ public:
     void moverAbajo() override;
     void atacar() override;
     void recibirDanio(int danio) override;
+    void morir() override;
 
     // Override para limpiar dirección horizontal en idle
     void iniciarAnimacionIdle() override;
@@ -44,6 +49,12 @@ public:
     void lanzarRayo(); // Nuevo método para lanzar el proyectil
     bool estaCargandoRayo() const { return animacionRayoActiva; }
 
+    // Métodos para Kick
+    void iniciarCargaKick();
+    void detenerCargaKick();
+    void lanzarKick(); // Nuevo método para lanzar el proyectil
+    bool estaCargandoKick() const { return animacionKickActiva; }
+
     // Métodos para GBlast
     void lanzarGravityBlast(Goku* gokuTarget);
     void iniciarCargaGravityBlast();
@@ -56,6 +67,7 @@ public:
 private slots:
     void actualizarAnimacionEntrada();
     void actualizarAnimacionRayo(); // Para la animación de Rayo
+    void actualizarAnimacionKick();
     void actualizarAnimacionGravityBlast(); // Nuevo slot para animación de Gravity Blast
 
 private:
@@ -75,6 +87,13 @@ private:
     bool animacionRayoActiva;
     int frameRayoActual;
     QTimer* timerRayo;
+
+    // Variables para animación de Kick
+    bool animacionKickActiva;
+    int frameKickActual;
+    QTimer* timerKick;
+    bool kickAlta;
+
     QPointF posicionInicialQuieto; // Guardar posición del sprite quieto // Posición exacta antes de empezar Rayo
 
     // Sistema de ki
