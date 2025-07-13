@@ -433,6 +433,7 @@ void game::manejarDerrotaPiccolo() {
 
         // Cambiar fondo
         cambiarFondo();
+        p->establecerCarpetaSprites("goku2");
 
 
         // Mostrar mensaje opcional

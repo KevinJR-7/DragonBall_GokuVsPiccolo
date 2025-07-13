@@ -10,9 +10,13 @@
 class BlastB : public Habilidad
 {
     Q_OBJECT
+
     
 public:
-    explicit BlastB(QObject *parent = nullptr);
+    //Cambiar fisica según nivel
+    enum TipoTrayectoria { LORENZ, ESPIRAL };
+
+    BlastB(QObject *parent = nullptr);
     virtual ~BlastB();
     
     // Implementación de métodos virtuales puros de Habilidad
@@ -41,6 +45,13 @@ public:
     void actualizarHitbox();
     QRectF obtenerHitbox() const;
     
+    // Cambio de nivel
+    void setCarpetaSprites(const QString& carpeta);
+    void setTipoTrayectoria(TipoTrayectoria tipo);
+    //Metodos auxiliares
+    void cargarSprites();
+
+
 private slots:
     void actualizarAnimacion();
     void actualizarFisica() override;
@@ -86,10 +97,16 @@ private:
     int maxPuntosTrayectoria; // Máximo número de puntos a guardar
     
     // Métodos auxiliares
-    void cargarSprites();
+
     void calcularSiguientePosicion();
     void actualizarAtractorLorenz();
     QPointF obtenerPosicionCaotica();
+
+    //Cambio de nivel
+    QString carpetaSprites = "goku";
+    TipoTrayectoria tipoTrayectoria = LORENZ;
+
+
 
 };
 

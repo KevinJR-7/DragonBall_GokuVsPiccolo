@@ -63,9 +63,14 @@
         <file>Sprites/goku/patada1.png</file>
         <file>Sprites/goku/patada2.png</file>
         <file>Sprites/goku/patada3.png</file>
-        <file>Sprites/goku/herido.png</file>
-    </qresource>
-    <qresource prefix="/Goku2">
+        <file>Sprites/goku/herido.png</file>       
+        <file>Sprites/goku/teleport1.png</file>
+        <file>Sprites/goku/teleport2.png</file>
+        <file>Sprites/goku/teleport3.png</file>
+        <file>Sprites/goku/teleport4.png</file>
+        <file>Sprites/goku/teleport5.png</file>
+        <file>Sprites/goku/teleport6.png</file>
+        <file>Sprites/goku/teleport7.png</file>
         <file>Sprites/goku2/adelante.png</file>
         <file>Sprites/goku2/atras.png</file>
         <file>Sprites/goku2/base1.png</file>
@@ -130,7 +135,15 @@
         <file>Sprites/goku2/patada2.png</file>
         <file>Sprites/goku2/patada3.png</file>
         <file>Sprites/goku2/herido.png</file>
+        <file>Sprites/goku2/teleport1.png</file>
+        <file>Sprites/goku2/teleport2.png</file>
+        <file>Sprites/goku2/teleport3.png</file>
+        <file>Sprites/goku2/teleport4.png</file>
+        <file>Sprites/goku2/teleport5.png</file>
+        <file>Sprites/goku2/teleport6.png</file>
+        <file>Sprites/goku2/teleport7.png</file>
     </qresource>
+
     <qresource prefix="/Fondos">
         <file>Sprites/gui_scenes/torneo.png</file>
         <file>Sprites/gui_scenes/torneo2.png</file>

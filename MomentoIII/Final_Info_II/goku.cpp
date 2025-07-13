@@ -671,8 +671,13 @@ void Goku::actualizarAnimacionRafaga()
     qDebug() << "Animación ráfaga frame:" << frameRafagaActual;
 }
 
+
+
+
+
 void Goku::lanzarBlastB()
 {
+
     int costoKi = 10; // Define el costo de ki para BlastB
     if (kiActual >= costoKi) {
         kiActual -= costoKi;
@@ -682,6 +687,21 @@ void Goku::lanzarBlastB()
 
         // Crear el proyectil BlastB
         BlastB* blastB = new BlastB(this);
+
+        // Pasar la carpeta actual de Goku (goku o goku2)
+        blastB->setCarpetaSprites(carpetaSprites);
+        blastB->cargarSprites();
+
+
+        // Cambiar tipo de trayectoria si es goku2
+        if (carpetaSprites == "goku2") {
+            blastB->setTipoTrayectoria(BlastB::ESPIRAL);  // Trayectoria especial para nivel 2
+            qDebug() << "BlastB con trayectoria espiral";
+        } else {
+            blastB->setTipoTrayectoria(BlastB::LORENZ);  // Trayectoria caótica (nivel 1)
+            qDebug() << "BlastB con trayectoria Lorenz";
+        }
+
 
         // Obtener la posición actual de Goku
         QPointF posicionGoku = pos();
