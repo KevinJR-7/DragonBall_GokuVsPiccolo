@@ -164,7 +164,7 @@ signals:
     void personajeMuerto(Personaje* personaje);
     void vidaCambiada(int vidaActual, int vidaMaxima);
     void personajeAtaco(Personaje* atacante);
-    void personajeAterrizo(); // Nueva señal para cuando el personaje aterriza
+    //void personajeAterrizo(); // Nueva señal para cuando el personaje aterriza
 };
 
 #endif // PERSONAJE_H

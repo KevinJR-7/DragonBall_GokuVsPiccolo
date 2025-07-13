@@ -466,7 +466,7 @@ void Personaje::actualizarSalto()
             cambiarSprite("base1");
 
             // Emitir señal de aterrizaje para verificar movimiento continuo
-            emit personajeAterrizo();
+            //emit personajeAterrizo();
 
             // Reiniciar animación idle si no se está moviendo
             if (!moviendose) {
