@@ -12,54 +12,54 @@ class Goku : public Personaje
 {
     Q_OBJECT
 public:
+    // Constructor
     Goku(QObject *parent = nullptr);
 
-    // Override para funciones de movimiento
+    // Override de funciones de movimiento
     void moverDerecha() override;
     void moverIzquierda() override;
     void moverArriba() override;
     void moverAbajo() override;
     void recibirDanio(int danio) override;
 
-    // Override para limpiar dirección horizontal en idle
+    // Override para iniciar la animación de idle
     void iniciarAnimacionIdle() override;
 
-    // Método para animación de entrada
-    void iniciarAnimacionEntrada();
-    bool estaEnAnimacionEntrada() const { return animacionEntradaActiva; }
+    // Método para iniciar la animación de entrada
+    void iniciarAnimacionEntrada() override;
 
-    // Métodos para recarga de ki
+    // Métodos para la recarga de ki
     void iniciarRecargaKi();
     void detenerRecargaKi();
     bool estaRecargandoKi() const { return animacionKiActiva; }
 
-    // Métodos para Kamehameha
+    // Métodos para el ataque "Kamehameha"
     void iniciarCargaKamehameha();
     void detenerCargaKamehameha();
-    void lanzarKamehameha(); // Nuevo método para lanzar el proyectil
+    void lanzarKamehameha();
     bool estaCargandoKamehameha() const { return animacionKamehamehaActiva; }
 
-    // Método para cambiar sprite de Kamehameha manteniendo posición fija
+    // Método para cambiar el sprite del Kamehameha manteniendo la posición fija
     void cambiarSpriteKamehamehaFijo(const QString& direccion);
 
-    // Métodos para ráfaga
+    // Métodos para la animación de ráfaga
     void iniciarAnimacionRafaga();
     void detenerAnimacionRafaga();
     bool estaEnAnimacionRafaga() const { return animacionRafagaActiva; }
 
-    // Método para lanzar BlastB
+    // Método para lanzar el proyectil "BlastB"
     void lanzarBlastB();
 
-    // Métodos para sistema de ki
+    // Métodos para el sistema de ki
     void establecerKi(int ki, int kiMax = 100);
     int obtenerKi() const { return kiActual; }
     int obtenerKiMaximo() const { return kiMaximo; }
     float obtenerPorcentajeKi() const { return (float)kiActual / kiMaximo * 100.0f; }
 
-    //Metodos para morir
+    // Override para el método de morir
     void morir() override;
 
-    // Animación de teletransportación
+    // Método para iniciar la animación de teletransportación
     void iniciarAnimacionTeleport();
 
     // Ataques cuerpo a cuerpo
@@ -68,82 +68,69 @@ public:
     void animarGolpe();
     void animarPatada();
 
-    //teleport
+    // Método para teletransportación
     void tp();
-
-
 
 protected:
 
 private slots:
-    void actualizarAnimacionEntrada();
+    // Slots para actualizar diversas animaciones y lógicas
+    void actualizarAnimacionEntrada() override;
     void actualizarAnimacionKi();
-    void recargarKi(); // Para incrementar el ki real
-    void actualizarAnimacionKamehameha(); // Para la animación de Kamehameha
-    void actualizarAnimacionRafaga(); // Para la animación de ráfaga
+    void recargarKi(); // Incrementa el ki real
+    void actualizarAnimacionKamehameha(); // Actualiza la animación del Kamehameha
+    void actualizarAnimacionRafaga(); // Actualiza la animación de ráfaga
 
 private:
-    QString ultimaDireccionHorizontal; // "adelante", "atras", o "" si no hay dirección horizontal
-
-    // Variables para animación de entrada
-    bool animacionEntradaActiva;
-    int frameEntradaActual;
-    QTimer* timerEntrada;
-
-    // Variables para animación de recarga de ki
+    // Variables para la animación de recarga de ki
     bool animacionKiActiva;
     int frameKiActual;
-    QTimer* timerKi;
-    QTimer* timerRecargaKi; // Timer para la recarga real de ki
-    QPointF posicionOriginalKi; // Posición exacta antes de empezar ki
+    QTimer* timerKi; // Temporizador para la animación visual del ki
+    QTimer* timerRecargaKi; // Temporizador para la recarga gradual del ki
+    QPointF posicionOriginalKi; // Posición guardada al iniciar la recarga de ki
 
-    // Variables para animación de Kamehameha
+    // Variables para la animación de Kamehameha
     bool animacionKamehamehaActiva;
     int frameKamehamehaActual;
-    QTimer* timerKamehameha;
-    QPointF posicionInicialQuieto; // Guardar posición del sprite quieto // Posición exacta antes de empezar Kamehameha
-    QPointF posicionFijaKamehameha; // Posición fija para mantener durante la animación
+    QTimer* timerKamehameha; // Temporizador para la animación del Kamehameha
+    QPointF posicionFijaKamehameha; // Posición para mantener fijo el personaje durante el Kamehameha
 
-    // Variables para animación de ráfaga
+    // Variables para la animación de ráfaga
     bool animacionRafagaActiva;
     int frameRafagaActual;
-    QTimer* timerRafaga;
+    QTimer* timerRafaga; // Temporizador para la animación de ráfaga
 
-    // Estados de animación de ki
+    // Estados de la animación de recarga de ki
     enum EstadoKi { INICIO, BUCLE, FINAL };
-    EstadoKi estadoKiActual;
-    int frameDentroEstado;
+    EstadoKi estadoKiActual; // Estado actual de la animación de ki
+    int frameDentroEstado; // Frame actual dentro del estado de ki
 
     // Sistema de ki
-    int kiActual;
-    int kiMaximo;
-    int velocidadRecargaKi; // ki por segundo
+    int velocidadRecargaKi; // Cantidad de ki recargada por segundo
 
-    // Offsets para sprites de ki (para alinearlos con el sprite quieto)
+    // Offsets para alinear los sprites de ki con el personaje
     qreal offsetKiX;
     qreal offsetKiY;
 
-    // Timer para la muerte
+    // Timer y frame para la animación de muerte
     int frameMuerteActual = 1;
     QTimer* timerMuerte;
 
-    // Timers golpes
+    // Variables y temporizadores para las animaciones de golpe y patada
     int frameGolpe = 0;
     int framePatada = 0;
     QTimer *timerGolpe = nullptr;
     QTimer *timerPatada = nullptr;
 
-    // Timers Teleport
-    void animarTp();
+    // Variables y temporizador para la animación de teletransportación
+    void animarTp(); // Método privado para la lógica de la animación de TP
     int frameTeleport = 1;
     QTimer *timerTeleport = nullptr;
     bool animacionTeleportActiva = false;
 
-
-
-
 signals:
-    void kiCambiado(int kiActual, int kiMaximo);
+    // Señal emitida cuando el ki de Goku cambia
+    void kiCambiado(int kiActual, int kiMaximo) override;
 };
 
 #endif // GOKU_H

@@ -1,7 +1,7 @@
 #include <QBrush>
 #include <QPixmap>
 #include <QPainter>
-#include <QDebug>
+#include <QDebug> // Consider removing if all qDebug are to be removed as per instructions
 
 #include "piccolo.h"
 #include "goku.h"
@@ -9,151 +9,148 @@
 Piccolo::Piccolo(QObject *parent)
     : Personaje(parent)
 {
+    // Inicialización de la fase del personaje
     fase = false;
 
-    transform.scale(-1, 1); // Refleja sobre el eje X
-    frameMaximo = 4; // Por defecto 4 frames de animación idle
+    // Configuración para reflejar el sprite
+    transform.scale(-1, 1);
+    // Establece el número máximo de frames para la animación idle
+    frameMaximo = 4;
 
-    // Inicializar dirección horizontal
+    // Inicializa la dirección horizontal
     ultimaDireccionHorizontal = "";
 
-    // Inicializar animación de entrada
+    // Inicializa y configura la animación de entrada
     animacionEntradaActiva = false;
     frameEntradaActual = 1;
     timerEntrada = new QTimer(this);
-    timerEntrada->setInterval(180); // 180ms por frame
+    timerEntrada->setInterval(180);
     connect(timerEntrada, &QTimer::timeout, this, &Piccolo::actualizarAnimacionEntrada);
 
-    // Inicializar animación de Rayo
+    // Inicializa y configura la animación de Rayo
     animacionRayoActiva = false;
     frameRayoActual = 1;
     timerRayo = new QTimer(this);
-    timerRayo->setInterval(150); // 120ms por frame de Rayo
+    timerRayo->setInterval(150);
     connect(timerRayo, &QTimer::timeout, this, &Piccolo::actualizarAnimacionRayo);
 
-    // Inicializar animación de Gravity Blast
+    // Inicializa y configura la animación de Gravity Blast
     animacionGravityBlastActiva = false;
     frameGravityBlastActual = 1;
     timerGravityBlast = new QTimer(this);
-    timerGravityBlast->setInterval(200); // Frecuencia de disparo (ej: cada 200ms)
+    timerGravityBlast->setInterval(200);
     connect(timerGravityBlast, &QTimer::timeout, this, &Piccolo::actualizarAnimacionGravityBlast);
 
-    // Inicializar animación de Kcik
+    // Inicializa y configura la animación de Kick
     animacionKickActiva = false;
     frameKickActual = 1;
     timerKick = new QTimer(this);
-    timerKick->setInterval(150); // 120ms por frame de Rayo
+    timerKick->setInterval(150);
     connect(timerKick, &QTimer::timeout, this, &Piccolo::actualizarAnimacionKick);
     kickAlta = true;
 
-    // Inicializar objetivo actual
+    // Inicializa el objetivo actual del personaje
     objetivoActual = nullptr;
 
-    // Configurar propiedades específicas de Piccolo
+    // Configura propiedades específicas del personaje Piccolo
     establecerNombre("Piccolo");
     establecerCarpetaSprites("piccolo");
-    establecerVida(70); // Piccolo tiene más vida
-    establecerVelocidad(10); // Piccolo es rápido
+    establecerVida(70);
+    establecerVelocidad(10);
 
-    // Configurar física del salto específica para Piccolo
-    establecerVelocidadSalto(65.0);      // Piccolo salta SÚPER alto (aumentado de 50 a 65)
-    establecerFisicaSalto(0.7, 0.03);    // Aún más ligero con menos resistencia
+    // Configura la física de salto específica de Piccolo
+    establecerVelocidadSalto(65.0);
+    establecerFisicaSalto(0.7, 0.03);
 
-    // Configurar hitbox específica para Piccolo - más delgada y hacia la izquierda
-    establecerHitbox(120, 160, 62, 68); // Hitbox: 20x40 (1/3 más delgada) con offset 12,25 (aún más a la izquierda)
+    // Configura la hitbox específica de Piccolo
+    establecerHitbox(120, 160, 62, 68);
 
-    // Configurar hitbox de salto - menos largo, más a la izquierda y más abajo
-    // establecerHitboxSalto(22, 20, 9, 20); // Hitbox de salto: más ancha (22), menos largo (20), más a la izquierda (9) y más abajo (20)
-
-    // Hacer a Piccolo invisible al inicio - solo aparecerá en la animación de entrada
+    // Hace a Piccolo invisible al inicio y programa su animación de entrada
     setVisible(false);
-    qDebug() << "Piccolo inicializado como invisible - aparecerá en 2 segundos";
 
-    // Programar la animación de entrada para después de 2 segundos
     QTimer::singleShot(2000, this, &Piccolo::iniciarAnimacionEntrada);
 }
 
+// Maneja el movimiento de Piccolo hacia la derecha
 void Piccolo::moverDerecha()
 {
-    // No permitir movimiento si es invisible, durante animación de entrada o recargando ki
+    // Bloquea el movimiento si es invisible, está en animación de entrada o recargando Ki
     if (!isVisible() || animacionGravityBlastActiva || animacionEntradaActiva) {
         return;
     }
 
-    qDebug() << "moverDerecha() - estaSaltando:" << estaSaltando() << "pos actual:" << this->pos().x();
     moviendose = true;
-    ultimaDireccionHorizontal = "adelante"; // Rastrear dirección horizontal
+    ultimaDireccionHorizontal = "adelante";
 
+    // Aplica movimiento horizontal durante el salto
     if (estaSaltando()) {
-        // Durante el salto, usar el sistema de movimiento horizontal
-        qreal velocidadSalto = velocidadMovimiento * 3; // 3x más rápido en el aire
-        qDebug() << "Aplicando movimiento horizontal durante salto:" << velocidadSalto;
+        qreal velocidadSalto = velocidadMovimiento * 3;
         aplicarMovimientoHorizontal(velocidadSalto);
     } else {
-        // Movimiento normal en el suelo
+        // Aplica movimiento normal en el suelo
         qreal posicionAnterior = this->pos().x();
         qreal nuevaX = posicionAnterior + velocidadMovimiento;
-        qDebug() << "Movimiento suelo: de" << posicionAnterior << "a" << nuevaX;
         QGraphicsPixmapItem::setPos(nuevaX, this->pos().y());
         animacionTimer->stop();
         cambiarSprite("atras");
     }
 
+    // Verifica límites y actualiza la visualización de la hitbox
     verificarLimitesPantalla(limitesEscena);
     actualizarVisualizacionHitbox();
 }
 
+// Maneja el movimiento de Piccolo hacia la izquierda
 void Piccolo::moverIzquierda()
 {
-    // No permitir movimiento si es invisible, durante animación de entrada o recargando ki
+    // Bloquea el movimiento si es invisible, está en animación de entrada o recargando Ki
     if (!isVisible() || animacionGravityBlastActiva || animacionEntradaActiva ) {
         return;
     }
 
-    qDebug() << "moverIzquierda() - estaSaltando:" << estaSaltando() << "pos actual:" << this->pos().x();
     moviendose = true;
-    ultimaDireccionHorizontal = "atras"; // Rastrear dirección horizontal
+    ultimaDireccionHorizontal = "atras";
 
+    // Aplica movimiento horizontal durante el salto
     if (estaSaltando()) {
-        // Durante el salto, usar el sistema de movimiento horizontal
-        qreal velocidadSalto = velocidadMovimiento * 3; // 3x más rápido en el aire
-        qDebug() << "Aplicando movimiento horizontal durante salto:" << -velocidadSalto;
+        qreal velocidadSalto = velocidadMovimiento * 3;
         aplicarMovimientoHorizontal(-velocidadSalto);
     } else {
-        // Movimiento normal en el suelo
+        // Aplica movimiento normal en el suelo
         qreal posicionAnterior = this->pos().x();
         qreal nuevaX = posicionAnterior - velocidadMovimiento;
-        qDebug() << "Movimiento suelo: de" << posicionAnterior << "a" << nuevaX;
         QGraphicsPixmapItem::setPos(nuevaX, this->pos().y());
         animacionTimer->stop();
         cambiarSprite("adelante");
     }
 
+    // Verifica límites y actualiza la visualización de la hitbox
     verificarLimitesPantalla(limitesEscena);
     actualizarVisualizacionHitbox();
 }
 
+// Maneja el movimiento de Piccolo hacia arriba
 void Piccolo::moverArriba()
 {
-    // No permitir movimiento si es invisible, durante animación de entrada o recargando ki
+    // Bloquea el movimiento si es invisible, está en animación de entrada o recargando Ki
     if (!isVisible() || animacionGravityBlastActiva || animacionEntradaActiva) {
         return;
     }
 
     moviendose = true;
 
-    // Solo detener animación idle si no está saltando
+    // Detiene la animación idle si no está saltando
     if (!estaSaltando()) {
-        animacionTimer->stop(); // Detener animación idle
+        animacionTimer->stop();
     }
 
+    // Actualiza la posición y verifica límites
     this->setPos(this->pos().x(), this->pos().y() - velocidadMovimiento);
-    verificarLimitesPantalla(limitesEscena); // Verificar límites después del movimiento
-    actualizarVisualizacionHitbox(); // Actualizar hitbox visual
+    verificarLimitesPantalla(limitesEscena);
+    actualizarVisualizacionHitbox();
 
-    // Solo cambiar sprite si no está saltando (mantener animación de salto)
+    // Cambia el sprite si no está saltando
     if (!estaSaltando()) {
-        // Usar la dirección horizontal si existe, sino "adelante" por defecto
         if (!ultimaDireccionHorizontal.isEmpty()) {
             cambiarSprite(ultimaDireccionHorizontal);
         } else {
@@ -162,27 +159,28 @@ void Piccolo::moverArriba()
     }
 }
 
+// Maneja el movimiento de Piccolo hacia abajo
 void Piccolo::moverAbajo()
 {
-    // No permitir movimiento si es invisible, durante animación de entrada o recargando ki
+    // Bloquea el movimiento si es invisible, está en animación de entrada o recargando Ki
     if (!isVisible() || animacionGravityBlastActiva || animacionEntradaActiva) {
         return;
     }
 
     moviendose = true;
 
-    // Solo detener animación idle si no está saltando
+    // Detiene la animación idle si no está saltando
     if (!estaSaltando()) {
-        animacionTimer->stop(); // Detener animación idle
+        animacionTimer->stop();
     }
 
+    // Actualiza la posición y verifica límites
     this->setPos(this->pos().x(), this->pos().y() + velocidadMovimiento);
-    verificarLimitesPantalla(limitesEscena); // Verificar límites después del movimiento
-    actualizarVisualizacionHitbox(); // Actualizar hitbox visual
+    verificarLimitesPantalla(limitesEscena);
+    actualizarVisualizacionHitbox();
 
-    // Solo cambiar sprite si no está saltando (mantener animación de salto)
+    // Cambia el sprite si no está saltando
     if (!estaSaltando()) {
-        // Usar la dirección horizontal si existe, sino "adelante" por defecto
         if (!ultimaDireccionHorizontal.isEmpty()) {
             cambiarSprite(ultimaDireccionHorizontal);
         } else {
@@ -191,96 +189,94 @@ void Piccolo::moverAbajo()
     }
 }
 
+// Realiza un ataque de patada
 void Piccolo::atacar()
 {
+    // Verifica si hay una escena de juego
     if (!scene()) {
-        qDebug() << "No hay escena de juego para lanzar Kick.";
         return;
     }
 
+    // Crea y configura un nuevo objeto Kick
     Kick* patada = new Kick(this);
     patada->establecerEscena(scene());
-    //patada->establecerObjetivo(targetToUse);
 
+    // Define la posición inicial de la patada según el tipo de patada
     QPointF posicionInicial;
     if(kickAlta) {posicionInicial = pos() + QPointF(-100, this->pixmap().height() * 3); }
     else{ posicionInicial = pos() + QPointF(-100, this->pixmap().height() * 4); }
 
+    // Inicia y añade la patada a la escena
     patada->iniciar(posicionInicial, QPointF(0,0));
     scene()->addItem(patada);
-
-    qDebug() << "Piccolo lanzó Kick hacia Goku.";
 }
 
+// Maneja el daño recibido por Piccolo
 void Piccolo::recibirDanio(int danio)
 {
+    // Reduce la vida si el personaje está vivo
     if (estaVivo()) {
         vida -= danio;
         if (vida < 0) vida = 0;
         emit vidaCambiada(vida, vidaMaxima);
 
-        // Cambia al sprite de daño
+        // Cambia al sprite de daño si el daño es mayor a 0 y no está en fase de transformación
         if(danio > 0 && !fase){
             cambiarSprite("herido");
-
         }
 
-        // Después de 200 ms, vuelve a la animación idle
+        // Vuelve a la animación idle después de un corto tiempo
         QTimer::singleShot(200, this, [this]() {
             iniciarAnimacionIdle();
         });
 
+        // Si la vida llega a 0, el personaje muere
         if (vida <= 0) {
             morir();
         }
     }
 }
 
+// Inicia la animación idle del personaje
 void Piccolo::iniciarAnimacionIdle()
 {
-    // Limpiar dirección horizontal al entrar en idle
+    // Limpia la dirección horizontal al entrar en idle
     ultimaDireccionHorizontal = "";
 
-    // Llamar al método de la clase padre
+    // Llama al método de la clase padre
     Personaje::iniciarAnimacionIdle();
 }
 
+// Actualiza los frames de la animación de entrada
 void Piccolo::actualizarAnimacionEntrada()
 {
     if (animacionEntradaActiva) {
         frameEntradaActual++;
 
+        // Muestra los sprites de entrada secuencialmente
         if (frameEntradaActual <= 4) {
-            // Mostrar entrada1, entrada2, entrada3, entrada 4 SIN cambiar posición
             QString rutaSprite = ":/Piccolo/Sprites/piccolo/entrada" + QString::number(frameEntradaActual) + ".png";
             QPixmap spriteEntrada(rutaSprite);
             if (!spriteEntrada.isNull()) {
                 spriteEntrada = spriteEntrada.transformed(transform);
                 setPixmap(spriteEntrada);
-                qDebug() << "Animación entrada - frame:" << frameEntradaActual << "posición mantenida:" << pos();
-            } else {
-                qDebug() << "Error: No se pudo cargar sprite entrada" << frameEntradaActual << "desde" << rutaSprite;
             }
         } else {
-            // Terminó la animación de entrada
-            qDebug() << "Animación de entrada completada";
+            // Finaliza la animación de entrada y cambia a idle
             timerEntrada->stop();
             animacionEntradaActiva = false;
-
-            // Cambiar a la animación idle normal
             iniciarAnimacionIdle();
         }
     }
 }
 
+// Inicia la secuencia de animación de entrada
 void Piccolo::iniciarAnimacionEntrada()
 {
-    qDebug() << "Iniciando animación de entrada de Piccolo después de 2 segundos";
-
-    // Hacer visible a Piccolo al comenzar la animación de entrada
+    // Hace a Piccolo visible al iniciar la animación
     setVisible(true);
 
-    // Detener la animación idle si está activa
+    // Detiene la animación idle si está activa
     if (animacionTimer && animacionTimer->isActive()) {
         animacionTimer->stop();
     }
@@ -288,37 +284,37 @@ void Piccolo::iniciarAnimacionEntrada()
     animacionEntradaActiva = true;
     frameEntradaActual = 1;
 
-    // Cargar el primer sprite de entrada SIN cambiar posición
+    // Carga el primer sprite de entrada
     QString rutaSprite = ":/Piccolo/Sprites/piccolo/entrada1.png";
     QPixmap spriteEntrada(rutaSprite);
     if (!spriteEntrada.isNull()) {
         spriteEntrada = spriteEntrada.transformed(transform);
         setPixmap(spriteEntrada);
-        qDebug() << "Sprite entrada1 cargado en posición:" << pos();
-    } else {
-        qDebug() << "Error: No se pudo cargar sprite entrada1 desde" << rutaSprite;
     }
 
-    // Iniciar el timer de entrada
+    // Inicia el timer de entrada
     timerEntrada->start();
 }
 
+// Actualiza la animación del personaje (principalmente idle)
 void Piccolo::actualizarAnimacion()
 {
+    // Solo actualiza la animación si no se está moviendo, saltando y está vivo
     if (!moviendose && !saltando && estaVivo()) {
-        // Ciclar entre los frames de la animación idle
+        // Cicla entre los frames de la animación idle
         frameActual++;
         if (frameActual > frameMaximo) {
             frameActual = 1;
         }
 
+        // Carga el sprite correspondiente a la fase actual
         QString rutaSprite;
         if(!fase){ rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/base" + QString::number(frameActual) + ".png"; }
         else{ rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/base_giga" + QString::number(frameActual) + ".png";; }
         QPixmap nuevoSprite(rutaSprite);
 
+        // Escala y transforma el sprite si es necesario
         if (!nuevoSprite.isNull()) {
-            // Escalar el sprite si es necesario
             if (escalaSprite != 1.0) {
                 nuevoSprite = nuevoSprite.scaled(
                     nuevoSprite.width() * escalaSprite,
@@ -330,257 +326,216 @@ void Piccolo::actualizarAnimacion()
             if(fase == false){ nuevoSprite = nuevoSprite.transformed(transform); }
 
             setPixmap(nuevoSprite);
-        } else {
-            qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
         }
     }
 }
 
+// Inicia la carga de la animación de Rayo
 void Piccolo::iniciarCargaRayo()
 {
-    // Verificar que no esté ya cargando Rayo
+    // Verifica si ya se está cargando Rayo o hay otra animación activa
     if (animacionRayoActiva || animacionGravityBlastActiva) {
-        qDebug() << "No se puede cargar Rayo - ya hay otra animación activa";
         return;
     }
 
-    qDebug() << "Piccolo inicia carga de Rayo";
-
-    // Guardar la posición actual del sprite quieto
+    // Guarda la posición actual
     posicionInicialQuieto = pos();
-    qDebug() << "Posición inicial de quieto guardada:" << posicionInicialQuieto;
 
-    // Detener otras animaciones
+    // Detiene otras animaciones
     if (animacionTimer && animacionTimer->isActive()) {
         animacionTimer->stop();
     }
 
     animacionRayoActiva = true;
-    frameRayoActual = 1; // Volver a empezar desde Rayo1
+    frameRayoActual = 1;
 
-    // Cargar el primer sprite de Rayo usando centrado automático
-    // cambiarSpriteCentrado("Rayo1");
+    // Cambia al primer sprite de Rayo
     cambiarSprite("rayo1");
 
-    // Iniciar el timer de Rayo
+    // Inicia el timer de Rayo
     timerRayo->start();
 }
 
+// Inicia la carga de la animación de Kick
 void Piccolo::iniciarCargaKick()
 {
-    // Verificar que no esté ya cargando Kick
+    // Verifica si ya se está cargando Kick
     if (animacionKickActiva) {
-        qDebug() << "No se puede cargar Kick - ya hay otra animación activa";
         return;
     }
 
-    qDebug() << "Piccolo inicia carga de Kick";
-
-    // Guardar la posición actual del sprite quieto
+    // Guarda la posición actual
     posicionInicialQuieto = pos();
-    qDebug() << "Posición inicial de quieto guardada:" << posicionInicialQuieto;
 
-    // Detener otras animaciones
+    // Detiene otras animaciones
     if (animacionTimer && animacionTimer->isActive()) {
         animacionTimer->stop();
     }
 
     animacionKickActiva = true;
-    frameKickActual = 1; // Volver a empezar desde Kick1
+    frameKickActual = 1;
 
-    // Cargar el primer sprite de Kick usando centrado automático
-    // cambiarSpriteCentrado("Kick1");
+    // Carga el primer sprite de Kick
     if(kickAlta){ cambiarSprite("kick_baja1"); }
     else{ cambiarSprite("kick_alta1"); }
 
-    // Iniciar el timer de Kick
+    // Inicia el timer de Kick
     timerKick->start();
-    qDebug() << "2";
 }
 
+// Detiene la carga de la animación de Rayo prematuramente
 void Piccolo::detenerCargaRayo()
 {
     if (animacionRayoActiva) {
-        qDebug() << "Piccolo detiene carga de Rayo prematuramente - frame actual:" << frameRayoActual;
-
-        // Solo detener la carga sin lanzar el proyectil
-        // El proyectil se lanza automáticamente al completar la animación
-
+        // Solo detiene la carga sin lanzar el proyectil
         animacionRayoActiva = false;
         timerRayo->stop();
 
-        // Cambiar al sprite quieto usando centrado automático
+        // Vuelve al sprite quieto y restaura la posición
         cambiarSpriteCentrado("quieto");
-
-        // Restaurar la posición inicial exacta del sprite quieto
         setPos(posicionInicialQuieto.x(), posicionInicialQuieto.y());
-        qDebug() << "Posición restaurada a la inicial de quieto:" << posicionInicialQuieto;
 
-        // Configurar estado idle
+        // Configura el estado idle
         moviendose = false;
         frameActual = 1;
         if (animacionTimer->isActive()) {
             animacionTimer->stop();
         }
-        qDebug() << "Carga de Rayo cancelada - volvió a idle";
     }
 }
 
+// Detiene la carga de la animación de Kick prematuramente
 void Piccolo::detenerCargaKick()
 {
     if (animacionKickActiva) {
-        qDebug() << "Piccolo detiene carga de Kick prematuramente - frame actual:" << frameKickActual;
-
-        // Solo detener la carga sin lanzar el proyectil
-        // El proyectil se lanza automáticamente al completar la animación
-
+        // Solo detiene la carga sin lanzar el proyectil
         animacionKickActiva = false;
         timerKick->stop();
 
-        // Cambiar al sprite quieto usando centrado automático
+        // Vuelve al sprite quieto y restaura la posición
         cambiarSpriteCentrado("quieto");
-
-        // Restaurar la posición inicial exacta del sprite quieto
         setPos(posicionInicialQuieto.x(), posicionInicialQuieto.y());
-        qDebug() << "Posición restaurada a la inicial de quieto:" << posicionInicialQuieto;
 
-        // Configurar estado idle
+        // Configura el estado idle
         moviendose = false;
         frameActual = 1;
         if (animacionTimer->isActive()) {
             animacionTimer->stop();
         }
-        qDebug() << "Carga de Kick cancelada - volvió a idle";
     }
 }
 
+// Actualiza los frames de la animación de Rayo
 void Piccolo::actualizarAnimacionRayo()
 {
     if (!animacionRayoActiva) return;
 
     frameRayoActual++;
 
+    // Muestra los sprites de Rayo secuencialmente
     if (frameRayoActual <= 6) {
-        // Mostrar Rayo1, Rayo2, ..., Rayo5 usando centrado automático
         QString spriteRayo = "rayo" + QString::number(frameRayoActual);
         cambiarSpriteCentrado(spriteRayo);
-        qDebug() << "Animación Rayo - frame:" << frameRayoActual;
     } else {
-        // Al llegar al frame 15, lanzar el Rayo automáticamente
-        qDebug() << "Rayo completamente cargado - lanzando automáticamente";
+        // Lanza el Rayo automáticamente al final de la animación
         lanzarRayo();
 
-        // Terminar la animación
+        // Termina la animación y vuelve al estado idle
         animacionRayoActiva = false;
         timerRayo->stop();
-
-        // Volver al sprite quieto
         cambiarSpriteCentrado("quieto");
         setPos(posicionInicialQuieto.x(), posicionInicialQuieto.y());
-
-        // Configurar estado idle
         moviendose = false;
         frameActual = 1;
         if (animacionTimer->isActive()) {
             animacionTimer->stop();
         }
-        qDebug() << "Animación Rayo terminada automáticamente";
     }
 }
 
+// Actualiza los frames de la animación de Kick
 void Piccolo::actualizarAnimacionKick()
 {
     if (!animacionKickActiva) return;
 
     frameKickActual++;
 
+    // Muestra los sprites de Kick secuencialmente
     if (frameKickActual <= 4) {
         QString spriteKick;
         if(kickAlta){ spriteKick = "kick_alta" + QString::number(frameKickActual); }
         else{ spriteKick = "kick_baja" + QString::number(frameKickActual); }
         cambiarSprite(spriteKick);
-        qDebug() << "Animación Kick - frame:" << frameKickActual;
     }
     else {
-        // Terminar la animación
+        // Termina la animación y vuelve al estado idle
         animacionKickActiva = false;
         timerKick->stop();
-
-        // Volver al sprite quieto
         cambiarSpriteCentrado("quieto");
         setPos(posicionInicialQuieto.x(), posicionInicialQuieto.y());
-
-        // Configurar estado idle
         moviendose = false;
         frameActual = 1;
         if (animacionTimer->isActive()) {
             animacionTimer->stop();
         }
-        qDebug() << "Animación Kick terminada automáticamente";
     }
+    // Lanza la patada en un frame específico de la animación
     if(frameKickActual == 3){
-        qDebug() << "Kick completamente cargado - lanzando automáticamente";
         atacar();
-        qDebug() << "1";
     }
 }
 
+// Lanza un proyectil de Rayo
 void Piccolo::lanzarRayo()
 {
-    qDebug() << "¡Lanzando Rayo!";
-
-    // Crear el proyectil Rayo
+    // Crea y configura el proyectil Rayo
     Rayo* rayo = new Rayo(this);
 
-    // Obtener la posición actual de Piccolo
+    // Obtiene la posición actual de Piccolo
     QPointF posicionPiccolo = pos();
 
-    // Calcular la posición de lanzamiento ajustada para Piccolo escalado 3.5x
-    // Posición original: 60x35
-    // Posición escalada: 210x140 (60*3.5 x 40*3.5) - bajado un poco más
-    float posX = posicionPiccolo.x() - 150; // Mucho más a la derecha para Piccolo 3.5x
-    float posY = posicionPiccolo.y() + 40; // Un poco más abajo que antes para mejor alineación
+    // Calcula la posición de lanzamiento ajustada para el Rayo
+    float posX = posicionPiccolo.x() - 150;
+    float posY = posicionPiccolo.y() + 40;
 
-    // Determinar dirección (hacia la derecha por defecto)
-    float direccionX = -1.0f; // Hacia la derecha
-    float direccionY = 0.0f; // Horizontal
+    // Define la dirección y propiedades del proyectil
+    float direccionX = -1.0f;
+    float direccionY = 0.0f;
+    float velocidad = 15.0f;
+    float alcance = 600.0f;
 
-    // Configurar el proyectil
-    float velocidad = 15.0f; // Velocidad del proyectil (más rápida)
-    float alcance = 600.0f;  // Alcance del proyectil
-
-    // Crear el proyectil
+    // Crea y añade el proyectil a la escena
     rayo->crear(posX, posY, direccionX, direccionY, velocidad, alcance);
-
-    // Agregar el proyectil a la escena
     if (scene()) {
         scene()->addItem(rayo);
-        qDebug() << "Rayo agregado a la escena en posición:" << posX << "," << posY;
-    } else {
-        qDebug() << "Error: No se pudo agregar Rayo a la escena (scene es null)";
     }
 }
 
+// Lanza un proyectil Gravity Blast hacia un objetivo
 void Piccolo::lanzarGravityBlast(Goku* gokuTarget)
 {
+    // Verifica si hay una escena de juego
     if (!scene()) {
-        qDebug() << "No hay escena de juego para lanzar GravityBlast.";
         return;
     }
 
+    // Determina el objetivo
     Goku* targetToUse = gokuTarget ? gokuTarget : objetivoActual;
 
+    // Verifica si hay un objetivo
     if (!targetToUse) {
-        qDebug() << "No hay objetivo Goku para lanzar GravityBlast.";
         return;
     }
 
+    // Crea y configura un nuevo Gravity Blast
     GravityBlast* blast = new GravityBlast(this);
     blast->establecerEscena(scene());
     blast->establecerObjetivo(targetToUse);
 
+    // Define la posición inicial del Gravity Blast
     QPointF posicionInicial = pos() + QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
 
+    // Define la dirección inicial basada en la última dirección horizontal
     QPointF direccionInicial(1.0, 0.0);
     if (ultimaDireccionHorizontal == "atras") {
         direccionInicial.setX(-1.0);
@@ -594,98 +549,89 @@ void Piccolo::lanzarGravityBlast(Goku* gokuTarget)
         }
     }
 
+    // Inicia y añade el Gravity Blast a la escena
     blast->iniciar(posicionInicial, direccionInicial);
     scene()->addItem(blast);
-
-    qDebug() << "Piccolo lanzó GravityBlast hacia Goku.";
 }
 
+// Establece el objetivo actual para Piccolo
 void Piccolo::establecerObjetivo(Goku* objetivo)
 {
     objetivoActual = objetivo;
-    qDebug() << "Piccolo: Objetivo establecido a Goku.";
 }
 
+// Inicia la carga del ataque Gravity Blast
 void Piccolo::iniciarCargaGravityBlast()
 {
+    // Verifica si ya se está cargando Gravity Blast o hay otra animación en curso
     if (animacionGravityBlastActiva) return;
     if (animacionRayoActiva || estaEnAnimacionEntrada()) {
-        qDebug() << "Piccolo: No se puede iniciar Gravity Blast. Otra acción en curso.";
         return;
     }
 
     animacionGravityBlastActiva = true;
     frameGravityBlastActual = 1;
     timerGravityBlast->start();
-    qDebug() << "Piccolo inició carga de Gravity Blast.";
 
+    // Lanza el primer Gravity Blast si hay un objetivo
     if (objetivoActual) {
         lanzarGravityBlast(objetivoActual);
-    } else {
-        qDebug() << "Piccolo: No hay objetivo para lanzar el primer Gravity Blast.";
     }
 }
 
+// Detiene la carga del ataque Gravity Blast
 void Piccolo::detenerCargaGravityBlast()
 {
     if (!animacionGravityBlastActiva) return;
 
     animacionGravityBlastActiva = false;
     timerGravityBlast->stop();
-    qDebug() << "Piccolo detuvo carga de Gravity Blast.";
 
+    // Vuelve al estado idle
     iniciarAnimacionIdle();
 }
 
+// Actualiza los frames y lanza Gravity Blasts continuamente
 void Piccolo::actualizarAnimacionGravityBlast()
 {
     if (!animacionGravityBlastActiva) return;
 
     frameGravityBlastActual++;
 
+    // Cicla los frames de la animación
     if (frameGravityBlastActual > 4) {
         frameGravityBlastActual = 1;
     }
 
-    // Puedes cambiar el sprite de Piccolo aquí si tienes una animación específica
-    // cambiarSprite(QString("gravity_blast_%1").arg(frameGravityBlastActual));
-
-    if (frameGravityBlastActual % 2 == 0) { // Ejemplo: Lanzar cada 2 frames
+    // Lanza un Gravity Blast periódicamente
+    if (frameGravityBlastActual % 2 == 0) {
         if (objetivoActual) {
             lanzarGravityBlast(objetivoActual);
-        } else {
-            qDebug() << "Piccolo: No hay objetivo para lanzar Gravity Blast continuo.";
         }
     }
     update();
 }
 
+// Alterna entre las dos fases de Piccolo
 void Piccolo::alternarFase()
 {
-    if (!fase) { // Si está en fase 1 (fase == false), cambia a fase 2
-        fase = true; // Establecer el booleano 'fase' a true
-        qDebug() << "Piccolo ha cambiado a Fase 2!";
-        // Cambiar el sprite a la nueva fase. Asume que tienes un sprite llamado "fase2_base1.png"
-        // Este sprite debe existir en la carpeta ":/Piccolo/Sprites/piccolo/"
+    // Cambia de fase 1 a fase 2
+    if (!fase) {
+        fase = true;
         cambiarSprite("base_giga1");
         setPos(pos().x()-470, pos().y() - 510);
-        // Opcionalmente, puedes ajustar otras propiedades como velocidad, vida, etc.
-        // establecerVelocidad(15);
-        // establecerVida(150);
-    } else { // Si está en fase 2 (fase == true), cambia a fase 1
-        fase = false; // Establecer el booleano 'fase' a false
-        qDebug() << "Piccolo ha vuelto a Fase 1!";
-        // Cambiar el sprite de vuelta a la fase 1. Asume que tu sprite base es "base1.png"
-        // Este sprite debe existir en la carpeta ":/Piccolo/Sprites/piccolo/"
+    } else {
+        // Cambia de fase 2 a fase 1
+        fase = false;
         cambiarSprite("base1");
         setPos(pos().x()+470, pos().y() + 510);
-        // Opcionalmente, puedes revertir otras propiedades como velocidad, vida, etc.
-        // establecerVelocidad(10);
-        // establecerVida(100);
     }
 }
+
+// Maneja la lógica de la muerte o transformación de Piccolo
 void Piccolo::morir()
 {
+    // Si no está en fase 2, se transforma
     if(!fase)
     {
         fase = true;
@@ -694,32 +640,35 @@ void Piccolo::morir()
         setScale(5.5);
         vida = vidaMaxima;
         recibirDanio(0);
-        //
     }
     else{
+        // Si ya está en fase 2, el personaje muere
         vida = 0;
         animacionTimer->stop();
         jumpTimer->stop();
         moviendose = false;
         saltando = false;
-        velocidadHorizontal = 0.0; // Limpiar velocidad horizontal
+        velocidadHorizontal = 0.0;
 
-        // Restaurar hitbox normal si estaba saltando
+        // Restaura la hitbox normal
         restaurarHitboxNormal();
 
+        // Emite señales de muerte y cambio de vida
         emit personajeMuerto(this);
         emit vidaCambiada(vida, vidaMaxima);
     }
 }
 
+// Cambia el sprite del personaje
 void Piccolo::cambiarSprite(const QString& direccion)
 {
+    // Construye la ruta del sprite
     QString rutaSprite;
     rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/" + direccion + ".png";
     QPixmap nuevoSprite(rutaSprite);
 
+    // Escala y transforma el sprite si es necesario
     if (!nuevoSprite.isNull()) {
-        // Escalar el sprite si es necesario
         if (escalaSprite != 1.0) {
             nuevoSprite = nuevoSprite.scaled(
                 nuevoSprite.width() * escalaSprite,
@@ -730,22 +679,22 @@ void Piccolo::cambiarSprite(const QString& direccion)
         }
         if(fase == false){ nuevoSprite = nuevoSprite.transformed(transform); }
         setPixmap(nuevoSprite);
-    } else {
-        qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
     }
 }
 
+// Cambia el sprite del personaje manteniendo su centro
 void Piccolo::cambiarSpriteCentrado(const QString& direccion)
 {
-    // Guardar la posición central actual
+    // Guarda la posición central actual
     QPointF centroActual = pos() + QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
 
+    // Construye la ruta del sprite
     QString rutaSprite;
     rutaSprite = ":/Piccolo/Sprites/" + carpetaSprites + "/" + direccion + ".png";
     QPixmap nuevoSprite(rutaSprite);
 
+    // Escala y transforma el sprite si es necesario
     if (!nuevoSprite.isNull()) {
-        // Escalar el sprite si es necesario
         if (escalaSprite != 1.0) {
             nuevoSprite = nuevoSprite.scaled(
                 nuevoSprite.width() * escalaSprite,
@@ -755,17 +704,12 @@ void Piccolo::cambiarSpriteCentrado(const QString& direccion)
                 );
         }
 
-        // Cambiar el sprite
+        // Cambia el sprite
         if(fase == false){ nuevoSprite = nuevoSprite.transformed(transform); }
-
         setPixmap(nuevoSprite);
 
-        // Calcular nueva posición para mantener el centro
+        // Calcula la nueva posición para mantener el centro
         QPointF nuevaPos = centroActual - QPointF(nuevoSprite.width() / 2.0, nuevoSprite.height() / 2.0);
         QGraphicsPixmapItem::setPos(nuevaPos);
-
-        qDebug() << "Sprite centrado cambiado a:" << direccion << "- Nueva pos:" << nuevaPos;
-    } else {
-        qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
     }
 }
