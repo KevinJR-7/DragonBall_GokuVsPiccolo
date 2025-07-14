@@ -7,7 +7,7 @@
 #include "personaje.h"
 #include "rayo.h"
 #include "gravityblast.h"
-#include "kick.h"
+
 
 class Piccolo : public Personaje
 {

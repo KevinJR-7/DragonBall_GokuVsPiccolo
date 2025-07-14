@@ -2,12 +2,11 @@
 #define GRAVITYBLAST_H
 
 #include "habilidad.h"
-#include "goku.h" // Necesario para acceder a Goku
+#include "goku.h"
 #include <QPixmap>
 #include <QTimer>
 #include <QPainter>
-#include <QList> // Necesario para QList
-#include <cmath>
+#include <QList>
 #include <QVector2D>
 
 class GravityBlast : public Habilidad
@@ -15,59 +14,62 @@ class GravityBlast : public Habilidad
     Q_OBJECT
 
 public:
+    // ==================== CONSTRUCTOR / DESTRUCTOR ====================
     explicit GravityBlast(QObject *parent = nullptr);
     ~GravityBlast();
 
-    // Implementación de métodos virtuales puros de Habilidad
+    // ==================== MÉTODOS DE HABILIDAD ====================
     void iniciar(QPointF posicionInicial, QPointF direccion) override;
-    void actualizar() override; // Aquí se implementará la gravedad
-    void actualizarFisica() override; // SOBRESCRIBIR para manejar el movimiento y colisiones
+    void actualizar() override;
+    void actualizarFisica() override;
     void detener() override;
-    void destruir(); // Nuevo método para la limpieza final
+    void destruir();
 
-    // Implementación de métodos virtuales puros de QGraphicsItem
+    // ==================== QGRAPHICSITEM ====================
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
-    // Método para establecer el objetivo (Goku)
+    // ==================== CONFIGURACIÓN ====================
     void establecerObjetivo(Goku* objetivo);
-
     static void alternarVisualizacionHitbox();
 
 private:
+    // ==================== SPRITES ====================
     QPixmap spriteActual;
-    QPixmap spriteGravityBlast1; // Sprites para animación
+    QPixmap spriteGravityBlast1;
     QPixmap spriteGravityBlast2;
     QPixmap spriteGravityBlast3;
     QPixmap spriteGravityBlast4;
 
+    // ==================== ANIMACIÓN ====================
     QTimer* timerAnimacion;
     int frameActual;
 
-    Goku* objetivoGoku; // Puntero al objeto Goku
-    qreal fuerzaGravitacional; // Fuerza de atracción hacia Goku
-    qreal velocidadMaxima; // Velocidad máxima del proyectil
-    QVector2D velocidadActual; // Velocidad actual del proyectil
-    QVector2D direccionMovimientoQVector; // Dirección actual como QVector2D
+    // ==================== FÍSICA ====================
+    Goku* objetivoGoku;
+    qreal fuerzaGravitacional;
+    qreal velocidadMaxima;
+    QVector2D velocidadActual;
+    QVector2D direccionMovimientoQVector;
 
-    // Variables del hitbox (inspirado en BlastB)
+    // ==================== HITBOX ====================
     QRectF hitbox;
-    int dano; // Daño de la habilidad
+    int dano;
     bool hitboxActivo;
-    QList<QGraphicsItem*> objetosGolpeados; // Para evitar múltiples hits del mismo objeto
+    QList<QGraphicsItem*> objetosGolpeados;
 
-    // Tiempo de vida
+    // ==================== TIEMPO DE VIDA ====================
     qreal tiempoVida;
     qreal tiempoMaximo;
     qreal dt;
 
+    // ==================== FUNCIONES INTERNAS ====================
     void cargarSprites();
     void actualizarAnimacion();
-    // Métodos para hitbox y colisiones
     void actualizarHitbox();
     void verificarColisiones();
 
-    // Variable estática para mostrar hitbox (controlada por tecla H)
+    // ==================== DEBUG ====================
     static bool mostrarHitbox;
 };
 

@@ -240,13 +240,12 @@ void game::keyPressEvent(QKeyEvent *e)
             pic->ocultarHitbox();
             Rayo::alternarVisualizacionHitbox();
             GravityBlast::alternarVisualizacionHitbox();
-            Kick::alternarVisualizacionHitbox();
+
             qDebug() << "Todos los hitboxes ocultos";
         } else {
             pic->mostrarHitbox();
             Rayo::alternarVisualizacionHitbox();
             GravityBlast::alternarVisualizacionHitbox();
-            Kick::alternarVisualizacionHitbox();
             qDebug() << "Todos los hitboxes visibles";
         }
         break;
