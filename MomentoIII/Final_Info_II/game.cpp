@@ -11,7 +11,6 @@
 #include <QApplication>
 #include <QRandomGenerator>
 
-
 game::game(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::game), fondoItem(nullptr), fondoActual(0)
 {
@@ -20,178 +19,163 @@ game::game(QWidget *parent)
     musicPlayer = new QMediaPlayer(this);
     audioOutput = new QAudioOutput(this);
     musicPlayer->setAudioOutput(audioOutput);
-    musicPlayer->setSource(QUrl("../../sonidos/nivel1.wav"));  // Ruta en tu .qrc
-    musicPlayer->setLoops(QMediaPlayer::Infinite);  // Para que se repita
+    musicPlayer->setSource(QUrl("../../sonidos/nivel1.wav"));
+    musicPlayer->setLoops(QMediaPlayer::Infinite);
     audioOutput->setVolume(1.0);
 
     musicPlayer->play();
 
-    qDebug() << "Estado del reproductor:" << musicPlayer->mediaStatus();
-    qDebug() << "Error del reproductor:" << musicPlayer->errorString();
-
     // Inicializar lista de fondos disponibles
     fondosDisponibles << ":/Fondos/Sprites/gui_scenes/torneo.png"
                       << ":/Fondos/Sprites/gui_scenes/torneo2.png";
-    
+
     view = new QGraphicsView(this);
     scene = new QGraphicsScene(this);
 
     view->setScene(scene);
-    
-    // Configurar la vista normalmente
+
+    // Configurar la vista
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     view->setDragMode(QGraphicsView::NoDrag);
-    
+
     // Hacer que la vista ocupe toda la ventana principal
     setCentralWidget(view);
-    
+
     // Eliminar barra de estado y menú
     statusBar()->setVisible(false);
     menuBar()->setVisible(false);
-    
-    // Ocultar todos los bordes y decoraciones de la ventana
+
+    // Ocultar bordes y decoraciones de la ventana
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     setAttribute(Qt::WA_TranslucentBackground, false);
     setWindowState(Qt::WindowNoState);
-    
-    // Eliminar todos los márgenes y bordes de la vista
+
+    // Eliminar márgenes y bordes de la vista
     view->setContentsMargins(0, 0, 0, 0);
     view->setFrameStyle(QFrame::NoFrame);
     view->setStyleSheet("QGraphicsView { border: none; margin: 0px; padding: 0px; }");
-    
-    // Eliminar barras de scroll para que no aparezcan
+
+    // Eliminar barras de scroll
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    
-    // Eliminar márgenes de la ventana principal también
+
+    // Eliminar márgenes de la ventana principal
     setContentsMargins(0, 0, 0, 0);
-    
-    // Configurar el fondo primero para obtener las dimensiones
+
+    // Configurar el fondo
     configurarFondo();
 
+    // Inicializar y posicionar a Goku
     p = new Goku();
     scene->addItem(p);
-    p->setPos(50, 250); // Mucho más a la izquierda (150→50) y mismo nivel arriba
-    
-    // Hacer Goku más grande (3.5x el tamaño original - 350%)
+    p->setPos(50, 250);
+
+    // Escalar a Goku
     p->setScale(3.5);
-    
+
+    // Inicializar y posicionar a Piccolo
     pic = new Piccolo();
     scene->addItem(pic);
     pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y);
 
-    // Hacer Piccolo más grande (3.5x el tamaño original - 350%)
+    // Escalar a Piccolo
     pic->setScale(3.5);
     pic->establecerObjetivo(p);
 
     // Sprite de la cara de Goku
     carapersonaje = new QGraphicsPixmapItem(QPixmap(":/Fondos/Sprites/gui_scenes/caragoku.png"));
     scene->addItem(carapersonaje);
-    carapersonaje->setPos(20, 10); // Fijo arriba a la izquierda
+    carapersonaje->setPos(20, 10);
 
-    // Barra de vida, a la derecha de la cara
+    // Barra de vida de Goku
     barraVida = new QGraphicsPixmapItem(QPixmap(":/Fondos/Sprites/gui_scenes/vida4.png"));
     scene->addItem(barraVida);
-    int offsetX = carapersonaje->pixmap().width() + 10; // 15 píxeles de espacio
+    int offsetX = carapersonaje->pixmap().width() + 10;
     barraVida->setPos(10 + offsetX, 10);
 
-    //Barra Ki
+    // Barra Ki de Goku
     barraKi = new QGraphicsPixmapItem(QPixmap(":/Fondos/Sprites/gui_scenes/kibar0.png"));
     scene->addItem(barraKi);
-    int offsetY = barraVida->pixmap().height() + 5; // Debajo de la barra de vida
+    int offsetY = barraVida->pixmap().height() + 5;
     barraKi->setPos(10 + offsetX, 10 + offsetY);
 
-    // Conectar signal de vida de Goku a la barra
+    // Conectar señal de vida de Goku a la barra
     connect(p, &Personaje::vidaCambiada, this, &game::actualizarBarraVida);
     connect(p, &Goku::personajeMuerto, this, &game::manejarDerrotaGoku);
 
-    // Conectar singal de ki de goku a la barra
+    // Conectar señal de ki de Goku a la barra
     connect(p, &Goku::kiCambiado, this, &game::actualizarBarraKi);
 
-    //
-    transform.scale(-1, 1); // Refleja sobre el eje X
+    // Configurar transformación para reflejar sprites de Piccolo
+    transform.scale(-1, 1);
     // Sprite de la cara de Piccolo
     carapersonaje2 = new QGraphicsPixmapItem(QPixmap(":/Fondos/Sprites/gui_scenes/carapic.png"));
     scene->addItem(carapersonaje2);
-    carapersonaje2->setPos(895, 10); // Fijo arriba a la izquierda
+    carapersonaje2->setPos(895, 10);
 
-    // Barra de vida, a la derecha de la cara
+    // Barra de vida de Piccolo
     barraVida2 = new QGraphicsPixmapItem((QPixmap(":/Fondos/Sprites/gui_scenes/vida4.png")).transformed(transform));
     scene->addItem(barraVida2);
-    int offsetX2 = (barraVida2->pixmap().width()); // 15 píxeles de espacio
+    int offsetX2 = (barraVida2->pixmap().width());
     barraVida2->setPos(895 - offsetX2, 10);
 
-    //Barra Ki
+    // Barra Ki de Piccolo
     barraKi2 = new QGraphicsPixmapItem((QPixmap(":/Fondos/Sprites/gui_scenes/kibar5.png")).transformed(transform));
     scene->addItem(barraKi2);
-    int offsetX3 = barraKi2->pixmap().width(); // Debajo de la barra de vida
-    int offsetY2 = barraVida2->pixmap().height() + 5; // Debajo de la barra de vida
+    int offsetX3 = barraKi2->pixmap().width();
+    int offsetY2 = barraVida2->pixmap().height() + 5;
     barraKi2->setPos(895 - offsetX3, 10 + offsetY2);
 
-    // Conectar signal de vida de Piccolo a la barra
+    // Conectar señal de vida de Piccolo a la barra
     connect(pic, &Personaje::vidaCambiada, this, &game::actualizarBarraVida2);
-    
-    // Configurar timer para movimiento continuo
+
+    // Configurar timer para movimiento continuo de Goku
     movimientoTimer = new QTimer(this);
-    movimientoTimer->setInterval(50); // 20 FPS para movimiento suave
+    movimientoTimer->setInterval(50);
     connect(movimientoTimer, &QTimer::timeout, this, &game::actualizarMovimiento);
-    // No iniciar automáticamente, solo cuando sea necesario
 
-    // Configurar timer para movimiento Piccolo
-    // piccoloMovTimer = new QTimer(this);
-    // piccoloMovTimer->setInterval(50); // 20 FPS para movimiento suave
-    // connect(piccoloMovTimer, &QTimer::timeout, this, &game::piccoloActualizarMovimiento);
-    //piccoloMovTimer->start();
-
+    // Inicializar contador de Piccolo
     cntPiccolo = 0;
 
+    // Configurar timer para el movimiento de la IA de Piccolo
     piccoloIATimer = new QTimer(this);
     piccoloIATimer->setInterval(25);
     connect(piccoloIATimer, &QTimer::timeout, this, &game::piccoloActualizarMovimiento);
     piccoloIATimer->start();
 
-    // Configurar límites de escena para las colisiones
-    QRectF limitesJuego = scene->sceneRect(); // Usar exactamente los límites de la escena
+    // Configurar límites de la escena para las colisiones
+    QRectF limitesJuego = scene->sceneRect();
     p->establecerLimitesEscena(limitesJuego);
-    
-    // Opcional: Escalar Goku (1.5 = 150% del tamaño original)
-    // p->establecerEscala(1.5);
 
-    // Agregar grilla temporal para debug de posicionamiento
-    agregarGrillaDebug();
-    
-    // Opcional: Iniciar maximizado
-    // showMaximized();
 }
 
 game::~game()
 {
-    // Limpiar fondo
+    // Limpiar el item de fondo
     if (fondoItem) {
         scene->removeItem(fondoItem);
         delete fondoItem;
         fondoItem = nullptr;
     }
-    
+
     delete ui;
 }
 
+// Maneja los eventos de presión de teclas para el control de Goku y acciones de juego
 void game::keyPressEvent(QKeyEvent *e)
 {
     if (e->isAutoRepeat()) return;
 
-    // Si Goku está cargando ki, ignorar otras acciones excepto soltar la carga (por ejemplo, tecla K)
+    // Si Goku está cargando ki, ignorar otras acciones excepto soltar la carga
     if (p->estaRecargandoKi()) {
-        // Permitir solo la tecla K (para detener la carga)
         if (e->key() != Qt::Key_K) {
             return;
         }
     }
 
-
     switch (e->key()) {
-    // --- Movimiento ---
+    // Control de movimiento de Goku
     case Qt::Key_D:
         teclaD_presionada = true;
         if (!movimientoTimer->isActive()) movimientoTimer->start();
@@ -209,7 +193,7 @@ void game::keyPressEvent(QKeyEvent *e)
         if (!movimientoTimer->isActive()) movimientoTimer->start();
         break;
 
-    // --- Ataques cuerpo a cuerpo ---
+        // Ataques cuerpo a cuerpo de Goku
     case Qt::Key_X:
         p->golpear();
         break;
@@ -217,16 +201,16 @@ void game::keyPressEvent(QKeyEvent *e)
         p->patear();
         break;
 
-    // --- Salto direccional ---
+        // Salto direccional de Goku
     case Qt::Key_Space:
         if (!p->estaSaltando() && p->isVisible() && !p->estaEnAnimacionEntrada() && !p->estaRecargandoKi() && !p->estaCargandoKamehameha()) {
             saltoDireccional();
         }
         break;
 
-    // --- Visualización y debug ---
+        // Opciones de visualización y depuración
     case Qt::Key_H:
-        // Alternar hitboxes
+        // Alternar visualización de hitboxes
         if (p->estaHitboxVisible()) {
             p->ocultarHitbox();
             Kamehameha::alternarVisualizacionHitbox();
@@ -241,29 +225,24 @@ void game::keyPressEvent(QKeyEvent *e)
             Rayo::alternarVisualizacionHitbox();
             GravityBlast::alternarVisualizacionHitbox();
             Kick::alternarVisualizacionHitbox();
-            qDebug() << "Todos los hitboxes ocultos";
         } else {
             pic->mostrarHitbox();
             Rayo::alternarVisualizacionHitbox();
             GravityBlast::alternarVisualizacionHitbox();
             Kick::alternarVisualizacionHitbox();
-            qDebug() << "Todos los hitboxes visibles";
         }
-        break;
-    case Qt::Key_G:
-        alternarGrillaDebug();
         break;
     case Qt::Key_B:
         cambiarFondo();
         break;
 
-    // --- Pantalla completa ---
+        // Alternar pantalla completa
     case Qt::Key_F11:
         if (isFullScreen()) showNormal();
         else showFullScreen();
         break;
 
-    // --- Ki y poderes ---
+        // Habilidades de Ki y poderes de Goku
     case Qt::Key_K:
         if (!teclaK_presionada && !p->estaRecargandoKi()) {
             teclaK_presionada = true;
@@ -286,22 +265,16 @@ void game::keyPressEvent(QKeyEvent *e)
     case Qt::Key_T:
         p->tp();
         break;
-
-    // --- Pruebas ---
-    case Qt::Key_Z:
-        // if (!piccoloK_presionada) {
-        //     piccoloK_presionada = true;
-        //     qDebug() << "5";
-        // }
-        break;
     }
 }
+
+// Maneja los eventos de liberación de teclas
 void game::keyReleaseEvent(QKeyEvent *e)
 {
     if (e->isAutoRepeat()) return;
 
     switch (e->key()) {
-    // --- Movimiento ---
+    // Detener movimiento de Goku
     case Qt::Key_D:
         teclaD_presionada = false;
         break;
@@ -315,7 +288,7 @@ void game::keyReleaseEvent(QKeyEvent *e)
         teclaS_presionada = false;
         break;
 
-    // --- Ki y poderes ---
+        // Detener carga de Ki y poderes de Goku
     case Qt::Key_K:
         if (teclaK_presionada) {
             teclaK_presionada = false;
@@ -334,17 +307,9 @@ void game::keyReleaseEvent(QKeyEvent *e)
             p->detenerAnimacionRafaga();
         }
         break;
-
-    // --- Pruebas ---
-    case Qt::Key_Z:
-        // piccoloK_presionada = false;
-        // // pic->detenerCargaKick();
-        // // pic->atacar();
-        // qDebug() << "Z";
-        break;
     }
 
-    // --- Detener movimiento e iniciar idle si no hay teclas de movimiento presionadas ---
+    // Detener movimiento e iniciar animación de idle si no hay teclas de movimiento presionadas
     if (!teclaD_presionada && !teclaA_presionada && !teclaW_presionada && !teclaS_presionada) {
         movimientoTimer->stop();
         if (!p->estaSaltando()) {
@@ -352,57 +317,41 @@ void game::keyReleaseEvent(QKeyEvent *e)
         }
     }
 }
+
+// Calcula y ejecuta un salto direccional para Goku basado en las teclas de movimiento presionadas
 void game::saltoDireccional()
 {
-    // Configurar velocidad horizontal inicial del salto según las teclas presionadas
     qreal velocidadHorizontalInicial = 0.0;
-    qreal velocidadSaltoVertical = 65.0; // Velocidad de salto normal aumentada
-    
+    qreal velocidadSaltoVertical = 65.0;
+
     if (teclaD_presionada) {
-        velocidadHorizontalInicial += 40.0; // Velocidad horizontal aumentada hacia la derecha
-        qDebug() << "Salto parabólico hacia la DERECHA";
+        velocidadHorizontalInicial += 40.0;
     }
-    
+
     if (teclaA_presionada) {
-        velocidadHorizontalInicial -= 40.0; // Velocidad horizontal aumentada hacia la izquierda
-        qDebug() << "Salto parabólico hacia la IZQUIERDA";
+        velocidadHorizontalInicial -= 40.0;
     }
-    
+
     if (teclaW_presionada) {
-        velocidadSaltoVertical = 85.0; // Súper salto vertical aumentado
-        qDebug() << "Súper salto vertical";
+        velocidadSaltoVertical = 85.0;
     }
-    
+
     if (teclaS_presionada) {
-        velocidadSaltoVertical = 45.0; // Salto corto aumentado
-        qDebug() << "Salto corto";
+        velocidadSaltoVertical = 45.0;
     }
-    
-    // Configurar las velocidades antes de iniciar el salto
+
+    // Configurar velocidades antes de iniciar el salto
     p->establecerVelocidadSalto(velocidadSaltoVertical);
     p->establecerVelocidadHorizontalSalto(velocidadHorizontalInicial);
-    
-    // Iniciar el salto con las velocidades configuradas
+
+    // Iniciar el salto
     p->saltar();
-    
-    // Debug información del salto
-    if (velocidadHorizontalInicial != 0.0) {
-        qDebug() << "Salto parabólico iniciado - velV:" << velocidadSaltoVertical << "velH:" << velocidadHorizontalInicial;
-    } else {
-        qDebug() << "Salto vertical iniciado - vel:" << velocidadSaltoVertical;
-    }
 }
 
+// Actualiza el movimiento continuo de Goku basado en las teclas de movimiento presionadas
 void game::actualizarMovimiento()
 {
-    // Debug para ver si el timer está funcionando (reducido)
-    static int debugCounter = 0;
-    if (debugCounter % 60 == 0) { // Debug cada 60 frames (1 segundo aprox)
-        qDebug() << "actualizarMovimiento() - D:" << teclaD_presionada << "A:" << teclaA_presionada << "saltando:" << p->estaSaltando();
-    }
-    debugCounter++;
-    
-    // Solo aplicar movimiento si no está saltando
+    // Solo aplicar movimiento si Goku no está saltando
     if (!p->estaSaltando()) {
         if (teclaD_presionada) {
             p->moverDerecha();
@@ -417,15 +366,15 @@ void game::actualizarMovimiento()
             p->moverAbajo();
         }
     }
-
 }
 
-
+// Actualiza la barra de vida de Goku según su vida actual
 void game::actualizarBarraVida(int vidaActual, int vidaMaxima) {
     vidaActual = ((vidaActual * 4) + vidaMaxima -1) / vidaMaxima;
     barraVida->setPixmap(QPixmap(QString(":/Fondos/Sprites/gui_scenes/vida%1.png").arg(vidaActual)));
 }
 
+// Actualiza la barra de vida de Piccolo según su vida actual y maneja su derrota
 void game::actualizarBarraVida2(int vidaActual, int vidaMaxima) {
     if (vidaActual <= 0 && !piccoloDerrotado) {
         piccoloDerrotado = true;
@@ -442,24 +391,24 @@ void game::actualizarBarraVida2(int vidaActual, int vidaMaxima) {
     cntPiccolo -= 3;
 }
 
+// Actualiza la barra de Ki de Goku según su Ki actual
 void game::actualizarBarraKi(int kiActual, int /*kiMaximo*/) {
-    int spriteIndex = kiActual / 20; // 0-19:0, 20-39:1, ..., 100:5
+    int spriteIndex = kiActual / 20;
     if (spriteIndex > 5) spriteIndex = 5;
     barraKi->setPixmap(QPixmap(QString(":/Fondos/Sprites/gui_scenes/kibar%1.png").arg(spriteIndex)));
 }
 
-
-// <<<<<<<<<<<< FINALIZACION DE JUEGO >>>>>>>>>>>>>>>>>>>>
-
+// Maneja la derrota de Goku, detiene el juego y muestra una pantalla de Game Over
 void game::manejarDerrotaGoku()
 {
-    qDebug() << "¡Goku ha muerto! Fin del juego.";
-
+    // Detener timers de movimiento
     movimientoTimer->stop();
     piccoloIATimer->stop();
 
-    if (p) p->setVisible(false); // o scene()->removeItem(p);
+    // Ocultar a Goku
+    if (p) p->setVisible(false);
 
+    // Crear un overlay negro para el efecto de fade-out
     QGraphicsRectItem* overlayNegro = new QGraphicsRectItem();
     overlayNegro->setRect(0, 0, scene->width(), scene->height());
     overlayNegro->setBrush(QBrush(Qt::black));
@@ -467,6 +416,7 @@ void game::manejarDerrotaGoku()
     overlayNegro->setOpacity(0.0);
     scene->addItem(overlayNegro);
 
+    // Timer para el efecto de fade-out
     QTimer* timerFade = new QTimer(this);
     int* alphaStep = new int(0);
     connect(timerFade, &QTimer::timeout, this, [=]() mutable {
@@ -474,38 +424,33 @@ void game::manejarDerrotaGoku()
         overlayNegro->setOpacity(opacidad);
         (*alphaStep)++;
 
+        // Cuando el fade-out termina, salir de la aplicación
         if (*alphaStep > 20) {
             timerFade->stop();
             delete timerFade;
             delete alphaStep;
-
-            // Final del juego (puedes mostrar una escena de Game Over o cerrar)
-            qDebug() << "GAME OVER. Cerrando juego...";
-            QApplication::quit();  // o reemplaza con otra acción
+            QApplication::quit();
         }
     });
 
     timerFade->start(50);
 }
 
-// <<<<<<<<<<<< IMPLEMENTACIÓN DE LOS CAMBIOS DE NIVEL>>>>>>>>>>>>>>><
-
+// Maneja la derrota de Piccolo y la transición entre niveles
 void game::manejarDerrotaPiccolo()
 {
     if (nivelActual == 1) {
-        qDebug() << "Transición a nivel 2 iniciada...";
-
-        // Crear overlay negro encima de todo
+        // Crear overlay negro para el efecto de fade-out
         QGraphicsRectItem* overlayNegro = new QGraphicsRectItem();
         overlayNegro->setRect(0, 0, scene->width(), scene->height());
         overlayNegro->setBrush(QBrush(Qt::black));
-        overlayNegro->setZValue(999); // Muy arriba
+        overlayNegro->setZValue(999);
         overlayNegro->setOpacity(0.0);
         scene->addItem(overlayNegro);
 
-        // Timer para hacer el fade-out (oscurecer)
+        // Timer para el efecto de fade-out
         QTimer* timerFade = new QTimer(this);
-        int* alphaStep = new int(0);  // para modificar dentro del lambda
+        int* alphaStep = new int(0);
 
         connect(timerFade, &QTimer::timeout, this, [=]() mutable {
             float opacidad = *alphaStep / 20.0f;
@@ -517,22 +462,18 @@ void game::manejarDerrotaPiccolo()
                 delete timerFade;
                 delete alphaStep;
 
-                //Aquí ocurre el cambio de nivel después del fade
-
+                // Cambiar a nivel 2
                 nivelActual = 2;
-
                 cambiarFondo();
                 p->establecerCarpetaSprites("goku2");
 
+                // Cambiar música
                 musicPlayer->stop();
                 musicPlayer->setSource(QUrl("../../sonidos/nivel2.wav"));
                 musicPlayer->play();
 
-
-                qDebug() << "¡Nivel 2 comenzado!";
-
-                // (Opcional) fade-in de nuevo
-                int* fadeInStep = new int(20); // empieza opaco
+                // Efecto de fade-in
+                int* fadeInStep = new int(20);
                 QTimer* timerFadeIn = new QTimer();
 
                 connect(timerFadeIn, &QTimer::timeout, this, [=]() mutable {
@@ -546,23 +487,21 @@ void game::manejarDerrotaPiccolo()
                         delete overlayNegro;
                         delete timerFadeIn;
                         delete fadeInStep;
-                        qDebug() << "Transición de nivel completada";
                     }
                 });
 
-                timerFadeIn->start(50);  // 50ms entre pasos
+                timerFadeIn->start(50);
             }
         });
 
-        timerFade->start(50);  // 50ms entre pasos
+        timerFade->start(50);
     }
     else {
-        // Juego terminado
-        qDebug() << "¡Ganaste el juego!";
-
+        // Manejar fin del juego (victoria)
         movimientoTimer->stop();
         piccoloIATimer->stop();
 
+        // Crear overlay negro para el efecto de fade-out
         QGraphicsRectItem* overlayNegro = new QGraphicsRectItem();
         overlayNegro->setRect(0, 0, scene->width(), scene->height());
         overlayNegro->setBrush(QBrush(Qt::black));
@@ -570,6 +509,7 @@ void game::manejarDerrotaPiccolo()
         overlayNegro->setOpacity(0.0);
         scene->addItem(overlayNegro);
 
+        // Timer para el efecto de fade-out
         QTimer* timerFade = new QTimer(this);
         int* alphaStep = new int(0);
         connect(timerFade, &QTimer::timeout, this, [=]() mutable {
@@ -577,12 +517,12 @@ void game::manejarDerrotaPiccolo()
             overlayNegro->setOpacity(opacidad);
             (*alphaStep)++;
 
+            // Cuando el fade-out termina, salir de la aplicación
             if (*alphaStep > 20) {
                 timerFade->stop();
                 delete timerFade;
                 delete alphaStep;
-
-                QApplication::quit();  // o reemplaza con otra acción
+                QApplication::quit();
             }
         });
 
@@ -590,318 +530,309 @@ void game::manejarDerrotaPiccolo()
     }
 }
 
-
-
+// Implementa la lógica de movimiento y ataque de la IA de Piccolo
 void game::piccoloActualizarMovimiento()
 {
-    // Debug para ver si el timer está funcionando
-    qDebug() << "piccoloActualizarMovimiento() llamado - D:" << teclaD_presionada << "A:" << teclaA_presionada << "saltando:" << p->estaSaltando();
-
-    // Código para hacer los cambios de movimiento de Piccolo
+    // Lógica para los movimientos y ataques de Piccolo
     switch (cntPiccolo) {
-    case 10: // Inicia con animación idle
+    case 10:
         pic->iniciarAnimacionIdle();
         break;
-    // --- Fase 1: Vida > 75% ---
-    case 160: // Inicia movimiento: Adelante-izquierda (Diagonal, DURACIÓN NORMAL)
+    // Fase 1: Movimientos y ataques de Piccolo
+    case 160:
         if (!pic->getFase()) {
-            piccoloA_presionada = true; // Diagonal izquierda
-            piccoloW_presionada = true; // Adelante (diagonal)
+            piccoloA_presionada = true;
+            piccoloW_presionada = true;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 170: // Detiene movimiento 'W' y 'A' después de 10 ticks (duración normal)
+    case 170:
         if (!pic->getFase()) {
             piccoloW_presionada = false;
             piccoloA_presionada = false;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 171: // NUEVO: Pausa de 10 ticks después de un movimiento
+    case 171:
         if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 181: // Inicia movimiento D (¡DURACIÓN DOBLE!) - Ajustado para la pausa
+    case 181:
         if (!pic->getFase()) {
-            piccoloD_presionada = true; // Derecha (movimiento lateral largo)
+            piccoloD_presionada = true;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 201: // Detiene movimiento D después de 20 ticks (duración doble)
+    case 201:
         if (!pic->getFase()) {
             piccoloD_presionada = false;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 202: // NUEVO: Pausa de 10 ticks después de un movimiento
+    case 202:
         if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    // --- REEMPLAZO: Ataque rápido de 1 tick (Gravity Blast) ---
-    case 212: // **NUEVO ATAQUE RÁPIDO: Inicia Gravity Blast (1 tick)** - Ajustado para la pausa
+    case 212:
         if (!pic->getFase()) {
-            piccoloL_presionada = true; // Inicia el ataque de 1 tick
+            piccoloL_presionada = true;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 213: // **NUEVO ATAQUE RÁPIDO: Detiene Gravity Blast (1 tick después)**
+    case 213:
         if (!pic->getFase()) {
             piccoloL_presionada = false;
-            pic->detenerCargaGravityBlast(); // Detiene la carga del Gravity Blast
-            pic->iniciarAnimacionIdle(); // Vuelve a idle inmediatamente
+            pic->detenerCargaGravityBlast();
+            pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    // --- FIN REEMPLAZO ---
-    case 214: // NUEVO: Pausa de 10 ticks después del ataque rápido
+    case 214:
         if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 224: // Inicia S+A (Atrás-izquierda, Diagonal, DURACIÓN NORMAL) - Ajustado para la pausa
+    case 224:
         if (!pic->getFase()) {
-            piccoloA_presionada = true; // Diagonal atrás izquierda
-            piccoloS_presionada = true; // Atrás (diagonal)
+            piccoloA_presionada = true;
+            piccoloS_presionada = true;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 234: // Detiene movimiento 'S' y 'A' después de 10 ticks (duración normal)
+    case 234:
         if (!pic->getFase()) {
             piccoloS_presionada = false;
             piccoloA_presionada = false;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 235: // Llama a idle después de un movimiento
+    case 235:
         if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 245: // Inicia movimiento D (¡DURACIÓN DOBLE!) - Ajustado para la pausa
+    case 245:
         if (!pic->getFase()) {
-            piccoloD_presionada = true; // Movimiento lateral largo derecha
+            piccoloD_presionada = true;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 265: // Detiene movimiento D después de 20 ticks (duración doble)
+    case 265:
         if (!pic->getFase()) {
             piccoloD_presionada = false;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 266: // NUEVO: Pausa de 10 ticks después de un movimiento
+    case 266:
         if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 276: // Ataque al nivel del suelo (Inicia ataque - Ajustado por +20 +10)
+    case 276:
         if (!pic->getFase()) {
-            piccoloJ_presionada = true; // Ataque
+            piccoloJ_presionada = true;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 312: // Detiene ataque (36 ticks después de 276)
+    case 312:
         if (!pic->getFase()) {
             piccoloJ_presionada = false;
             pic->detenerCargaRayo();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 313: // Llama a idle después de un ataque
+    case 313:
         if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 314: // NUEVO: Pausa de 10 ticks después de un ataque
+    case 314:
         if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 324: // Inicia movimiento recto W (DURACIÓN NORMAL) - Ajustado para la pausa
+    case 324:
         if (!pic->getFase()) {
-            piccoloW_presionada = true; // Adelante (movimiento recto)
+            piccoloW_presionada = true;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 334: // Detiene movimiento 'W' después de 10 ticks (duración normal)
+    case 334:
         if (!pic->getFase()) {
             piccoloW_presionada = false;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 335: // Llama a idle después de un movimiento
+    case 335:
         if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 345: // Nuevo inicio de ataque - Ajustado para la pausa
+    case 345:
         if (!pic->getFase()) {
-            piccoloJ_presionada = true; // Ataque
+            piccoloJ_presionada = true;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 381: // Detiene ataque (36 ticks después de 345)
+    case 381:
         if (!pic->getFase()) {
             piccoloJ_presionada = false;
             pic->detenerCargaRayo();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 382: // Llama a idle después de un ataque
+    case 382:
         if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 383: // NUEVO: Pausa de 10 ticks después de un ataque
+    case 383:
         if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 393: // Inicia S+D después del ataque (Diagonal, DURACIÓN NORMAL) - Ajustado para la pausa
+    case 393:
         if (!pic->getFase()) {
-            piccoloS_presionada = true; // Atrás
-            piccoloD_presionada = true; // Diagonal atrás derecha
+            piccoloS_presionada = true;
+            piccoloD_presionada = true;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 403: // Detiene movimiento 'S' y 'D' después de 10 ticks (duración normal)
+    case 403:
         if (!pic->getFase()) {
             piccoloS_presionada = false;
             piccoloD_presionada = false;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 404: // Llama a idle después de un movimiento
+    case 404:
         if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 414: // NUEVO: Inicia movimiento A (¡DURACIÓN DOBLE!) - Ajustado para la pausa
+    case 414:
         if (!pic->getFase()) {
-            piccoloA_presionada = true; // Izquierda (movimiento atravesado)
+            piccoloA_presionada = true;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 434: // NUEVO: Detiene movimiento A después de 20 ticks
+    case 434:
         if (!pic->getFase()) {
             piccoloA_presionada = false;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 435: // NUEVO: Pausa de 10 ticks después de un movimiento
+    case 435:
         if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 445: // NUEVO: Ataque atravesado (J) - Ajustado para la pausa
+    case 445:
         if (!pic->getFase()) {
-            piccoloJ_presionada = true; // Ataque
+            piccoloJ_presionada = true;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 481: // NUEVO: Detiene ataque (36 ticks después de 445)
+    case 481:
         if (!pic->getFase()) {
             piccoloJ_presionada = false;
             pic->detenerCargaRayo();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 482: // NUEVO: Llama a idle después de un ataque
+    case 482:
         if (!pic->getFase()) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 483: // Pequeña pausa antes de reiniciar el ciclo (Ajustado por offset)
-        if (!pic->getFase()) { // Si Piccolo sigue vivo, repite la secuencia de la Fase 1
-            pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y); // Reset position if needed
-            pic->iniciarAnimacionIdle(); // Ensure idle animation
+    case 483:
+        if (!pic->getFase()) {
+            pic->setPos(POSICION_ORIGINAL_X, POSICION_ORIGINAL_Y);
+            pic->iniciarAnimacionIdle();
             piccoloW_presionada = false;
             piccoloA_presionada = false;
             piccoloS_presionada = false;
             piccoloD_presionada = false;
             piccoloJ_presionada = false;
             piccoloL_presionada = false;
-            cntPiccolo = 159; // Vuelve al inicio de la Fase 1
+            cntPiccolo = 159;
         } else {
-            cntPiccolo = 499; // Salta al último case si no tiene vida
+            cntPiccolo = 499;
         }
         break;
-    case 500: // Este case ya no se usará para transición, solo para el ciclo principal de Fase 1
+    case 500:
         if (!pic->getFase()) {
-            cntPiccolo = 159; // Asegura que vuelva a la Fase 1 si se salta el 483 por algún motivo.
-            //pic->setScale(5.5);
+            cntPiccolo = 159;
         }
         else{
             pic->setPos(POSICION_ORIGINAL_X-470, POSICION_ORIGINAL_Y - 510);
-            //pic->alternarFase();
-        } // Se llama aquí si la vida es 0 o menos.
+        }
         break;
 
-
-    case 510: // Este case ya no se usará para transición, solo para el ciclo principal de Fase 1
+    case 510:
         pic->setPos(POSICION_ORIGINAL_X-470, POSICION_ORIGINAL_Y - 510);
         pic->iniciarAnimacionIdle();
         break;
-    case 520: // Este case ya no se usará para transición, solo para el ciclo principal de Fase 1
+    case 520:
         pic->iniciarAnimacionIdle();
         break;
 
-    case 620: //620
+    case 620:
         if (pic->getVida() > 0) {
             pic->setkickAlta(!(pic->getkickAlta()));
-            piccoloK_presionada = true; // Ataque
+            piccoloK_presionada = true;
         } else {
-            cntPiccolo = 659; // Salta al último case si no tiene vida
+            cntPiccolo = 659;
         }
         break;
     case 637:
@@ -909,36 +840,35 @@ void game::piccoloActualizarMovimiento()
             piccoloK_presionada = false;
             pic->detenerCargaKick();
         } else {
-            cntPiccolo = 659; // Salta al último case si no tiene vida
+            cntPiccolo = 659;
         }
         break;
     case 641:
         if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 659; // Salta al último case si no tiene vida
+            cntPiccolo = 659;
         }
         break;
-    case 642: // NUEVO: Pausa de 10 ticks después de un ataque
+    case 642:
         if (pic->getVida() > 0) {
             pic->iniciarAnimacionIdle();
         } else {
-            cntPiccolo = 659; // Salta al último case si no tiene vida
+            cntPiccolo = 659;
         }
         break;
-    case 643: // Pequeña pausa antes de reiniciar el ciclo (Ajustado por offset)
-        if (pic->getVida() > 0) { // Si Piccolo sigue vivo, repite la secuencia de la Fase 1
-            pic->iniciarAnimacionIdle(); // Ensure idle animation
-            piccoloK_presionada = false;
-            cntPiccolo = 509; // Vuelve al inicio de la Fase 1
-        } else {
-            cntPiccolo = 659; // Salta al último case si no tiene vida
-        }
-        break;
-    case 660: // Este case ya no se usará para transición, solo para el ciclo principal de Fase 1
+    case 643:
         if (pic->getVida() > 0) {
-            cntPiccolo = 509; // Asegura que vuelva a la Fase 1 si se salta el 483 por algún motivo.
-            //pic->setScale(5.5);
+            pic->iniciarAnimacionIdle();
+            piccoloK_presionada = false;
+            cntPiccolo = 509;
+        } else {
+            cntPiccolo = 659;
+        }
+        break;
+    case 660:
+        if (pic->getVida() > 0) {
+            cntPiccolo = 509;
         }
         break;
     }
@@ -947,218 +877,140 @@ void game::piccoloActualizarMovimiento()
         cntPiccolo++;
     }
 
-    // Movimeintos Piccolo
+    // Aplicar movimientos de Piccolo
     if (piccoloD_presionada) {
-        qDebug() << "Piccolo moverDerecha()";
         pic->moverDerecha();
-        //piccoloD_presionada = false;
     }
     if (piccoloA_presionada) {
-        qDebug() << "Piccolo moverIzquierda()";
         pic->moverIzquierda();
-        //piccoloA_presionada = false;
     }
     if (piccoloW_presionada) {
         pic->moverArriba();
-        //piccoloW_presionada = false;
     }
     if (piccoloS_presionada) {
         pic->moverAbajo();
-        //piccoloS_presionada = false;
     }
     if (piccoloJ_presionada) {
         pic->iniciarCargaRayo();
-        //piccoloJ_presionada = false;
     }
     if (piccoloL_presionada) {
-        //pic->iniciarCargaRayo();
         pic->iniciarCargaGravityBlast();
-        //piccoloJ_presionada = false;
     }
     if (piccoloK_presionada) {
-        qDebug() << "3";
         pic->iniciarCargaKick();
     }
 }
 
-
-void game::agregarGrillaDebug()
-{
-    // Crear grilla de 10x10 píxeles para ayudar con el posicionamiento
-    QPen penGrilla(Qt::lightGray, 0.5, Qt::DotLine);
-    
-    // Obtener límites de la escena
-    QRectF limites = scene->sceneRect();
-    
-    // Líneas verticales cada 10 píxeles
-    for (int x = limites.left(); x <= limites.right(); x += 10) {
-        QGraphicsLineItem* linea = scene->addLine(x, limites.top(), x, limites.bottom(), penGrilla);
-        linea->setZValue(-1000); // Poner muy atrás
-        lineasGrilla.append(linea);
-    }
-    
-    // Líneas horizontales cada 10 píxeles
-    for (int y = limites.top(); y <= limites.bottom(); y += 10) {
-        QGraphicsLineItem* linea = scene->addLine(limites.left(), y, limites.right(), y, penGrilla);
-        linea->setZValue(-1000); // Poner muy atrás
-        lineasGrilla.append(linea);
-    }
-    
-    // Líneas más gruesas cada 50 píxeles para mejor referencia
-    QPen penGrillaGruesa(Qt::gray, 1.0, Qt::DotLine);
-    
-    for (int x = limites.left(); x <= limites.right(); x += 50) {
-        QGraphicsLineItem* linea = scene->addLine(x, limites.top(), x, limites.bottom(), penGrillaGruesa);
-        linea->setZValue(-999);
-        lineasGrilla.append(linea);
-    }
-    
-    for (int y = limites.top(); y <= limites.bottom(); y += 50) {
-        QGraphicsLineItem* linea = scene->addLine(limites.left(), y, limites.right(), y, penGrillaGruesa);
-        linea->setZValue(-999);
-        lineasGrilla.append(linea);
-    }
-    
-    qDebug() << "Grilla de debug agregada - líneas cada 10px (finas) y 50px (gruesas). Presiona G para alternar.";
-}
-
-void game::alternarGrillaDebug()
-{
-    grillaVisible = !grillaVisible;
-    
-    for (QGraphicsLineItem* linea : lineasGrilla) {
-        linea->setVisible(grillaVisible);
-    }
-    
-    qDebug() << "Grilla de debug" << (grillaVisible ? "mostrada" : "oculta");
-}
-
+// Alterna la visibilidad de los hitboxes de los personajes y ataques
 void game::alternarHitboxKamehameha()
 {
     // Alternar hitbox del personaje
     if (p->estaHitboxVisible()) {
         p->ocultarHitbox();
-        qDebug() << "Hitbox del personaje oculto";
     } else {
         p->mostrarHitbox();
-        qDebug() << "Hitbox del personaje visible";
     }
-    
+
     // Alternar hitbox de Kamehameha
     Kamehameha::alternarVisualizacionHitbox();
-    
+
     // Alternar hitbox de BlastB
     BlastB::alternarVisualizacionHitbox();
-    
-    qDebug() << "Todos los hitboxes alternados";
 }
 
+// Configura la imagen de fondo de la escena
 void game::configurarFondo()
 {
-    // Limpiar fondo anterior si existe
+    // Limpiar fondo anterior
     if (fondoItem) {
         scene->removeItem(fondoItem);
         delete fondoItem;
         fondoItem = nullptr;
     }
-    
+
     QPixmap fondoPixmap;
     QString fondoActualPath = fondosDisponibles[fondoActual];
-    
+
+    // Si la ruta es "degradado", crear un fondo degradado
     if (fondoActualPath == "degradado") {
-        // Crear fondo degradado
-        qDebug() << "Creando fondo degradado";
-        
-        // Crear un pixmap del tamaño de la escena
         QRectF escenaRect = scene->sceneRect();
         fondoPixmap = QPixmap(escenaRect.width(), escenaRect.height());
-        
-        // Crear degradado
+
         QPainter painter(&fondoPixmap);
         QLinearGradient gradient(0, 0, 0, escenaRect.height());
-        gradient.setColorAt(0, QColor(135, 206, 235)); // Azul cielo
-        gradient.setColorAt(0.7, QColor(255, 255, 255)); // Blanco
-        gradient.setColorAt(1, QColor(34, 139, 34)); // Verde hierba
-        
+        gradient.setColorAt(0, QColor(135, 206, 235));
+        gradient.setColorAt(0.7, QColor(255, 255, 255));
+        gradient.setColorAt(1, QColor(34, 139, 34));
+
         painter.fillRect(fondoPixmap.rect(), gradient);
-        
-        // Agregar algunas nubes simples
+
+        // Agregar nubes
         painter.setPen(Qt::NoPen);
-        painter.setBrush(QColor(255, 255, 255, 180)); // Blanco semi-transparente
-        
-        // Nube 1
+        painter.setBrush(QColor(255, 255, 255, 180));
+
         painter.drawEllipse(100, 50, 80, 40);
         painter.drawEllipse(140, 40, 60, 30);
         painter.drawEllipse(120, 60, 50, 25);
-        
-        // Nube 2
+
         painter.drawEllipse(300, 80, 100, 50);
         painter.drawEllipse(350, 70, 70, 35);
         painter.drawEllipse(330, 90, 60, 30);
-        
+
         painter.end();
-        
-        qDebug() << "Fondo degradado creado con dimensiones:" << fondoPixmap.size();
     } else {
-        // Intentar cargar imagen de fondo desde recursos
+        // Cargar imagen de fondo desde recursos
         fondoPixmap = QPixmap(fondoActualPath);
-        
+
+        // Si no se puede cargar, usar un degradado como respaldo
         if (fondoPixmap.isNull()) {
-            qDebug() << "No se pudo cargar el fondo:" << fondoActualPath << "- usando degradado";
-            // Crear fondo degradado como respaldo
             QRectF escenaRect = scene->sceneRect();
             fondoPixmap = QPixmap(escenaRect.width(), escenaRect.height());
-            
+
             QPainter painter(&fondoPixmap);
             QLinearGradient gradient(0, 0, 0, escenaRect.height());
-            gradient.setColorAt(0, QColor(135, 206, 235)); // Azul cielo
-            gradient.setColorAt(0.7, QColor(255, 255, 255)); // Blanco
-            gradient.setColorAt(1, QColor(34, 139, 34)); // Verde hierba
+            gradient.setColorAt(0, QColor(135, 206, 235));
+            gradient.setColorAt(0.7, QColor(255, 255, 255));
+            gradient.setColorAt(1, QColor(34, 139, 34));
             painter.fillRect(fondoPixmap.rect(), gradient);
             painter.end();
-        } else {
-            qDebug() << "Fondo cargado exitosamente:" << fondoActualPath << "- dimensiones:" << fondoPixmap.size();
         }
     }
-    
-    // Obtener el tamaño exacto de la imagen
+
+    // Reducir la imagen de fondo a la mitad
     QSize tamañoImagen = fondoPixmap.size();
-    
-    // Reducir la imagen a la mitad
     QSize tamañoReducido = QSize(tamañoImagen.width() / 2, tamañoImagen.height() / 2);
     fondoPixmap = fondoPixmap.scaled(tamañoReducido, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    
-    // Hacer la escena exactamente del tamaño de la imagen reducida
+
+    // Establecer el tamaño de la escena al tamaño de la imagen reducida
     scene->setSceneRect(0, 0, tamañoReducido.width(), tamañoReducido.height());
-    
-    // Colocar la imagen reducida directamente en la escena
+
+    // Colocar la imagen reducida en la escena
     fondoItem = new QGraphicsPixmapItem(fondoPixmap);
     fondoItem->setPos(0, 0);
     fondoItem->setZValue(-1000);
     scene->addItem(fondoItem);
-    
-    // Hacer la ventana exactamente del tamaño de la imagen reducida
-    // Sin bordes, no necesitamos píxeles extra
+
+    // Redimensionar la ventana al tamaño de la imagen reducida
     resize(tamañoReducido);
-    
+
     // Centrar la ventana en la pantalla
     QScreen *screen = QGuiApplication::primaryScreen();
     QRect screenGeometry = screen->geometry();
     int x = (screenGeometry.width() - tamañoReducido.width()) / 2;
     int y = (screenGeometry.height() - tamañoReducido.height()) / 2;
     move(x, y);
-    
-    // Configurar la vista correctamente desde el inicio
+
+    // Configurar la vista
     view->setSceneRect(scene->sceneRect());
     view->resetTransform();
     view->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
-    
-    // Forzar un refresh completo de la ventana
+
+    // Forzar actualización de la ventana
     QApplication::processEvents();
     update();
     view->update();
-    
-    // Forzar reposicionamiento para que se acomode correctamente
+
+    // Forzar reposicionamiento después de un breve retraso
     QTimer::singleShot(100, this, [this, tamañoReducido]() {
         resize(tamañoReducido);
         view->resetTransform();
@@ -1166,50 +1018,35 @@ void game::configurarFondo()
         update();
         view->update();
     });
-    
-    qDebug() << "Ventana y imagen del mismo tamaño - Original:" << tamañoImagen << "- Reducido:" << tamañoReducido;
-    
-    qDebug() << "Fondo configurado y agregado a la escena";
 }
 
+// Cambia la imagen de fondo al siguiente fondo disponible
 void game::cambiarFondo()
 {
-    // Cambiar al siguiente fondo
     fondoActual = (fondoActual + 1) % fondosDisponibles.size();
-    
-    qDebug() << "Cambiando al fondo" << (fondoActual + 1) << "de" << fondosDisponibles.size() << ":" << fondosDisponibles[fondoActual];
-    
-    // Configurar el nuevo fondo
     configurarFondo();
 }
 
+// Maneja el evento de redimensionamiento de la ventana
 void game::resizeEvent(QResizeEvent *event)
 {
-    // Llamar al método padre primero
     QMainWindow::resizeEvent(event);
-    
-    // Manejar el redimensionamiento (incluyendo maximizar)
+
+    // Ajustar la vista y los límites del personaje al redimensionar la ventana
     if (view && scene && fondoItem) {
-        // Resetear cualquier transformación previa
         view->resetTransform();
-        
-        // Ajustar la vista según el estado de la ventana
+
         if (isFullScreen()) {
-            // En pantalla completa, ignorar aspect ratio para llenar toda la pantalla
             view->setSceneRect(scene->sceneRect());
             view->fitInView(scene->sceneRect(), Qt::IgnoreAspectRatio);
         } else {
-            // En ventana normal, mantener aspect ratio
             view->setSceneRect(scene->sceneRect());
             view->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
         }
-        
-        // Actualizar los límites del personaje
+
         if (p) {
             QRectF limitesJuego = scene->sceneRect();
             p->establecerLimitesEscena(limitesJuego);
         }
-        
-        qDebug() << "Ventana redimensionada - Tamaño:" << size() << "- FullScreen:" << isFullScreen();
     }
 }

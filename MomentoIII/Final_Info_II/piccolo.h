@@ -9,20 +9,26 @@
 #include "gravityblast.h"
 #include "kick.h"
 
+// Declaración anticipada para evitar dependencia cíclica, ya que Goku necesita saber de Piccolo y viceversa
+class Goku;
+
 class Piccolo : public Personaje
 {
     Q_OBJECT
 public:
+    // Constructor
     Piccolo(QObject *parent = nullptr);
 
+    // Métodos para manejar la fase (transformación o estado de Piccolo)
     bool getFase() const { return fase;}
     void setFase(bool newFase) { fase = newFase;}
     void alternarFase();
 
+    // Métodos para controlar el tipo de patada (alta o baja)
     bool getkickAlta() const { return kickAlta;}
     void setkickAlta(bool newkickAlta) { kickAlta = newkickAlta;}
 
-    // Override para funciones de movimiento
+    // Override de funciones de movimiento y acciones básicas del personaje
     void moverDerecha() override;
     void moverIzquierda() override;
     void moverArriba() override;
@@ -31,85 +37,70 @@ public:
     void recibirDanio(int danio) override;
     void morir() override;
 
-    // Override para limpiar dirección horizontal en idle
+    // Override para el manejo de animaciones de idle y actualización general
     void iniciarAnimacionIdle() override;
     void actualizarAnimacion() override;
 
-    // Override para funciones de sprites
+    // Override para funciones de manipulación de sprites
     void cambiarSprite(const QString& direccion) override;
     void cambiarSpriteCentrado(const QString& direccion) override;
 
-    // Método para animación de entrada
-    void iniciarAnimacionEntrada();
-    bool estaEnAnimacionEntrada() const { return animacionEntradaActiva; }
+    // Método para la animación de entrada del personaje
+    void iniciarAnimacionEntrada() override;
 
-    // Métodos para Rayo
+    // Métodos para el ataque especial "Rayo"
     void iniciarCargaRayo();
     void detenerCargaRayo();
-    void lanzarRayo(); // Nuevo método para lanzar el proyectil
+    void lanzarRayo();
     bool estaCargandoRayo() const { return animacionRayoActiva; }
 
-    // Métodos para Kick
+    // Métodos para el ataque "Kick"
     void iniciarCargaKick();
     void detenerCargaKick();
-    void lanzarKick(); // Nuevo método para lanzar el proyectil
+    void lanzarKick();
     bool estaCargandoKick() const { return animacionKickActiva; }
 
-    // Métodos para GBlast
+    // Métodos para el ataque especial "Gravity Blast"
     void lanzarGravityBlast(Goku* gokuTarget);
     void iniciarCargaGravityBlast();
     void detenerCargaGravityBlast();
     bool estaCargandoGravityBlast() const { return animacionGravityBlastActiva; }
 
-    // Para que Piccolo sepa a quién atacar con Gravity Blast
+    // Método para establecer el objetivo de ciertos ataques (como Gravity Blast)
     void establecerObjetivo(Goku* objetivo);
 
 private slots:
-    void actualizarAnimacionEntrada();
-    void actualizarAnimacionRayo(); // Para la animación de Rayo
+    // Slots para actualizar las animaciones de entrada y ataques especiales
+    void actualizarAnimacionEntrada() override;
+    void actualizarAnimacionRayo();
     void actualizarAnimacionKick();
-    void actualizarAnimacionGravityBlast(); // Nuevo slot para animación de Gravity Blast
+    void actualizarAnimacionGravityBlast();
 
 private:
-    bool fase;
+    bool fase; // Indica la fase o transformación de Piccolo
+    QTransform transform; // Para manipular la transformación (ej. girar) del sprite
 
-    QString ultimaDireccionHorizontal; // "adelante", "atras", o "" si no hay dirección horizontal
-
-    // Variable para girar en x
-    QTransform transform;
-
-    // Variables para animación de entrada
-    bool animacionEntradaActiva;
-    int frameEntradaActual;
-    QTimer* timerEntrada;
-
-    // Variables para animación de Rayo
+    // Variables y temporizador para la animación del ataque "Rayo"
     bool animacionRayoActiva;
     int frameRayoActual;
     QTimer* timerRayo;
 
-    // Variables para animación de Kick
+    // Variables y temporizador para la animación del ataque "Kick"
     bool animacionKickActiva;
     int frameKickActual;
     QTimer* timerKick;
-    bool kickAlta;
+    bool kickAlta; // Determina si la patada es alta
 
-    QPointF posicionInicialQuieto; // Guardar posición del sprite quieto // Posición exacta antes de empezar Rayo
-
-    // Sistema de ki
-    int kiActual;
-    int kiMaximo;
-    int velocidadRecargaKi; // ki por segundo
-
-    // Variables para animación de Gravity Blast
+    // Variables y temporizador para la animación del ataque "Gravity Blast"
     bool animacionGravityBlastActiva;
     int frameGravityBlastActual;
     QTimer* timerGravityBlast;
 
-    Goku* objetivoActual; // Puntero al objetivo de Piccolo
+    Goku* objetivoActual; // Puntero al objetivo de Piccolo para ataques dirigidos
 
 signals:
-    void kiCambiado(int kiActual, int kiMaximo);
+    // Señal emitida cuando el ki de Piccolo cambia
+    void kiCambiado(int kiActual, int kiMaximo) override;
 };
 
 #endif // PICCOLO_H

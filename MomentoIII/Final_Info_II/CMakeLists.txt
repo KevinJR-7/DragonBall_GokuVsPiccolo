@@ -23,7 +23,7 @@ add_executable(Final_Info_II
   kamehameha.h kamehameha.cpp
   blastb.h blastb.cpp
   Sprites.qrc
-  ground.h ground.cpp
+
   piccolo.h piccolo.cpp
   rayo.h rayo.cpp
   mainmenu.h mainmenu.cpp

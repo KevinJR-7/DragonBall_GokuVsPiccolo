@@ -1,7 +1,6 @@
 #include <QBrush>
 #include <QPixmap>
 #include <QPainter>
-#include <QDebug>
 #include <QGraphicsPixmapItem>
 #include <QPen>
 #include <QBrush>
@@ -11,7 +10,7 @@
 Personaje::Personaje(QObject *parent)
     : QObject{parent}, QGraphicsPixmapItem()
 {
-    // Inicializar valores por defecto
+    // Inicializar valores por defecto de las propiedades del personaje.
     vida = 100;
     vidaMaxima = 100;
     velocidadMovimiento = 8;
@@ -20,65 +19,68 @@ Personaje::Personaje(QObject *parent)
     alturaOriginal = 0;
     moviendose = false;
     frameActual = 1;
-    frameMaximo = 6; // Por defecto 6 frames de animación idle
+    frameMaximo = 6;
 
-    // Inicializar variables de animación de salto
+    // Inicializar variables para la animación de salto.
     frameSaltoActual = 1;
     alturaMaximaAlcanzada = 0.0;
 
-    // Inicializar hitbox (por defecto del tamaño del sprite)
-    hitboxAncho = 30;  // Ancho típico de un personaje
-    hitboxAlto = 30;   // Alto típico de un personaje
-    hitboxOffsetX = -10; // Sin offset por defecto
-    hitboxOffsetY = 0; // Sin offset por defecto
-    limitesEscena = QRectF(0, 0, 800, 600); // Escena por defecto
+    // Inicializar dimensiones y offsets del hitbox.
+    hitboxAncho = 30;
+    hitboxAlto = 30;
+    hitboxOffsetX = -10;
+    hitboxOffsetY = 0;
+    limitesEscena = QRectF(0, 0, 800, 600);
 
-    // Inicializar visualización de hitbox
+    // Inicializar la visualización del hitbox.
     hitboxVisible = false;
     hitboxVisual = nullptr;
 
-    // Inicializar trayectoria de salto - limitar a 50 puntos para evitar consumo excesivo de memoria
+    // Inicializar el almacenamiento de la trayectoria de salto.
     maxPuntosTrayectoriaSalto = 50;
     trayectoriaSalto.clear();
 
-    // Inicializar variables de física del salto
+    // Inicializar variables de física de salto.
     velocidadVertical = 0.0;
     aceleracionVertical = 0.0;
-    coeficienteResistencia = 0.1; // Resistencia del aire por defecto
-    masaPersonaje = 1.0;          // Masa por defecto
-    deltaT = 0.016;               // ~60 FPS (16ms)
+    coeficienteResistencia = 0.1;
+    masaPersonaje = 1.0;
+    deltaT = 0.016;
 
-    // Inicializar variables de movimiento horizontal durante salto
+    // Inicializar variables de movimiento horizontal durante el salto.
     posicionXSalto = 0.0;
     velocidadHorizontal = 0.0;
-    velocidadHorizontalSalto = 0.0; // Nueva variable inicializada
+    velocidadHorizontalSalto = 0.0;
     offsetYSalto = 0.0;
     posicionBaseSalto = 0.0;
 
     setFlag(QGraphicsItem::ItemIsMovable);
 
-    // Configurar timer para salto (mayor precisión para ecuaciones diferenciales)
+    // Configurar el temporizador para las actualizaciones de la física de salto.
     jumpTimer = new QTimer(this);
-    jumpTimer->setInterval(16); // 60 FPS para integración suave
+    jumpTimer->setInterval(16);
     connect(jumpTimer, SIGNAL(timeout()), this, SLOT(actualizarSalto()));
 
-    // Configurar timer para animación idle
+    // Configurar el temporizador para las actualizaciones de la animación de inactividad (idle).
     baseFase = "/base";
     animacionTimer = new QTimer(this);
-    animacionTimer->setInterval(200); // Cambiar frame cada 200ms
+    animacionTimer->setInterval(200);
     connect(animacionTimer, SIGNAL(timeout()), this, SLOT(actualizarAnimacion()));
 }
 
 Personaje::~Personaje()
 {
+    // Detener y eliminar el temporizador de salto.
     if (jumpTimer) {
         jumpTimer->stop();
         delete jumpTimer;
     }
+    // Detener y eliminar el temporizador de animación.
     if (animacionTimer) {
         animacionTimer->stop();
         delete animacionTimer;
     }
+    // Eliminar el elemento visual del hitbox.
     if (hitboxVisual) {
         delete hitboxVisual;
         hitboxVisual = nullptr;
@@ -87,46 +89,43 @@ Personaje::~Personaje()
 
 void Personaje::saltar()
 {
+    // Inicia la secuencia de salto si el personaje no está ya saltando.
     if (!saltando) {
         saltando = true;
         alturaOriginal = this->pos().y();
-        alturaMaximaAlcanzada = alturaOriginal; // Inicializar altura máxima
+        alturaMaximaAlcanzada = alturaOriginal;
 
-        // Inicializar sistema de movimiento separado
-        posicionXSalto = this->pos().x();  // X inicial del salto
-        posicionBaseSalto = this->pos().y(); // Y base del salto
-        offsetYSalto = 0.0;                // Sin offset inicial
+        // Inicializar el seguimiento del movimiento de salto.
+        posicionXSalto = this->pos().x();
+        posicionBaseSalto = this->pos().y();
+        offsetYSalto = 0.0;
 
-        // Mantener la velocidad horizontal previamente establecida
-        // (no resetear velocidadHorizontal aquí, puede venir de salto direccional)
-
-        // Inicializar condiciones del salto con ecuaciones diferenciales
-        velocidadVertical = -velIn; // Velocidad inicial hacia arriba (negativa en Qt)
-        aceleracionVertical = 0.0;  // Se calculará en cada frame
+        // Inicializar la física del salto.
+        velocidadVertical = -velIn;
+        aceleracionVertical = 0.0;
         tiempo = 0;
-        frameSaltoActual = 1; // Comenzar con salto1.png
+        frameSaltoActual = 1;
 
-        // Aplicar hitbox de salto
+        // Aplicar el hitbox específico del salto.
         aplicarHitboxSalto();
 
-        // Cambiar inmediatamente al primer sprite de salto
+        // Cambiar al primer sprite de salto.
         cambiarSprite("salto1");
 
         jumpTimer->start();
-        qDebug() << nombre << "INICIA SALTO - posX:" << posicionXSalto << "posBase:" << posicionBaseSalto;
     }
 }
 
 void Personaje::cambiarSprite(const QString& direccion)
 {
-    // 1. Guardar el centro actual del sprite
+    // Guarda el centro actual del sprite, carga el nuevo sprite, lo escala y establece la nueva posición para mantener el centro.
     QPointF centroActual = pos() + QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
 
     QString rutaSprite = ":/Goku/Sprites/" + carpetaSprites + "/" + direccion + ".png";
     QPixmap nuevoSprite(rutaSprite);
 
     if (!nuevoSprite.isNull()) {
-        // Escalar el sprite si es necesario
+        // Escalar el nuevo sprite.
         if (escalaSprite != 1.0) {
             nuevoSprite = nuevoSprite.scaled(
                 nuevoSprite.width() * escalaSprite,
@@ -137,59 +136,59 @@ void Personaje::cambiarSprite(const QString& direccion)
         }
         setPixmap(nuevoSprite);
 
-        // 2. Recalcular la posición para mantener el centro
+        // Recalcular la posición para mantener el centro.
         QPointF nuevaPos = centroActual - QPointF(nuevoSprite.width() / 2.0, nuevoSprite.height() / 2.0);
         QGraphicsPixmapItem::setPos(nuevaPos);
     } else {
-        qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
+        // Manejar el error de carga del sprite.
     }
 }
 
 void Personaje::cambiarSpriteCentrado(const QString& direccion)
 {
-    // Guardar la posición central actual
+    // Carga un nuevo sprite, lo escala y ajusta la posición para mantener el sprite centrado.
     QPointF centroActual = pos() + QPointF(pixmap().width() / 2.0, pixmap().height() / 2.0);
 
     QString rutaSprite = ":/Goku/Sprites/" + carpetaSprites + "/" + direccion + ".png";
     QPixmap nuevoSprite(rutaSprite);
 
     if (!nuevoSprite.isNull()) {
-        // Escalar el sprite si es necesario
+        // Escalar el nuevo sprite.
         if (escalaSprite != 1.0) {
             nuevoSprite = nuevoSprite.scaled(
                 nuevoSprite.width() * escalaSprite,
                 nuevoSprite.height() * escalaSprite,
                 Qt::KeepAspectRatio,
                 Qt::SmoothTransformation
-            );
+                );
         }
 
-        // Cambiar el sprite
+        // Cambiar el sprite.
         setPixmap(nuevoSprite);
 
-        // Calcular nueva posición para mantener el centro
+        // Calcular la nueva posición para mantener el centro.
         QPointF nuevaPos = centroActual - QPointF(nuevoSprite.width() / 2.0, nuevoSprite.height() / 2.0);
         QGraphicsPixmapItem::setPos(nuevaPos);
 
-        qDebug() << "Sprite centrado cambiado a:" << direccion << "- Nueva pos:" << nuevaPos;
     } else {
-        qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
+        // Manejar el error de carga del sprite.
     }
 }
 
 void Personaje::iniciarAnimacionIdle()
 {
+    // Inicia la animación de inactividad (idle) si el personaje no se está moviendo o saltando y está vivo.
     moviendose = false;
-    frameActual = 1; // Reiniciar desde el primer frame
-    if (estaVivo()) { // Solo iniciar si no está saltando y está vivo
+    frameActual = 1;
+    if (estaVivo()) {
         animacionTimer->start();
     }
 }
 
 void Personaje::establecerEscala(qreal escala)
 {
+    // Establece la escala del sprite y la aplica al sprite actual.
     escalaSprite = escala;
-    // Aplicar la escala al sprite actual si existe
     QString rutaSprite = ":/Goku/Sprites/" + carpetaSprites + "/base" + QString::number(frameActual) + ".png";
     QPixmap spriteActual(rutaSprite);
 
@@ -200,7 +199,7 @@ void Personaje::establecerEscala(qreal escala)
                 spriteActual.height() * escala,
                 Qt::KeepAspectRatio,
                 Qt::SmoothTransformation
-            );
+                );
         }
         setPixmap(spriteActual);
     }
@@ -208,14 +207,15 @@ void Personaje::establecerEscala(qreal escala)
 
 void Personaje::morir()
 {
+    // Maneja la muerte del personaje: establece la vida a 0, detiene los temporizadores, restablece los estados de movimiento/salto, restaura el hitbox y emite señales.
     vida = 0;
     animacionTimer->stop();
     jumpTimer->stop();
     moviendose = false;
     saltando = false;
-    velocidadHorizontal = 0.0; // Limpiar velocidad horizontal
+    velocidadHorizontal = 0.0;
 
-    // Restaurar hitbox normal si estaba saltando
+    // Restaurar el hitbox normal.
     restaurarHitboxNormal();
 
     emit personajeMuerto(this);
@@ -224,6 +224,7 @@ void Personaje::morir()
 
 void Personaje::establecerVida(int vidaMaxima)
 {
+    // Establece la vida máxima y actual del personaje.
     this->vidaMaxima = vidaMaxima;
     this->vida = vidaMaxima;
     emit vidaCambiada(vida, this->vidaMaxima);
@@ -231,81 +232,75 @@ void Personaje::establecerVida(int vidaMaxima)
 
 void Personaje::establecerVelocidad(qreal velocidad)
 {
+    // Establece la velocidad de movimiento del personaje.
     this->velocidadMovimiento = velocidad;
 }
 
 void Personaje::establecerNombre(const QString& nombre)
 {
+    // Establece el nombre del personaje.
     this->nombre = nombre;
 }
 
 void Personaje::establecerCarpetaSprites(const QString& carpeta)
 {
+    // Establece la carpeta de sprites para las animaciones del personaje.
     this->carpetaSprites = carpeta;
 }
 
 void Personaje::establecerFisicaSalto(qreal masa, qreal resistencia)
 {
+    // Configura la masa y la resistencia del aire para la física del salto.
     masaPersonaje = masa;
     coeficienteResistencia = resistencia;
-    qDebug() << nombre << "física configurada - Masa:" << masa << "Resistencia:" << resistencia;
 }
 
 void Personaje::establecerVelocidadSalto(qreal velocidadInicial)
 {
+    // Establece la velocidad vertical inicial para el salto.
     velIn = velocidadInicial;
-    qDebug() << nombre << "velocidad de salto establecida en:" << velocidadInicial;
 }
 
 void Personaje::establecerVelocidadHorizontalSalto(qreal velocidadH)
 {
+    // Establece la velocidad horizontal inicial para el salto.
     velocidadHorizontal = velocidadH;
-    qDebug() << nombre << "velocidad horizontal del salto establecida en:" << velocidadH;
 }
 
 void Personaje::aplicarMovimientoHorizontal(qreal deltaX)
 {
-    qDebug() << "aplicarMovimientoHorizontal - deltaX:" << deltaX << "saltando:" << saltando;
+    // Aplica el movimiento horizontal, especialmente durante un salto, respetando los límites de la escena.
     if (saltando) {
-        qreal posicionAnterior = posicionXSalto;
         posicionXSalto += deltaX;
 
-        // Aplicar límites de pantalla para movimiento horizontal
+        // Aplicar límites de pantalla para el movimiento horizontal.
         if (posicionXSalto < limitesEscena.left()) {
             posicionXSalto = limitesEscena.left();
         } else if (posicionXSalto > limitesEscena.right() - hitboxAncho) {
             posicionXSalto = limitesEscena.right() - hitboxAncho;
         }
-
-        qDebug() << nombre << "movimiento horizontal aplicado - de" << posicionAnterior << "a" << posicionXSalto;
-    } else {
-        qDebug() << "No se aplica movimiento horizontal - no está saltando";
     }
 }
 
 void Personaje::setPos(qreal x, qreal y)
 {
-    static int setPosCalls = 0;
-    setPosCalls++;
-    if (saltando && setPosCalls % 10 == 0) { // Debug cada 10 llamadas durante salto
-        qDebug() << "*** setPos llamado #" << setPosCalls << "- X:" << x << "Y:" << y << "desde:" << ((QObject*)this)->metaObject()->className();
-    }
+    // Establece la posición del QGraphicsPixmapItem.
     QGraphicsPixmapItem::setPos(x, y);
 }
 
 void Personaje::pausarTimerSalto()
 {
+    // Pausa el temporizador de salto si está activo.
     if (jumpTimer && jumpTimer->isActive()) {
         jumpTimer->stop();
-        qDebug() << "Timer de salto PAUSADO";
     }
 }
 
 void Personaje::reanudarTimerSalto()
 {
+    // Reanuda el temporizador de salto si el personaje está actualmente saltando.
     if (jumpTimer && saltando) {
         jumpTimer->start();
-        qDebug() << "Timer de salto REANUDADO";
     }
 }
 
@@ -313,177 +308,148 @@ void Personaje::reanudarTimerSalto()
 
 void Personaje::actualizarSalto()
 {
+    // Actualiza la posición y la animación del personaje durante un salto basándose en cálculos de física.
     if (saltando) {
         tiempo += deltaT;
 
-        // Constantes físicas - gravedad muy reducida para salto épico de Goku
-        const qreal gravedad = 9.8 * 15; // Gravedad aún más baja para más tiempo en el aire
+        // Constantes físicas - gravedad reducida para un "salto épico de Goku".
+        const qreal gravedad = 9.8 * 15;
 
-        // ECUACIÓN DIFERENCIAL VERTICAL: d²y/dt² = g + k*v*|v|/m
-        // donde k es coeficiente resistencia, v es velocidad, m es masa
-
-        // Calcular aceleración vertical actual (incluyendo gravedad y resistencia del aire)
+        // Cálculo de la ecuación diferencial vertical.
         qreal fuerzaGravedad = gravedad;
         qreal fuerzaResistenciaVertical = coeficienteResistencia * velocidadVertical * qAbs(velocidadVertical) / masaPersonaje;
 
-        // La resistencia siempre opone al movimiento vertical
-        if (velocidadVertical < 0) { // Subiendo
-            fuerzaResistenciaVertical = -fuerzaResistenciaVertical; // Resistencia hacia abajo
+        // La resistencia del aire se opone al movimiento vertical.
+        if (velocidadVertical < 0) {
+            fuerzaResistenciaVertical = -fuerzaResistenciaVertical;
         }
 
         aceleracionVertical = fuerzaGravedad + fuerzaResistenciaVertical;
 
-        // INTEGRACIÓN NUMÉRICA VERTICAL (Método de Euler mejorado)
-        // v(t+dt) = v(t) + a(t)*dt
+        // Integración numérica vertical.
         velocidadVertical += aceleracionVertical * deltaT;
 
-        // y(t+dt) = y(t) + v(t)*dt + 0.5*a(t)*dt²
         qreal deltaY = velocidadVertical * deltaT + 0.5 * aceleracionVertical * deltaT * deltaT;
 
-        // Actualizar el offset Y (movimiento vertical)
+        // Actualizar el offset vertical.
         offsetYSalto += deltaY;
 
-        // MOVIMIENTO HORIZONTAL PARABÓLICO
-        // Aplicar resistencia del aire también al movimiento horizontal
+        // Movimiento horizontal parabólico.
         qreal fuerzaResistenciaHorizontal = coeficienteResistencia * velocidadHorizontal * qAbs(velocidadHorizontal) / masaPersonaje;
 
-        // La resistencia horizontal siempre opone al movimiento
-        if (velocidadHorizontal > 0) { // Moviendo a la derecha
+        // La resistencia horizontal siempre se opone al movimiento.
+        if (velocidadHorizontal > 0) {
             fuerzaResistenciaHorizontal = -fuerzaResistenciaHorizontal;
-        } else if (velocidadHorizontal < 0) { // Moviendo a la izquierda
+        } else if (velocidadHorizontal < 0) {
             fuerzaResistenciaHorizontal = -fuerzaResistenciaHorizontal;
         }
 
-        // Actualizar velocidad horizontal con resistencia del aire
+        // Actualizar la velocidad horizontal con la resistencia del aire.
         velocidadHorizontal += fuerzaResistenciaHorizontal * deltaT;
 
-        // Calcular desplazamiento horizontal
+        // Calcular el desplazamiento horizontal.
         qreal deltaX = velocidadHorizontal * deltaT;
 
-        // Actualizar posición X del salto
+        // Actualizar la posición X del salto.
         posicionXSalto += deltaX;
 
-        // Aplicar límites de pantalla
+        // Aplicar límites de pantalla.
         if (posicionXSalto < limitesEscena.left()) {
             posicionXSalto = limitesEscena.left();
-            velocidadHorizontal = 0; // Detener movimiento horizontal al chocar
+            velocidadHorizontal = 0;
         } else if (posicionXSalto > limitesEscena.right() - hitboxAncho) {
             posicionXSalto = limitesEscena.right() - hitboxAncho;
-            velocidadHorizontal = 0; // Detener movimiento horizontal al chocar
+            velocidadHorizontal = 0;
         }
 
-        // Calcular posición final
+        // Calcular la posición final.
         qreal posicionFinalX = posicionXSalto;
         qreal posicionFinalY = posicionBaseSalto + offsetYSalto;
 
-        // Actualizar posición completa
+        // Actualizar la posición completa.
         QGraphicsPixmapItem::setPos(posicionFinalX, posicionFinalY);
 
-        // Agregar punto a la trayectoria para visualización
+        // Añadir punto a la trayectoria para visualización.
         trayectoriaSalto.append(QPointF(posicionFinalX, posicionFinalY));
 
-        // Limitar el tamaño de la trayectoria
+        // Limitar el tamaño de la trayectoria.
         if (trayectoriaSalto.size() > maxPuntosTrayectoriaSalto) {
             trayectoriaSalto.removeFirst();
         }
 
-        // Debug menos frecuente
-        static int debugCounter = 0;
-        if (debugCounter % 60 == 0) { // Debug cada 60 frames (~1 segundo)
-            qDebug() << "actualizarSalto - X:" << posicionFinalX << "Y:" << posicionFinalY << "velH:" << velocidadHorizontal << "velV:" << velocidadVertical;
-        }
-        debugCounter++;
-
-        // Actualizar visualización de hitbox durante el salto
+        // Actualizar la visualización del hitbox durante el salto.
         actualizarVisualizacionHitbox();
 
-        // Actualizar altura máxima alcanzada
+        // Actualizar la altura máxima alcanzada.
         if (posicionFinalY < alturaMaximaAlcanzada) {
             alturaMaximaAlcanzada = posicionFinalY;
         }
 
-        // LÓGICA DE ANIMACIÓN DEL SALTO (7 sprites)
-        // Sistema basado en tiempo con sprite 6 un poco más corto
+        // Lógica de animación de salto (7 sprites).
         int nuevoFrameSalto = frameSaltoActual;
 
-        // Duración ajustada: sprite 6 más corto, sprite 7 más largo
-
+        // Duraciones ajustadas para los sprites de salto.
         if (tiempo <= 0.077) {
-            // Frame 1: Primer séptimo del salto (impulso inicial)
             nuevoFrameSalto = 1;
         } else if (tiempo <= 0.154) {
-            // Frame 2: Segundo séptimo (subiendo fuerte)
             nuevoFrameSalto = 2;
         } else if (tiempo <= 0.231) {
-            // Frame 3: Tercer séptimo (subiendo moderado)
             nuevoFrameSalto = 3;
         } else if (tiempo <= 0.308) {
-            // Frame 4: Cuarto séptimo (punto más alto)
             nuevoFrameSalto = 4;
         } else if (tiempo <= 0.385) {
-            // Frame 5: Quinto séptimo (comenzando a bajar)
             nuevoFrameSalto = 5;
         } else if (tiempo <= 0.440) {
-            // Frame 6: Sexto séptimo - MÁS CORTO (0.055 segundos en lugar de 0.077)
             nuevoFrameSalto = 6;
         } else {
-            // Frame 7: Último séptimo - MÁS LARGO (aterrizaje extendido)
             nuevoFrameSalto = 7;
         }
 
-        // Debug reducido - solo cuando cambia el sprite
-        // qDebug() << "velV:" << velocidadVertical << "velIn:" << velIn << "ratio:" << (velocidadVertical/velIn) << "distSuelo:" << distanciaAlSuelo << "frame:" << nuevoFrameSalto;
-
-        // Cambiar sprite solo si es necesario
+        // Cambiar sprite solo si es necesario.
         if (nuevoFrameSalto != frameSaltoActual) {
             frameSaltoActual = nuevoFrameSalto;
             cambiarSprite("salto" + QString::number(frameSaltoActual));
-            qDebug() << nombre << "cambia a sprite salto" << frameSaltoActual << "- tiempo:" << tiempo << "segundos";
         }
 
-        // Verificar si ha tocado el suelo
+        // Verificar si ha aterrizado.
         if (posicionFinalY >= alturaOriginal && velocidadVertical >= 0) {
-            // Aterrizaje con amortiguación - usar posición X final del salto
+            // Aterrizaje con amortiguación.
             setPos(posicionXSalto, alturaOriginal);
-
-            qDebug() << nombre << "aterriza después de" << tiempo << "segundos en posición X:" << posicionXSalto;
 
             saltando = false;
             velocidadVertical = 0.0;
             aceleracionVertical = 0.0;
-            velocidadHorizontal = 0.0; // Limpiar velocidad horizontal
+            velocidadHorizontal = 0.0;
             jumpTimer->stop();
             tiempo = 0;
             frameSaltoActual = 1;
             alturaMaximaAlcanzada = 0.0;
 
-            // Restaurar hitbox normal al aterrizar
+            // Restaurar el hitbox normal al aterrizar.
             restaurarHitboxNormal();
 
-            // Limpiar trayectoria del salto al aterrizar
+            // Limpiar la trayectoria de salto al aterrizar.
             trayectoriaSalto.clear();
 
-            // Cambiar inmediatamente al sprite base1 al aterrizar
+            // Cambiar inmediatamente al sprite base1 al aterrizar.
             cambiarSprite("base1");
 
-            // Emitir señal de aterrizaje para verificar movimiento continuo
+            // Emitir señal de aterrizaje.
             emit personajeAterrizo();
 
-            // Reiniciar animación idle si no se está moviendo
+            // Reiniciar la animación de inactividad si no se está moviendo.
             if (!moviendose) {
                 iniciarAnimacionIdle();
             }
         }
-
-        // Debug habilitado para ver la física
-        qDebug() << "t:" << tiempo << "y:" << posicionFinalY << "yOriginal:" << alturaOriginal << "v:" << velocidadVertical << "frame:" << frameSaltoActual;
     }
 }
 
 void Personaje::actualizarAnimacion()
 {
+    // Actualiza el fotograma de la animación de inactividad (idle).
     if (!moviendose && !saltando && estaVivo()) {
-        // Ciclar entre los frames de la animación idle
+        // Ciclar a través de los fotogramas de la animación de inactividad.
         frameActual++;
         if (frameActual > frameMaximo) {
             frameActual = 1;
@@ -493,47 +459,47 @@ void Personaje::actualizarAnimacion()
         QPixmap nuevoSprite(rutaSprite);
 
         if (!nuevoSprite.isNull()) {
-            // Escalar el sprite si es necesario
+            // Escalar el sprite si es necesario.
             if (escalaSprite != 1.0) {
                 nuevoSprite = nuevoSprite.scaled(
                     nuevoSprite.width() * escalaSprite,
                     nuevoSprite.height() * escalaSprite,
                     Qt::KeepAspectRatio,
                     Qt::SmoothTransformation
-                );
+                    );
             }
             setPixmap(nuevoSprite);
         } else {
-            qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
+            // Manejar el error de carga del sprite.
         }
     }
 }
 
 void Personaje::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    // Dibujar el sprite normalmente
+    // Dibuja el sprite y la trayectoria de salto si la visualización del hitbox está habilitada.
     QGraphicsPixmapItem::paint(painter, option, widget);
 
-    // Visualizar la trayectoria del salto si está habilitada la visualización de hitbox
+    // Visualizar la trayectoria de salto si la visualización del hitbox está habilitada.
     if (hitboxVisible && !trayectoriaSalto.isEmpty() && trayectoriaSalto.size() > 1) {
-        // Configurar el pincel para la línea de trayectoria del salto
+        // Configurar la pluma para la línea de la trayectoria de salto.
         QPen penTrayectoria;
         penTrayectoria.setColor(Qt::blue);
         penTrayectoria.setWidth(2);
         penTrayectoria.setStyle(Qt::DashLine);
         painter->setPen(penTrayectoria);
 
-        // Dibujar líneas conectando todos los puntos de la trayectoria
+        // Dibujar líneas conectando todos los puntos de la trayectoria.
         for (int i = 0; i < trayectoriaSalto.size() - 1; ++i) {
             QPointF puntoInicio = mapFromScene(trayectoriaSalto[i]);
             QPointF puntoFin = mapFromScene(trayectoriaSalto[i + 1]);
             painter->drawLine(puntoInicio, puntoFin);
         }
 
-        // Conectar el último punto de la trayectoria con la posición actual
+        // Conectar el último punto de la trayectoria con la posición actual.
         if (!trayectoriaSalto.isEmpty()) {
             QPointF ultimoPunto = mapFromScene(trayectoriaSalto.last());
-            QPointF posicionActual = QPointF(0, 0); // Posición relativa al item
+            QPointF posicionActual = QPointF(0, 0);
             painter->drawLine(ultimoPunto, posicionActual);
         }
     }
@@ -543,60 +509,59 @@ void Personaje::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 
 void Personaje::establecerHitbox(qreal ancho, qreal alto, qreal offsetX, qreal offsetY)
 {
+    // Establece las dimensiones y offsets del hitbox normal, y los guarda como respaldo.
     hitboxAncho = ancho;
     hitboxAlto = alto;
     hitboxOffsetX = offsetX;
     hitboxOffsetY = offsetY;
 
-    // Guardar como hitbox normal (respaldo)
+    // Guardar como hitbox normal (respaldo).
     hitboxNormalAncho = ancho;
     hitboxNormalAlto = alto;
     hitboxNormalOffsetX = offsetX;
     hitboxNormalOffsetY = offsetY;
-
-    qDebug() << nombre << "hitbox establecida:" << ancho << "x" << alto << "offset(" << offsetX << "," << offsetY << ")";
 }
 
 void Personaje::establecerHitboxSalto(qreal ancho, qreal alto, qreal offsetX, qreal offsetY)
 {
+    // Establece las dimensiones y offsets del hitbox de salto.
     hitboxSaltoAncho = ancho;
     hitboxSaltoAlto = alto;
     hitboxSaltoOffsetX = offsetX;
     hitboxSaltoOffsetY = offsetY;
-    qDebug() << nombre << "hitbox de salto configurada:" << ancho << "x" << alto << "offset(" << offsetX << "," << offsetY << ")";
 }
 
 void Personaje::aplicarHitboxSalto()
 {
+    // Aplica el hitbox específico del salto si el personaje está saltando.
     if (saltando) {
         hitboxAncho = hitboxSaltoAncho;
         hitboxAlto = hitboxSaltoAlto;
         hitboxOffsetX = hitboxSaltoOffsetX;
         hitboxOffsetY = hitboxSaltoOffsetY;
         actualizarVisualizacionHitbox();
-        qDebug() << nombre << "aplicando hitbox de salto";
     }
 }
 
 void Personaje::restaurarHitboxNormal()
 {
+    // Restaura las dimensiones y offsets del hitbox normal.
     hitboxAncho = hitboxNormalAncho;
     hitboxAlto = hitboxNormalAlto;
     hitboxOffsetX = hitboxNormalOffsetX;
     hitboxOffsetY = hitboxNormalOffsetY;
     actualizarVisualizacionHitbox();
-    qDebug() << nombre << "restaurando hitbox normal";
 }
 
 QRectF Personaje::obtenerHitbox() const
 {
-    // Hitbox relativa al personaje (posición local)
+    // Devuelve el hitbox del personaje en coordenadas locales.
     return QRectF(hitboxOffsetX, hitboxOffsetY, hitboxAncho, hitboxAlto);
 }
 
 QRectF Personaje::obtenerHitboxGlobal() const
 {
-    // Hitbox en coordenadas globales de la escena
+    // Devuelve el hitbox del personaje en coordenadas de escena globales.
     QPointF posicion = this->pos();
     return QRectF(posicion.x() + hitboxOffsetX,
                   posicion.y() + hitboxOffsetY,
@@ -606,6 +571,7 @@ QRectF Personaje::obtenerHitboxGlobal() const
 
 bool Personaje::colisionaCon(Personaje* otroPersonaje) const
 {
+    // Verifica la colisión con el hitbox de otro personaje.
     if (!otroPersonaje || otroPersonaje == this) {
         return false;
     }
@@ -615,48 +581,46 @@ bool Personaje::colisionaCon(Personaje* otroPersonaje) const
 
     bool colision = miHitbox.intersects(otraHitbox);
 
-    if (colision) {
-        qDebug() << nombre << "colisiona con" << otroPersonaje->getNombre();
-    }
-
     return colision;
 }
 
 bool Personaje::colisionaCon(const QRectF& rectangulo) const
 {
+    // Verifica la colisión con un rectángulo dado.
     QRectF miHitbox = obtenerHitboxGlobal();
     return miHitbox.intersects(rectangulo);
 }
 
 void Personaje::verificarLimitesPantalla(const QRectF& limitesEscena)
 {
+    // Verifica y ajusta la posición del personaje para mantenerse dentro de los límites de la pantalla.
     QPointF posicionActual = this->pos();
     QRectF hitboxGlobal = obtenerHitboxGlobal();
 
     qreal nuevaX = posicionActual.x();
     qreal nuevaY = posicionActual.y();
 
-    // Verificar límite izquierdo
+    // Verificar límite izquierdo.
     if (hitboxGlobal.left() < limitesEscena.left()) {
         nuevaX = limitesEscena.left() - hitboxOffsetX;
     }
 
-    // Verificar límite derecho
+    // Verificar límite derecho.
     if (hitboxGlobal.right() > limitesEscena.right()) {
         nuevaX = limitesEscena.right() - hitboxAncho - hitboxOffsetX;
     }
 
-    // Verificar límite superior
+    // Verificar límite superior.
     if (hitboxGlobal.top() < limitesEscena.top()) {
         nuevaY = limitesEscena.top() - hitboxOffsetY;
     }
 
-    // Verificar límite inferior (solo si no está saltando)
+    // Verificar límite inferior (solo si no está saltando).
     if (!saltando && hitboxGlobal.bottom() > limitesEscena.bottom()) {
         nuevaY = limitesEscena.bottom() - hitboxAlto - hitboxOffsetY;
     }
 
-    // Aplicar nueva posición si cambió
+    // Aplicar nueva posición si ha cambiado.
     if (nuevaX != posicionActual.x() || nuevaY != posicionActual.y()) {
         setPos(nuevaX, nuevaY);
     }
@@ -664,88 +628,89 @@ void Personaje::verificarLimitesPantalla(const QRectF& limitesEscena)
 
 void Personaje::establecerLimitesEscena(const QRectF& limites)
 {
+    // Establece los límites de la escena para el personaje.
     limitesEscena = limites;
-    qDebug() << nombre << "límites de escena establecidos:" << limites;
 }
 
 // ==================== MÉTODOS DE VISUALIZACIÓN DE HITBOX ====================
 
 void Personaje::mostrarHitbox(bool mostrar)
 {
+    // Alterna la visibilidad del hitbox del personaje para depuración.
     hitboxVisible = mostrar;
 
     if (mostrar) {
-        // Crear o actualizar la visualización de hitbox
+        // Crear o actualizar la visualización del hitbox.
         if (!hitboxVisual) {
             hitboxVisual = new QGraphicsRectItem();
 
-            // Configurar apariencia del hitbox - más sutil
-            QPen pen(Qt::red, 1); // Línea roja de 1 píxel (más fina)
-            pen.setStyle(Qt::DashLine); // Línea punteada
+            // Configurar la apariencia del hitbox.
+            QPen pen(Qt::red, 1);
+            pen.setStyle(Qt::DashLine);
             hitboxVisual->setPen(pen);
 
-            // Sin relleno para que sea solo el borde
+            // Sin relleno para el hitbox.
             hitboxVisual->setBrush(Qt::NoBrush);
 
-            // Agregar a la escena si el personaje ya está en una escena
+            // Añadir a la escena si el personaje ya está en una escena.
             if (this->scene()) {
                 this->scene()->addItem(hitboxVisual);
             }
         }
 
-        // Actualizar posición y tamaño del hitbox visual
+        // Actualizar la posición y el tamaño del visual del hitbox.
         actualizarVisualizacionHitbox();
         hitboxVisual->setVisible(true);
 
-        qDebug() << nombre << "hitbox visible activada";
     } else {
-        // Ocultar hitbox
+        // Ocultar el hitbox.
         if (hitboxVisual) {
             hitboxVisual->setVisible(false);
         }
-        qDebug() << nombre << "hitbox visible desactivada";
     }
 }
 
 void Personaje::ocultarHitbox()
 {
+    // Oculta la visualización del hitbox del personaje.
     mostrarHitbox(false);
 }
 
 void Personaje::actualizarVisualizacionHitbox()
 {
+    // Actualiza la posición y el tamaño del rectángulo visual del hitbox.
     if (hitboxVisual && hitboxVisible) {
-        // Actualizar posición y tamaño del rectángulo visual
+        // Actualizar la posición y el tamaño del rectángulo visual.
         QRectF hitboxGlobal = obtenerHitboxGlobal();
         hitboxVisual->setRect(hitboxGlobal);
 
-        // Asegurar que esté en el nivel correcto (por encima del personaje)
+        // Asegurar que esté en el nivel Z correcto (encima del personaje).
         hitboxVisual->setZValue(this->zValue() + 1);
     }
 }
 
 void Personaje::cambiarSpriteConOffset(const QString& direccion, qreal offsetX, qreal offsetY)
 {
+    // Cambia el sprite del personaje sin alterar su posición, permitiendo offsets específicos del sprite.
     QString rutaSprite = ":/Goku/Sprites/" + carpetaSprites + "/" + direccion + ".png";
     QPixmap nuevoSprite(rutaSprite);
 
     if (!nuevoSprite.isNull()) {
-        // Escalar el sprite si es necesario
+        // Escalar el sprite si es necesario.
         if (escalaSprite != 1.0) {
             nuevoSprite = nuevoSprite.scaled(
                 nuevoSprite.width() * escalaSprite,
                 nuevoSprite.height() * escalaSprite,
                 Qt::KeepAspectRatio,
                 Qt::SmoothTransformation
-            );
+                );
         }
 
-        // Cambiar el sprite SIN mover la posición
+        // Cambiar el sprite sin mover la posición.
         setPixmap(nuevoSprite);
 
-        qDebug() << "Sprite con offset cambiado a:" << direccion << "- Offset especificado:" << offsetX << "," << offsetY << "(posición sin cambiar)";
     } else {
-        qDebug() << "No se pudo cargar el sprite:" << rutaSprite;
+        // Manejar el error de carga del sprite.
     }
 }
 
@@ -754,7 +719,8 @@ void Personaje::moverIzquierda(){}
 void Personaje::moverArriba(){}
 void Personaje::moverAbajo(){}
 void Personaje::atacar(){}
-
+void Personaje::iniciarAnimacionEntrada(){}
+void Personaje::actualizarAnimacionEntrada(){}
 
 void Personaje::recibirDanio(int danio){
     vida -= danio;
