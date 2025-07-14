@@ -36,6 +36,7 @@ public:
     virtual void establecerEscala(qreal escala);
     virtual void morir();
     virtual void iniciarAnimacionEntrada();
+    virtual void kiCambiado(int kiActual, int kiMaximo);
 
     // Verifica si el personaje está en la animación de entrada
     bool estaEnAnimacionEntrada() const { return animacionEntradaActiva; }
@@ -183,6 +184,7 @@ signals:
     void personajeMuerto(Personaje* personaje);
     void vidaCambiada(int vidaActual, int vidaMaxima);
     void personajeAtaco(Personaje* atacante);
+
     //void personajeAterrizo(); // Nueva señal para cuando el personaje aterriza
 };
 

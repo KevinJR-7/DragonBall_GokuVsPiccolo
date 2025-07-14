@@ -29,12 +29,10 @@ Rayo::Rayo(QObject *parent)
 
     cargarSprites();
     setScale(5);
-    qDebug() << "Rayo creado como proyectil simple";
 }
 
 Rayo::~Rayo() {
     if (timer) timer->stop();
-    qDebug() << "Rayo destruido";
 }
 
 // ==================== SPRITES ====================

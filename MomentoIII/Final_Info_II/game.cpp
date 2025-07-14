@@ -224,21 +224,12 @@ void game::keyPressEvent(QKeyEvent *e)
             pic->ocultarHitbox();
             Rayo::alternarVisualizacionHitbox();
             GravityBlast::alternarVisualizacionHitbox();
-<<<<<<< HEAD
-
-            qDebug() << "Todos los hitboxes ocultos";
-=======
             Kick::alternarVisualizacionHitbox();
->>>>>>> af87db498d8e2481f35966d5aea5ed90b109716a
         } else {
             pic->mostrarHitbox();
             Rayo::alternarVisualizacionHitbox();
             GravityBlast::alternarVisualizacionHitbox();
-<<<<<<< HEAD
-            qDebug() << "Todos los hitboxes visibles";
-=======
             Kick::alternarVisualizacionHitbox();
->>>>>>> af87db498d8e2481f35966d5aea5ed90b109716a
         }
         break;
     case Qt::Key_B:

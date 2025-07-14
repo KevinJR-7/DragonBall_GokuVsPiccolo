@@ -68,15 +68,11 @@ Goku::Goku(QObject *parent)
     establecerVida(100);
     establecerVelocidad(10);
 
-<<<<<<< HEAD
-    // Configurar física del salto específica para Goku
-    establecerVelocidadSalto(10000.0);      // Goku salta SÚPER alto (aumentado de 50 a 65)
-    establecerFisicaSalto(0.7, 0.03);    // Aún más ligero con menos resistencia
-=======
+
     // Configura la física del salto específica para Goku.
     establecerVelocidadSalto(65.0);
     establecerFisicaSalto(0.7, 0.03);
->>>>>>> af87db498d8e2481f35966d5aea5ed90b109716a
+
 
     // Configura la hitbox y hitbox de salto específicas para Goku.
     establecerHitbox(70, 140, 42, 88);
