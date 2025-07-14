@@ -1,350 +1,87 @@
 #include "kamehameha.h"
 #include "piccolo.h"
 #include <QGraphicsScene>
+#include <QDebug>
 #include <QApplication>
 #include <QGuiApplication>
 #include <QScreen>
 #include <cmath>
 
-// Definir la variable estática
+// ==================== VARIABLE ESTÁTICA ====================
 bool Kamehameha::mostrarHitbox = false;
 
+// ==================== CONSTRUCTOR / DESTRUCTOR ====================
 Kamehameha::Kamehameha(QObject *parent)
-    : Habilidad(parent)
-    , x(0), y(0)
-    , dirX(1), dirY(0)
-    , velocidad(8.0)  // Velocidad por defecto más rápida
-    , alcance(800.0)
-    , distanciaRecorrida(0)
-    , activo(false)
-    , spritesValidos(false)
-    , anchoTotal(150)
-    , altoTotal(50)
-    , usarHameha(false)
-    , contadorAnimacion(0)
-    , daño(20)
-    , hitboxActivo(false)
+    : Habilidad(parent),
+    x(0), y(0),
+    dirX(1), dirY(0),
+    velocidad(8.0),
+    alcance(800.0),
+    distanciaRecorrida(0),
+    activo(false),
+    spritesValidos(false),
+    anchoTotal(150),
+    altoTotal(50),
+    usarHameha(false),
+    daño(20),
+    hitboxActivo(false)
 {
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &Kamehameha::actualizar_timeout);
-    
-    // Timer para la animación intercalada
+
     animacionTimer = new QTimer(this);
-    animacionTimer->setInterval(200); // Cambiar cada 200ms (más lento)
+    animacionTimer->setInterval(200);
     connect(animacionTimer, &QTimer::timeout, this, &Kamehameha::alternarSprites);
-    
-    // Inicializar trayectoria - limitar a 100 puntos para evitar consumo excesivo de memoria
+
     maxPuntosTrayectoria = 100;
     trayectoria.clear();
-    
+
     cargarSprites();
-    
-    // Hacer el Kamehameha más pequeño (2.33x - reducido 1/3 del tamaño anterior)
     setScale(2.33);
-    
+
     qDebug() << "Kamehameha creado como proyectil simple";
 }
 
 Kamehameha::~Kamehameha()
 {
-    if (timer) {
-        timer->stop();
-    }
+    if (timer) timer->stop();
     qDebug() << "Kamehameha destruido";
 }
 
+// ==================== SPRITES Y ANIMACIÓN ====================
 void Kamehameha::cargarSprites()
 {
-    // Cargar sprites del Kamehameha (set 1)
     hame1 = QPixmap(":/Goku/Sprites/goku/hame1.png");
     hame2 = QPixmap(":/Goku/Sprites/goku/hame2.png");
     hame3 = QPixmap(":/Goku/Sprites/goku/hame3.png");
-    
-    // Cargar sprites del Kamehameha (set 2)
+
     hameha1 = QPixmap(":/Goku/Sprites/goku/hameha1.png");
     hameha2 = QPixmap(":/Goku/Sprites/goku/hameha2.png");
     hameha3 = QPixmap(":/Goku/Sprites/goku/hameha3.png");
-    
-    // Verificar si los sprites se cargaron correctamente
+
     bool hameValidos = !hame1.isNull() && !hame2.isNull() && !hame3.isNull();
     bool hamehaValidos = !hameha1.isNull() && !hameha2.isNull() && !hameha3.isNull();
-    
+
     if (!hameValidos || !hamehaValidos) {
-        qDebug() << "Advertencia: Algunos sprites del Kamehameha no se cargaron, usando placeholders";
-        
-        // Placeholders para hame
-        if (hame1.isNull()) {
-            hame1 = QPixmap(50, 25);
-            hame1.fill(Qt::blue);
-        }
-        if (hame2.isNull()) {
-            hame2 = QPixmap(40, 25);
-            hame2.fill(Qt::yellow);
-        }
-        if (hame3.isNull()) {
-            hame3 = QPixmap(60, 25);
-            hame3.fill(Qt::red);
-        }
-        
-        // Placeholders para hameha
-        if (hameha1.isNull()) {
-            hameha1 = QPixmap(50, 25);
-            hameha1.fill(Qt::cyan);
-        }
-        if (hameha2.isNull()) {
-            hameha2 = QPixmap(40, 25);
-            hameha2.fill(Qt::magenta);
-        }
-        if (hameha3.isNull()) {
-            hameha3 = QPixmap(60, 25);
-            hameha3.fill(Qt::green);
-        }
-        
+        if (hame1.isNull()) hame1 = QPixmap(50, 25); hame1.fill(Qt::blue);
+        if (hame2.isNull()) hame2 = QPixmap(40, 25); hame2.fill(Qt::yellow);
+        if (hame3.isNull()) hame3 = QPixmap(60, 25); hame3.fill(Qt::red);
+        if (hameha1.isNull()) hameha1 = QPixmap(50, 25); hameha1.fill(Qt::cyan);
+        if (hameha2.isNull()) hameha2 = QPixmap(40, 25); hameha2.fill(Qt::magenta);
+        if (hameha3.isNull()) hameha3 = QPixmap(60, 25); hameha3.fill(Qt::green);
         spritesValidos = false;
     } else {
         spritesValidos = true;
-        qDebug() << "Sprites del Kamehameha (hame y hameha) cargados correctamente";
     }
-    
-    // Calcular dimensiones del rayo compuesto con factor de escala
-    float factorEscala = 0.35f; // Hacer el Kamehameha aún más pequeño
+
+    float factorEscala = 0.35f;
     anchoTotal = (hame1.width() + hame2.width() + hame3.width()) * factorEscala;
     altoTotal = qMax(hame1.height(), qMax(hame2.height(), hame3.height())) * factorEscala;
 }
 
-void Kamehameha::crear(float x, float y, float dirX, float dirY, float velocidad, float alcance)
-{
-    this->x = x;
-    this->y = y;
-    this->dirX = dirX;
-    this->dirY = dirY;
-    this->velocidad = velocidad;
-    this->alcance = alcance;
-    this->distanciaRecorrida = 0;
-    this->activo = true;
-    
-    // Activar el hitbox
-    hitboxActivo = true;
-    objetosGolpeados.clear();
-    
-    // Posicionar el proyectil
-    setPos(x, y);
-    setZValue(100);
-    
-    // Iniciar el timer de actualización
-    timer->start(32); // 30 FPS (más lento que 60 FPS)
-    
-    // Iniciar la animación intercalada
-    iniciarAnimacion();
-    
-    qDebug() << "Kamehameha creado en posición:" << x << "," << y 
-             << "dirección:" << dirX << "," << dirY 
-             << "velocidad:" << velocidad;
-}
-
-void Kamehameha::mover()
-{
-    if (!activo) return;
-    
-    // Mover el proyectil
-    x += dirX * velocidad;
-    y += dirY * velocidad;
-    
-    // Actualizar posición en la escena
-    setPos(x, y);
-    
-    // Agregar punto a la trayectoria para visualización
-    trayectoria.append(QPointF(x, y));
-    
-    // Limitar el tamaño de la trayectoria
-    if (trayectoria.size() > maxPuntosTrayectoria) {
-        trayectoria.removeFirst();
-    }
-    
-    // Actualizar distancia recorrida
-    distanciaRecorrida += velocidad;
-    
-    // Verificar colisiones si el hitbox está activo
-    if (hitboxActivo) {
-        verificarColisiones();
-    }
-    
-    // Verificar si ha alcanzado el alcance máximo
-    if (distanciaRecorrida >= alcance) {
-        destruir();
-        return;
-    }
-    
-    // Verificar límites de pantalla (opcional)
-    QScreen *screen = QGuiApplication::primaryScreen();
-    if (screen) {
-        QRect screenRect = screen->geometry();
-        if (x < 0 || x > screenRect.width() || y < 0 || y > screenRect.height()) {
-            destruir();
-            return;
-        }
-    }
-}
-
-void Kamehameha::actualizar()
-{
-    mover();
-}
-
-void Kamehameha::actualizar_timeout()
-{
-    actualizar();
-}
-
-void Kamehameha::dibujar(QPainter *painter)
-{
-    if (!activo) return;
-    
-    construirRayo();
-}
-
-void Kamehameha::construirRayo()
-{
-    // Este método se encarga de construir el rayo compuesto
-    // La lógica de dibujo está en paint()
-}
-
-bool Kamehameha::estaActivo() const
-{
-    return activo;
-}
-
-void Kamehameha::destruir()
-{
-    activo = false;
-    timer->stop();
-    
-    // Detener la animación intercalada
-    detenerAnimacion();
-    
-    // Limpiar trayectoria
-    trayectoria.clear();
-    
-    // Remover de la escena
-    if (scene()) {
-        scene()->removeItem(this);
-    }
-    
-    qDebug() << "Kamehameha destruido";
-}
-
-QRectF Kamehameha::boundingRect() const
-{
-    // Usar las dimensiones calculadas del rayo compuesto
-    return QRectF(0, 0, anchoTotal, altoTotal);
-}
-
-void Kamehameha::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-    Q_UNUSED(option)
-    Q_UNUSED(widget)
-    
-    if (!activo) {
-        return;
-    }
-    
-    float factorEscala = 0.35f; // Hacer el Kamehameha aún más pequeño
-    qreal posX = 0;
-    qreal centroY = altoTotal / 2.0; // Centro vertical del rayo
-    
-    // Seleccionar qué set de sprites usar (hame o hameha)
-    QPixmap sprite1 = usarHameha ? hameha1 : hame1;
-    QPixmap sprite2 = usarHameha ? hameha2 : hame2;
-    QPixmap sprite3 = usarHameha ? hameha3 : hame3;
-    
-    // Dibujar sprite1 (inicio del rayo)
-    if (!sprite1.isNull()) {
-        QPixmap sprite1Scaled = sprite1.scaled(sprite1.width() * factorEscala, sprite1.height() * factorEscala, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        qreal y = centroY - sprite1Scaled.height() / 2.0; // Centrar verticalmente
-        painter->drawPixmap(posX, y, sprite1Scaled);
-        posX += sprite1Scaled.width();
-    } else {
-        qreal anchoPlaceholder = 50 * factorEscala;
-        qreal altoPlaceholder = 25 * factorEscala;
-        qreal y = centroY - altoPlaceholder / 2.0; // Centrar placeholder
-        QColor colorPlaceholder = usarHameha ? Qt::cyan : Qt::blue;
-        painter->fillRect(posX, y, anchoPlaceholder, altoPlaceholder, colorPlaceholder);
-        posX += anchoPlaceholder;
-    }
-    
-    // Dibujar sprite2 (cuerpo del rayo)
-    if (!sprite2.isNull()) {
-        QPixmap sprite2Scaled = sprite2.scaled(sprite2.width() * factorEscala, sprite2.height() * factorEscala, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        qreal y = centroY - sprite2Scaled.height() / 2.0; // Centrar verticalmente
-        painter->drawPixmap(posX, y, sprite2Scaled);
-        posX += sprite2Scaled.width();
-    } else {
-        qreal anchoPlaceholder = 40 * factorEscala;
-        qreal altoPlaceholder = 25 * factorEscala;
-        qreal y = centroY - altoPlaceholder / 2.0; // Centrar placeholder
-        QColor colorPlaceholder = usarHameha ? Qt::magenta : Qt::yellow;
-        painter->fillRect(posX, y, anchoPlaceholder, altoPlaceholder, colorPlaceholder);
-        posX += anchoPlaceholder;
-    }
-    
-    // Dibujar sprite3 (final del rayo)
-    if (!sprite3.isNull()) {
-        QPixmap sprite3Scaled = sprite3.scaled(sprite3.width() * factorEscala, sprite3.height() * factorEscala, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        qreal y = centroY - sprite3Scaled.height() / 2.0; // Centrar verticalmente
-        painter->drawPixmap(posX, y, sprite3Scaled);
-    } else {
-        qreal anchoPlaceholder = 60 * factorEscala;
-        qreal altoPlaceholder = 25 * factorEscala;
-        qreal y = centroY - altoPlaceholder / 2.0; // Centrar placeholder
-        QColor colorPlaceholder = usarHameha ? Qt::green : Qt::red;
-        painter->fillRect(posX, y, anchoPlaceholder, altoPlaceholder, colorPlaceholder);
-    }
-    
-    // Dibujar el hitbox si está habilitado con la tecla H
-    if (mostrarHitbox && hitboxActivo) {
-        QPen penHitbox(Qt::red, 2, Qt::DashLine);
-        painter->setPen(penHitbox);
-        painter->setBrush(Qt::NoBrush);
-        
-        float ancho = anchoTotal;
-        float alto = altoTotal * 0.85f + 1.0f; // Aumentar altura 1 píxel más hacia abajo igual que en getHitbox()
-        float offsetY = altoTotal * 0.15f - 1.0f; // Subir hitbox 1 píxel igual que en getHitbox()
-        
-        painter->drawRect(0, offsetY, ancho, alto);
-        qDebug() << "Hitbox dibujado - visible con tecla H (1 píxel más alto hacia abajo)";
-    }
-    
-    // Visualizar la trayectoria del Kamehameha si está habilitada la visualización de hitbox
-    if (mostrarHitbox && !trayectoria.isEmpty() && trayectoria.size() > 1) {
-        // Configurar el pincel para la línea de trayectoria del Kamehameha
-        QPen penTrayectoria;
-        penTrayectoria.setColor(Qt::green);
-        penTrayectoria.setWidth(2);
-        penTrayectoria.setStyle(Qt::DashLine);
-        painter->setPen(penTrayectoria);
-        
-        // Dibujar líneas conectando todos los puntos de la trayectoria
-        for (int i = 0; i < trayectoria.size() - 1; ++i) {
-            QPointF puntoInicio = mapFromScene(trayectoria[i]);
-            QPointF puntoFin = mapFromScene(trayectoria[i + 1]);
-            painter->drawLine(puntoInicio, puntoFin);
-        }
-        
-        // Conectar el último punto de la trayectoria con la posición actual
-        if (!trayectoria.isEmpty()) {
-            QPointF ultimoPunto = mapFromScene(trayectoria.last());
-            QPointF posicionActual = QPointF(0, 0); // Posición relativa al item
-            painter->drawLine(ultimoPunto, posicionActual);
-        }
-    }
-    
-    qDebug() << "Kamehameha dibujado con sprites" << (usarHameha ? "hameha" : "hame") << "- ancho total:" << anchoTotal << "alto total:" << altoTotal;
-}
-
 void Kamehameha::iniciarAnimacion()
 {
-    usarHameha = false; // Empezar con hame
-    contadorAnimacion = 0;
+    usarHameha = false;
     animacionTimer->start();
     qDebug() << "Animación intercalada iniciada";
 }
@@ -359,80 +96,168 @@ void Kamehameha::detenerAnimacion()
 
 void Kamehameha::alternarSprites()
 {
-    usarHameha = !usarHameha; // Alternar entre hame y hameha
-    contadorAnimacion++;
-    
-    // Forzar una actualización visual
-    update();
-    
-    qDebug() << "Sprites alternados - usando" << (usarHameha ? "hameha" : "hame") << "frame:" << contadorAnimacion;
+    usarHameha = !usarHameha;
+    update(); // fuerza repaint
 }
 
+// ==================== FÍSICA Y MOVIMIENTO ====================
+void Kamehameha::crear(float x, float y, float dirX, float dirY, float velocidad, float alcance)
+{
+    this->x = x; this->y = y;
+    this->dirX = dirX; this->dirY = dirY;
+    this->velocidad = velocidad;
+    this->alcance = alcance;
+    this->distanciaRecorrida = 0;
+    this->activo = true;
+
+    hitboxActivo = true;
+    objetosGolpeados.clear();
+
+    setPos(x, y);
+    setZValue(100);
+
+    timer->start(32);
+    iniciarAnimacion();
+}
+
+void Kamehameha::mover()
+{
+    if (!activo) return;
+
+    x += dirX * velocidad;
+    y += dirY * velocidad;
+    setPos(x, y);
+
+    trayectoria.append(QPointF(x, y));
+    if (trayectoria.size() > maxPuntosTrayectoria)
+        trayectoria.removeFirst();
+
+    distanciaRecorrida += velocidad;
+
+    if (hitboxActivo) verificarColisiones();
+    if (distanciaRecorrida >= alcance) destruir();
+}
+
+void Kamehameha::actualizar()
+{
+    mover();
+}
+
+void Kamehameha::actualizar_timeout()
+{
+    actualizar();
+}
+
+bool Kamehameha::estaActivo() const
+{
+    return activo;
+}
+
+void Kamehameha::destruir()
+{
+    activo = false;
+    timer->stop();
+    detenerAnimacion();
+    trayectoria.clear();
+    if (scene()) scene()->removeItem(this);
+    qDebug() << "Kamehameha destruido";
+}
+
+// ==================== INTERFAZ HABILIDAD ====================
 void Kamehameha::iniciar(QPointF posicionInicial, QPointF direccion)
 {
-    qDebug() << "Kamehameha::iniciar llamado con posición:" << posicionInicial << "dirección:" << direccion;
-    
-    // Convertir a nuestro sistema de coordenadas
     float x = posicionInicial.x();
     float y = posicionInicial.y();
-    
-    // Normalizar la dirección
-    float magnitude = sqrt(direccion.x() * direccion.x() + direccion.y() * direccion.y());
+
+    float magnitude = std::sqrt(direccion.x() * direccion.x() + direccion.y() * direccion.y());
     float dirX = (magnitude > 0) ? direccion.x() / magnitude : 1.0f;
     float dirY = (magnitude > 0) ? direccion.y() / magnitude : 0.0f;
-    
-    // Usar valores por defecto para velocidad y alcance
-    float velocidad = 8.0f;  // Velocidad más rápida
+
+    float velocidad = 8.0f;
     float alcance = 600.0f;
-    
-    // Llamar al método crear existente
+
     crear(x, y, dirX, dirY, velocidad, alcance);
 }
 
 void Kamehameha::detener()
 {
-    qDebug() << "Kamehameha::detener llamado";
     destruir();
 }
 
-// ==================== SISTEMA DE HITBOX ====================
+// ==================== INTERFAZ QGRAPHICSITEM ====================
+QRectF Kamehameha::boundingRect() const
+{
+    return QRectF(0, 0, anchoTotal, altoTotal);
+}
 
+void Kamehameha::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
+{
+    if (!activo) return;
+
+    float factorEscala = 0.35f;
+    qreal posX = 0;
+    qreal centroY = altoTotal / 2.0;
+
+    QPixmap sprite1 = usarHameha ? hameha1 : hame1;
+    QPixmap sprite2 = usarHameha ? hameha2 : hame2;
+    QPixmap sprite3 = usarHameha ? hameha3 : hame3;
+
+    auto dibujar = [&](QPixmap &sprite, QColor colorPlaceholder, qreal anchoPlaceholder) {
+        if (!sprite.isNull()) {
+            QPixmap scaled = sprite.scaled(sprite.width() * factorEscala, sprite.height() * factorEscala, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            qreal y = centroY - scaled.height() / 2.0;
+            painter->drawPixmap(posX, y, scaled);
+            posX += scaled.width();
+        } else {
+            qreal alto = 25 * factorEscala;
+            qreal y = centroY - alto / 2.0;
+            painter->fillRect(posX, y, anchoPlaceholder, alto, colorPlaceholder);
+            posX += anchoPlaceholder;
+        }
+    };
+
+    dibujar(sprite1, usarHameha ? Qt::cyan : Qt::blue, 50 * factorEscala);
+    dibujar(sprite2, usarHameha ? Qt::magenta : Qt::yellow, 40 * factorEscala);
+    dibujar(sprite3, usarHameha ? Qt::green : Qt::red, 60 * factorEscala);
+
+    if (mostrarHitbox && hitboxActivo) {
+        QPen penHitbox(Qt::red, 2, Qt::DashLine);
+        painter->setPen(penHitbox);
+        painter->setBrush(Qt::NoBrush);
+
+        float alto = altoTotal * 0.85f + 1.0f;
+        float offsetY = altoTotal * 0.15f - 1.0f;
+        painter->drawRect(0, offsetY, anchoTotal, alto);
+    }
+
+    if (mostrarHitbox && trayectoria.size() > 1) {
+        QPen pen(Qt::green, 2, Qt::DashLine);
+        painter->setPen(pen);
+        for (int i = 0; i < trayectoria.size() - 1; ++i)
+            painter->drawLine(mapFromScene(trayectoria[i]), mapFromScene(trayectoria[i + 1]));
+        painter->drawLine(mapFromScene(trayectoria.last()), QPointF(0, 0));
+    }
+}
+
+// ==================== HITBOX Y COLISIONES ====================
 QRectF Kamehameha::getHitbox() const
 {
-    if (!activo || !hitboxActivo) {
-        return QRectF();
-    }
-    
-    // El hitbox cubre todo el área del Kamehameha con altura aumentada
-    float factorEscala = 0.35f; // Usar el mismo factor de escala que los sprites
-    float ancho = anchoTotal;
-    float alto = altoTotal * 0.85f + 1.0f; // Aumentar altura 1 píxel más hacia abajo
-    
-    // Posición global del hitbox (subido otra vez)
-    QPointF posicionGlobal = pos();
-    float offsetY = altoTotal * 0.15f - 1.0f; // Subir hitbox 1 píxel hacia arriba
-    
-    return QRectF(posicionGlobal.x(), posicionGlobal.y() + offsetY, ancho, alto);
+    if (!activo || !hitboxActivo) return QRectF();
+
+    float alto = altoTotal * 0.85f + 1.0f;
+    float offsetY = altoTotal * 0.15f - 1.0f;
+    return QRectF(pos().x(), pos().y() + offsetY, anchoTotal, alto);
 }
 
 void Kamehameha::verificarColisiones()
 {
     if (!scene() || !hitboxActivo) return;
-    
-    // Obtener el hitbox del Kamehameha
-    QRectF hitboxKamehameha = getHitbox();
-    
-    // Obtener todos los items en la escena que colisionan con el hitbox
-    QList<QGraphicsItem*> itemsColisionando = scene()->items(hitboxKamehameha);
-    
-    for (QGraphicsItem* item : itemsColisionando) {
-        // No colisionar consigo mismo
-        if (item == this) continue;
-        
-        // No golpear objetos que ya fueron golpeados
-        if (objetosGolpeados.contains(item)) continue;
-        
-        // Verificar si realmente colisiona
+
+    QRectF hitboxK = getHitbox();
+    QList<QGraphicsItem*> items = scene()->items(hitboxK);
+
+    for (QGraphicsItem* item : items) {
+        if (item == this || objetosGolpeados.contains(item)) continue;
         if (colisionaCon(item)) {
             procesarColision(item);
             objetosGolpeados.append(item);
@@ -442,39 +267,19 @@ void Kamehameha::verificarColisiones()
 
 bool Kamehameha::colisionaCon(QGraphicsItem* item)
 {
-    if (!item || !hitboxActivo) return false;
-    
-    // Obtener los rectángulos de colisión
-    QRectF hitboxKamehameha = getHitbox();
-    QRectF boundingRectItem = item->sceneBoundingRect();
-    
-    // Verificar intersección
-    return hitboxKamehameha.intersects(boundingRectItem);
+    return hitboxActivo && getHitbox().intersects(item->sceneBoundingRect());
 }
 
 void Kamehameha::procesarColision(QGraphicsItem* item)
 {
-    qDebug() << "¡Kamehameha colisionó con un objeto!";
-    
-    // Si el item es Piccolo, aplicar daño
     if (Piccolo* piccolo = dynamic_cast<Piccolo*>(item)) {
-        piccolo->recibirDanio(daño); // Usa el valor de daño del kame
-        qDebug() << "Kame causó" << daño << "puntos de daño a Piccolo";
+        piccolo->recibirDanio(daño);
         destruir();
-        return;
     }
-
-    // Puedes agregar más lógica para otros tipos de objetos aquí
-    
-    // Efectos visuales, sonidos, etc.
-    qDebug() << "Procesando colisión con objeto en posición:" << item->pos();
-    
-    // Opcional: destruir el Kamehameha después de golpear algo
-    // destruir();
 }
 
+// ==================== UTILIDADES ====================
 void Kamehameha::alternarVisualizacionHitbox()
 {
     mostrarHitbox = !mostrarHitbox;
-    qDebug() << "Visualización de hitbox del Kamehameha:" << (mostrarHitbox ? "ACTIVADA" : "DESACTIVADA");
 }

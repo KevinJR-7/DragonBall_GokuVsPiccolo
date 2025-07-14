@@ -144,7 +144,7 @@ void Kick::verificarColisiones()
 void Kick::alternarVisualizacionHitbox()
 {
     mostrarHitbox = !mostrarHitbox;
-    qDebug() << "Visualización de hitbox del GBlast:" << (mostrarHitbox ? "ACTIVADA" : "DESACTIVADA");
+
 }
 
 QRectF Kick::boundingRect() const

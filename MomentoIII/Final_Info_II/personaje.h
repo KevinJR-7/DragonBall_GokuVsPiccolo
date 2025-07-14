@@ -36,6 +36,7 @@ public:
     virtual void establecerEscala(qreal escala);
     virtual void morir();
     virtual void iniciarAnimacionEntrada();
+    virtual void kiCambiado(int kiActual, int kiMaximo);
 
     // Verifica si el personaje está en la animación de entrada
     bool estaEnAnimacionEntrada() const { return animacionEntradaActiva; }
@@ -180,12 +181,11 @@ protected slots:
     virtual void actualizarAnimacionEntrada();
 
 signals:
-    // Señales que emite el personaje
-    void personajeMuerto(Personaje* personaje); // Emitida cuando el personaje muere
-    void vidaCambiada(int vidaActual, int vidaMaxima); // Emitida cuando la vida del personaje cambia
-    void personajeAtaco(Personaje* atacante); // Emitida cuando el personaje ataca
-    void personajeAterrizo(); // Nueva señal para cuando el personaje aterriza
-    virtual void kiCambiado(int kiActual, int kiMaximo); // Emitida cuando el ki del personaje cambia
+    void personajeMuerto(Personaje* personaje);
+    void vidaCambiada(int vidaActual, int vidaMaxima);
+    void personajeAtaco(Personaje* atacante);
+
+    //void personajeAterrizo(); // Nueva señal para cuando el personaje aterriza
 };
 
 #endif // PERSONAJE_H

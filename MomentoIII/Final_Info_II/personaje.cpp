@@ -434,8 +434,7 @@ void Personaje::actualizarSalto()
             // Cambiar inmediatamente al sprite base1 al aterrizar.
             cambiarSprite("base1");
 
-            // Emitir señal de aterrizaje.
-            emit personajeAterrizo();
+
 
             // Reiniciar la animación de inactividad si no se está moviendo.
             if (!moviendose) {
@@ -721,6 +720,7 @@ void Personaje::moverAbajo(){}
 void Personaje::atacar(){}
 void Personaje::iniciarAnimacionEntrada(){}
 void Personaje::actualizarAnimacionEntrada(){}
+void Personaje::kiCambiado(int kiActual = 0, int kiMaximo = 0) {}
 
 void Personaje::recibirDanio(int danio){
     vida -= danio;

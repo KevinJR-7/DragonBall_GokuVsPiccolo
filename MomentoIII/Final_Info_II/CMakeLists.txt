@@ -30,6 +30,7 @@ add_executable(Final_Info_II
   gravityblast.h gravityblast.cpp
   kick.h kick.cpp
 
+
 )
 target_link_libraries(Final_Info_II
     Qt${QT_VERSION_MAJOR}::Core

@@ -10,85 +10,80 @@
 class Kamehameha : public Habilidad
 {
     Q_OBJECT
-    
+
 public:
     explicit Kamehameha(QObject *parent = nullptr);
     ~Kamehameha();
-    
-    // Sistema simple de proyectil
-    void crear(float x, float y, float dirX, float dirY, float velocidad, float alcance);
-    void mover();
-    void actualizar() override;
-    void dibujar(QPainter *painter);
-    bool estaActivo() const;
-    void destruir();
-    
-    // Implementación de métodos virtuales puros de Habilidad
+
+    // Métodos sobrescritos de Habilidad
     void iniciar(QPointF posicionInicial, QPointF direccion) override;
     void detener() override;
-    
-    // QGraphicsItem implementation
+    void actualizar() override;
+
+    // Crear
+    void crear(float x, float y, float dirX, float dirY, float velocidad, float alcance);
+
+    // QGraphicsItem
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
-    
-    // Métodos específicos del Kamehameha
-    void establecerPotencia(int potencia);
-    void establecerSegmentos(int segmentos);
-    
-    // Sistema de hitbox y colisiones
+
+    // Control de estado
+    bool estaActivo() const;
+
+    // Hitbox y colisiones
     QRectF getHitbox() const;
     void verificarColisiones();
     bool colisionaCon(QGraphicsItem* item);
     void procesarColision(QGraphicsItem* item);
-    
-    // Método estático para alternar visualización del hitbox
+
+    // Visualización debug
     static void alternarVisualizacionHitbox();
-    
+
 private:
-    // Variables básicas del proyectil
+    // ==================== FÍSICA ====================
+
+    void mover();
+    void destruir();
+
     float x, y;
     float dirX, dirY;
     float velocidad;
     float alcance;
     float distanciaRecorrida;
     bool activo;
-    QTimer *timer;
-    
-    // Sprites del kamehameha
-    QPixmap hame1, hame2, hame3;
-    QPixmap hameha1, hameha2, hameha3;
-    bool spritesValidos;
-    
-    // Configuración del rayo compuesto
-    int anchoTotal;
-    int altoTotal;
-    
-    // Sistema de animación intercalada
-    bool usarHameha; // true = usar hameha, false = usar hame
-    QTimer *animacionTimer;
-    int contadorAnimacion;
-    
-    // Variables del hitbox
-    QRectF hitbox;
-    int daño;
-    bool hitboxActivo;
-    QList<QGraphicsItem*> objetosGolpeados; // Para evitar múltiples hits del mismo objeto
-    
-    // Variable estática para mostrar hitbox (controlada por tecla H)
-    static bool mostrarHitbox;
-    
-    // Variables para trazado de trayectoria
-    QList<QPointF> trayectoria; // Lista de puntos de la trayectoria
-    int maxPuntosTrayectoria; // Máximo número de puntos a guardar
-    
+
+    // ==================== ANIMACIÓN Y SPRITES ====================
     void cargarSprites();
-    void construirRayo();
     void iniciarAnimacion();
     void detenerAnimacion();
-    
+    void alternarSprites();
+
+    QPixmap hame1, hame2, hame3;
+    QPixmap hameha1, hameha2, hameha3;
+    bool usarHameha;
+    bool spritesValidos;
+    QTimer *animacionTimer;
+
+    int anchoTotal;
+    int altoTotal;
+
+    // ==================== HITBOX Y COLISIONES ====================
+    QRectF hitbox;
+    bool hitboxActivo;
+    QList<QGraphicsItem*> objetosGolpeados;
+    int daño;
+
+    static bool mostrarHitbox;
+
+    // ==================== TRAZADO DE TRAYECTORIA ====================
+    QList<QPointF> trayectoria;
+    int maxPuntosTrayectoria;
+
+    // ==================== ACTUALIZACIÓN ====================
+    QTimer *timer;
+
 private slots:
     void actualizar_timeout();
-    void alternarSprites(); // Nuevo slot para alternar sprites
 };
 
 #endif // KAMEHAMEHA_H

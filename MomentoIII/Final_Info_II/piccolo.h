@@ -9,6 +9,7 @@
 #include "gravityblast.h"
 #include "kick.h"
 
+
 // Declaración anticipada para evitar dependencia cíclica, ya que Goku necesita saber de Piccolo y viceversa
 class Goku;
 
