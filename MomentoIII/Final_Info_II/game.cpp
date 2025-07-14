@@ -19,7 +19,9 @@ game::game(QWidget *parent)
     musicPlayer = new QMediaPlayer(this);
     audioOutput = new QAudioOutput(this);
     musicPlayer->setAudioOutput(audioOutput);
-    musicPlayer->setSource(QUrl("../../sonidos/nivel1.wav"));
+    QString rutaBase = QCoreApplication::applicationDirPath();
+    QString rutaSonido = rutaBase + "/sonidos/nivel1.wav";
+    musicPlayer->setSource(QUrl::fromLocalFile(rutaSonido));
     musicPlayer->setLoops(QMediaPlayer::Infinite);
     audioOutput->setVolume(1.0);
 
@@ -469,7 +471,10 @@ void game::manejarDerrotaPiccolo()
 
                 // Cambiar música
                 musicPlayer->stop();
-                musicPlayer->setSource(QUrl("../../sonidos/nivel2.wav"));
+
+                QString rutaBase = QCoreApplication::applicationDirPath();
+                QString rutaSonido2 = rutaBase + "/sonidos/nivel2.wav";
+                musicPlayer->setSource(QUrl::fromLocalFile(rutaSonido2));
                 musicPlayer->play();
 
                 // Efecto de fade-in
