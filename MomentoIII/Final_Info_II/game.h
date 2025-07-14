@@ -33,10 +33,6 @@ public:
     // Método para salto direccional
     void saltoDireccional();
 
-    // Método para debug de posicionamiento
-    void agregarGrillaDebug();
-    void alternarGrillaDebug();
-
 public slots:
     //Actualizar barra vida
     void actualizarBarraVida(int vidaActual, int vidaMaxima);
@@ -73,21 +69,18 @@ private:
     bool teclaA_presionada = false;
     bool teclaW_presionada = false;
     bool teclaS_presionada = false;
-    bool teclaK_presionada = false; // Para recarga de ki
-    bool teclaJ_presionada = false; // Para Kamehameha
-    bool teclaL_presionada = false; // Para animación de ráfaga
+    bool teclaK_presionada = false;
+    bool teclaJ_presionada = false;
+    bool teclaL_presionada = false;
 
+    // Simular teclas presionadas Piccolo
     bool piccoloD_presionada = false;
     bool piccoloA_presionada = false;
     bool piccoloW_presionada = false;
     bool piccoloS_presionada = false;
     bool piccoloK_presionada = false;
-    bool piccoloJ_presionada = false; // Para Kamehameha
-    bool piccoloL_presionada = false; // Para Blast
-    
-    // Variables para grilla de debug
-    QList<QGraphicsLineItem*> lineasGrilla;
-    bool grillaVisible = true;
+    bool piccoloJ_presionada = false;
+    bool piccoloL_presionada = false;
     
     // Variables para fondo
     QGraphicsPixmapItem* fondoItem;
